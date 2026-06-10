@@ -1,0 +1,250 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../stores/useAuthStore'
+import { useTrabajoStore } from '../stores/useTrabajoStore'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import ProtectedRoute from '../components/ProtectedRoute'
+
+const quickActions = [
+  {
+    title: 'Publicar boletín',
+    description: 'Preparar y liberar un boletín institucional desde el flujo editorial.',
+  },
+  {
+    title: 'Revisar envíos',
+    description: 'Validar metadatos, formato y estado de los documentos en cola.',
+  },
+  {
+    title: 'Gestionar normativas',
+    description: 'Actualizar resoluciones, reglamentos y documentos de referencia.',
+  },
+]
+
+const activityFeed = [
+  {
+    label: 'Nueva carga recibida',
+    detail: 'Se registró un documento académico pendiente de revisión.',
+    time: 'Hace 12 min',
+  },
+  {
+    label: 'Boletín programado',
+    detail: 'La publicación institucional quedó lista para difusión.',
+    time: 'Hace 1 h',
+  },
+  {
+    label: 'Normativa actualizada',
+    detail: 'Se agregó una nueva versión en el repositorio normativo.',
+    time: 'Hace 3 h',
+  },
+]
+
+const moduleStatus = [
+  { name: 'Documentos publicados', value: '92%', tone: 'bg-emerald-500' },
+  { name: 'Revisiones pendientes', value: '4', tone: 'bg-amber-500' },
+  { name: 'Normativas vigentes', value: '18', tone: 'bg-sky-500' },
+  { name: 'Usuarios activos', value: '24', tone: 'bg-indigo-500' },
+]
+
+export default function Admin() {
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+
+  const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
+
+  useEffect(() => {
+    fetchCategorias()
+    fetchTrabajos()
+  }, [])
+
+  const all = mapToDocumentItems()
+  const publishedDocuments = all.filter((document) => document.status === 'published')
+  const draftDocuments = all.filter((document) => document.status === 'draft')
+  const archivedDocuments = all.filter((document) => document.status === 'archived')
+
+  function handleLogout() {
+    logout()
+    navigate('/')
+  }
+
+  return (
+    <ProtectedRoute roles={["admin"]}>
+      <section className="space-y-6 pb-6">
+        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(135deg,rgba(11,87,164,0.92),rgba(10,31,68,0.98))] p-6 text-white shadow-[0_35px_80px_-38px_rgba(11,87,164,0.75)] sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl space-y-4">
+              <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white/80">
+                Panel administrativo
+              </div>
+              <div>
+                <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Centro de control para normativa, publicaciones y envíos</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
+                  Vista operativa para supervisar el repositorio, priorizar revisiones y mantener alineados los módulos
+                  institucionales.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-sm font-medium text-white/80">
+                <span className="rounded-full bg-white/12 px-4 py-2">{publishedDocuments.length} documentos publicados</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">{draftDocuments.length} en borrador</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">1 administradores</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-[1.75rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/65">Sesión activa</p>
+                <p className="mt-2 text-lg font-bold">{user?.name}</p>
+                <p className="text-sm text-white/72">{user?.email} · {user?.role}</p>
+              </div>
+              <Button variant="secondary" onClick={handleLogout} className="justify-center border-white/20 bg-white text-slate-900 hover:bg-slate-100">
+                Cerrar sesión
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-unefa/10 bg-white/95">
+            <p className="text-sm font-medium text-slate-500">Documentos totales</p>
+            <p className="mt-3 text-4xl font-black text-slate-900">{loading ? '...' : all.length}</p>
+            <p className="mt-2 text-sm text-slate-600">Contenido académico y editorial disponible en el repositorio.</p>
+          </Card>
+          <Card className="border-emerald-100 bg-emerald-50/70">
+            <p className="text-sm font-medium text-emerald-700">Publicados</p>
+            <p className="mt-3 text-4xl font-black text-emerald-700">{publishedDocuments.length}</p>
+            <p className="mt-2 text-sm text-emerald-900/70">Listos para consulta pública o institucional.</p>
+          </Card>
+          <Card className="border-amber-100 bg-amber-50/70">
+            <p className="text-sm font-medium text-amber-700">Borradores</p>
+            <p className="mt-3 text-4xl font-black text-amber-700">{draftDocuments.length}</p>
+            <p className="mt-2 text-sm text-amber-900/70">Pendientes de validación antes de su difusión.</p>
+          </Card>
+          <Card className="border-slate-200 bg-slate-50/70">
+            <p className="text-sm font-medium text-slate-600">Usuarios activos</p>
+            <p className="mt-3 text-4xl font-black text-slate-900">{user ? '1' : '0'}</p>
+            <p className="mt-2 text-sm text-slate-600">Administración, docencia y futuras cuentas del sistema.</p>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
+          <div className="space-y-6">
+            <Card className="border-white/80 bg-white/90">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Accesos rápidos</p>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900">Operaciones frecuentes del admin</h3>
+                </div>
+                <p className="max-w-md text-sm leading-6 text-slate-600">
+                  Estos bloques sirven como atajos visuales para las tareas que más se repiten en un panel de control.
+                </p>
+              </div>
+
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                {quickActions.map((action) => (
+                  <article key={action.title} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 transition hover:-translate-y-0.5 hover:border-unefa/20 hover:bg-white hover:shadow-[0_16px_40px_-28px_rgba(11,87,164,0.3)]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(11,87,164,0.12),rgba(7,58,106,0.08))] text-lg font-black text-unefa-dark">
+                      •
+                    </div>
+                    <h4 className="mt-4 text-base font-bold text-slate-900">{action.title}</h4>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{action.description}</p>
+                  </article>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="border-white/80 bg-white/90">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Estado general</p>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900">Salud de módulos y contenidos</h3>
+                </div>
+                <div className="rounded-full bg-unefa/5 px-4 py-2 text-sm font-semibold text-unefa-dark">
+                  Actualización continua
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {moduleStatus.map((module) => (
+                  <div key={module.name} className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm">
+                    <div className={`h-2.5 w-14 rounded-full ${module.tone}`} />
+                    <p className="mt-4 text-sm font-medium text-slate-500">{module.name}</p>
+                    <p className="mt-2 text-3xl font-black text-slate-900">{module.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 grid gap-3 rounded-[1.5rem] bg-slate-950 px-5 py-5 text-white sm:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/60">Revisión más reciente</p>
+                  <p className="mt-2 text-lg font-bold">Documento académico</p>
+                  <p className="mt-1 text-sm text-white/70">Validación editorial y metadatos completada.</p>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/55">Pendientes</p>
+                    <p className="mt-1 text-2xl font-black">{draftDocuments.length + archivedDocuments.length}</p>
+                  </div>
+                  <div className="rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/80">
+                    Flujo activo
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="border-white/80 bg-white/90">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Actividad reciente</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900">Seguimiento operativo</h3>
+
+              <div className="mt-6 space-y-4">
+                {activityFeed.map((item) => (
+                  <div key={item.label} className="flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4">
+                    <div className="mt-1 h-3 w-3 rounded-full bg-unefa" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-semibold text-slate-900">{item.label}</p>
+                        <span className="shrink-0 text-xs font-medium text-slate-500">{item.time}</span>
+                      </div>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{item.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="border-white/80 bg-white/90">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Usuarios y permisos</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900">Cuentas con acceso</h3>
+
+              <div className="mt-5 space-y-3">
+                {user ? (
+                  <div key={user.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
+                    <div>
+                      <p className="font-semibold text-slate-900">{user.name}</p>
+                      <p className="text-sm text-slate-500">{user.email}</p>
+                    </div>
+                    <span className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold capitalize text-unefa-dark">
+                      {user.role}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+
+            <Card className="border-white/80 bg-white/90">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Notas del sistema</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900">Acciones sugeridas</h3>
+              <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+                <li className="rounded-2xl bg-slate-50 px-4 py-3">Revisar los documentos en borrador antes de liberar nuevas publicaciones.</li>
+                <li className="rounded-2xl bg-slate-50 px-4 py-3">Mantener la normativa vigente visible desde el panel principal.</li>
+                <li className="rounded-2xl bg-slate-50 px-4 py-3">Centralizar el seguimiento de envíos y publicaciones desde este espacio.</li>
+              </ul>
+            </Card>
+          </div>
+        </div>
+      </section>
+    </ProtectedRoute>
+  )
+}

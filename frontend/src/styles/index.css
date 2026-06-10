@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-gray-900 antialiased;
+}
+
+#root {
+  isolation: isolate;
+}

@@ -1,0 +1,190 @@
+import type { PropsWithChildren } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import SearchBar from './ui/SearchBar'
+import { useAuthStore } from '../stores/useAuthStore'
+
+const navSections = [
+  {
+    title: 'Producción académica',
+    description: 'Pregrado y postgrado',
+    items: [
+      { to: '/', label: 'Inicio', description: 'Vista general del repositorio' },
+      { to: '/submission', label: 'Subir documento', description: 'Carga de metadatos y archivo' },
+      { to: '/catalogo/pregrado', label: 'Pregrado', description: 'Trabajos, tesis y proyectos' },
+      { to: '/catalogo/postgrado', label: 'Postgrado', description: 'Maestría y doctorado' },
+    ],
+  },
+  {
+    title: 'Normativas e institucional',
+    description: 'Documentación y reglamentos',
+    items: [
+      { to: '/catalogo/normativas', label: 'Normativas', description: 'Reglamentos y resoluciones' },
+      { to: '/catalogo/institucional', label: 'Documentación institucional', description: 'Manuales y procedimientos' },
+    ],
+  },
+  {
+    title: 'Editorial y divulgación',
+    description: 'Publicaciones y difusión',
+    items: [
+      { to: '/catalogo/editorial', label: 'Editorial de publicaciones', description: 'Libros digitales y memorias' },
+      { to: '/catalogo/divulgacion', label: 'Divulgación', description: 'Boletines y recursos educativos' },
+    ],
+  },
+]
+
+export default function Layout({ children }: PropsWithChildren) {
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(11,87,164,0.2),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(255,210,0,0.18),_transparent_24%),linear-gradient(180deg,_#f8fbff_0%,_#eef3fa_55%,_#e7edf7_100%)] text-slate-900">
+      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[1680px] items-center justify-between gap-4 px-3 py-4 sm:px-4 lg:px-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-unefa text-sm font-black text-white shadow-lg shadow-unefa/25">
+              RD
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-unefa">UNEFA</p>
+              <h1 className="text-lg font-bold text-slate-900">Repositorio Digital Núcleo Táchira</h1>
+            </div>
+          </div>
+          <div className="mx-6 hidden flex-1 lg:block">
+            <SearchBar />
+          </div>
+
+          <div className="hidden items-center gap-3 lg:flex">
+            <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark">
+              {user ? `${user.name} · ${user.role}` : 'Exploración institucional'}
+            </div>
+            {user?.role === 'estudiante' ? (
+              <NavLink
+                to="/student"
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
+                  }`
+                }
+              >
+                Estudiante
+              </NavLink>
+            ) : null}
+            {!user ? (
+              <>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    `rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
+                    }`
+                  }
+                >
+                  Acceso
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className={({ isActive }) =>
+                    `rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
+                    }`
+                  }
+                >
+                  Registrarse
+                </NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) =>
+                    `rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
+                    }`
+                  }
+                >
+                  Mi Perfil
+                </NavLink>
+                <button
+                  onClick={() => { logout(); navigate('/') }}
+                  className="rounded-full px-4 py-2 text-sm font-semibold bg-rose-600 text-white hover:bg-rose-500"
+                >
+                  Salir
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto grid w-full max-w-[1680px] gap-6 px-3 py-6 sm:px-4 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-6 lg:py-8">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto">
+          <div className="rounded-[1.75rem] border border-white/80 bg-[linear-gradient(180deg,rgba(11,87,164,0.96),rgba(7,58,106,0.98))] p-5 text-white shadow-[0_30px_70px_-34px_rgba(11,87,164,0.75)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">Panel lateral</p>
+            <h2 className="mt-2 text-2xl font-black leading-tight">Módulos y opciones del sistema</h2>
+            <p className="mt-3 text-sm leading-6 text-white/80">
+              La navegación se organiza por familias funcionales para que el usuario llegue más rápido a cada
+              colección y proceso.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+              <span className="rounded-full bg-white/12 px-3 py-1 text-white/90">Normativas</span>
+              <span className="rounded-full bg-unefa-accent px-3 py-1 text-slate-900">Producción</span>
+              <span className="rounded-full bg-white/12 px-3 py-1 text-white/90">Editorial</span>
+            </div>
+          </div>
+
+          <nav className="space-y-4">
+            {navSections.map((section) => (
+              <section key={section.title} className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur">
+                <div className="mb-4">
+                  <p className="text-sm font-bold text-slate-900">{section.title}</p>
+                  <p className="text-xs text-slate-500">{section.description}</p>
+                </div>
+
+                <div className="space-y-2">
+                  {section.items.map((item) => (
+                    <NavLink
+                      key={`${section.title}-${item.label}`}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        `flex items-start gap-3 rounded-2xl border px-4 py-3 transition ${
+                          isActive
+                            ? 'border-unefa/25 bg-unefa text-white shadow-lg shadow-unefa/15'
+                            : 'border-slate-200/80 bg-white/90 text-slate-700 hover:border-unefa/20 hover:bg-unefa/5 hover:text-slate-900'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span className={`mt-1 h-2.5 w-2.5 rounded-full ${isActive ? 'bg-unefa-accent' : 'bg-unefa/40'}`} />
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold">{item.label}</span>
+                            <span className={`block text-xs leading-5 ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
+                              {item.description}
+                            </span>
+                          </span>
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </nav>
+
+          <div className="rounded-[1.5rem] border border-unefa/10 bg-white/80 p-4 shadow-sm backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Acceso</p>
+            <p className="mt-2 text-sm text-slate-600">Los administradores entran por login y el sistema muestra su panel automáticamente.</p>
+            {user?.role === 'admin' ? (
+              <div className="mt-4 rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark">
+                Sesión administrativa activa
+              </div>
+            ) : null}
+          </div>
+        </aside>
+
+        <section className="min-w-0">{children}</section>
+      </main>
+    </div>
+  )
+}

@@ -1,0 +1,55 @@
+import api from './api'
+
+export interface Trabajo {
+  id: string
+  titulo: string
+  autor: string
+  tutor: string | null
+  anio: number
+  resumen: string | null
+  palabras_clave: string[]
+  categoria_id: string
+  categoria?: { id: string; nombre: string; slug: string }
+  archivo_url: string | null
+  metadatos: Record<string, unknown>
+  estado: 'borrador' | 'publicado' | 'archivado'
+  usuario_id: string
+  usuario?: { id: string; nombre: string }
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Categoria {
+  id: string
+  nombre: string
+  descripcion: string | null
+  slug: string
+}
+
+export const trabajoService = {
+  listar: (params?: { pagina?: number; limite?: number; estado?: string }) =>
+    api.get<{ success: boolean; total: number; datos: Trabajo[]; pagina: number; limite: number; totalPaginas: number }>('/trabajos', { params }),
+
+  obtenerPorId: (id: string) =>
+    api.get<{ success: boolean; data: Trabajo }>(`/trabajos/${id}`),
+
+  crear: (data: Partial<Trabajo> & { categoria_id: string }) =>
+    api.post<{ success: boolean; data: Trabajo }>('/trabajos', data),
+
+  actualizar: (id: string, data: Partial<Trabajo>) =>
+    api.put<{ success: boolean; data: Trabajo }>(`/trabajos/${id}`, data),
+
+  eliminar: (id: string) =>
+    api.delete<{ success: boolean; message: string }>(`/trabajos/${id}`),
+
+  buscar: (params: { q?: string; categoria?: string; anio?: number; estado?: string; pagina?: number; limite?: number }) =>
+    api.get<{ success: boolean; total: number; datos: Trabajo[] }>('/trabajos/buscar', { params }),
+}
+
+export const categoriaService = {
+  listar: () =>
+    api.get<{ success: boolean; data: Categoria[] }>('/categorias'),
+
+  obtenerPorId: (id: string) =>
+    api.get<{ success: boolean; data: Categoria }>(`/categorias/${id}`),
+}
