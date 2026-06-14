@@ -26,6 +26,14 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(255),
       allowNull: false
     },
+    cedula: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    telefono: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
     rol: {
       type: DataTypes.ENUM('admin', 'repositor', 'bibliotecario'),
       allowNull: false,
@@ -34,6 +42,14 @@ module.exports = (sequelize) => {
     activo: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
+    },
+    reset_token: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    reset_token_expires: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   }, {
     sequelize,

@@ -36,6 +36,9 @@ export const trabajoService = {
   crear: (data: Partial<Trabajo> & { categoria_id: string }) =>
     api.post<{ success: boolean; data: Trabajo }>('/trabajos', data),
 
+  crearConArchivo: (formData: FormData) =>
+    api.post<{ success: boolean; data: Trabajo }>('/trabajos', formData),
+
   actualizar: (id: string, data: Partial<Trabajo>) =>
     api.put<{ success: boolean; data: Trabajo }>(`/trabajos/${id}`, data),
 

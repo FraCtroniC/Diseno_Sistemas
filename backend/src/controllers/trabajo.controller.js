@@ -1,3 +1,4 @@
+const path = require('path');
 const trabajoService = require('../services/trabajo.service');
 const { validationResult } = require('express-validator');
 
@@ -22,7 +23,8 @@ class TrabajoController {
       throw err;
     }
 
-    const trabajo = await trabajoService.crear(req.body, req.user.id);
+    const archivoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const trabajo = await trabajoService.crear(req.body, req.user.id, archivoUrl);
     res.status(201).json({ success: true, data: trabajo });
   }
 
@@ -35,7 +37,8 @@ class TrabajoController {
       throw err;
     }
 
-    const trabajo = await trabajoService.actualizar(req.params.id, req.body, req.user.id);
+    const archivoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const trabajo = await trabajoService.actualizar(req.params.id, req.body, req.user.id, archivoUrl);
     res.status(200).json({ success: true, data: trabajo });
   }
 
@@ -55,6 +58,23 @@ class TrabajoController {
 
     const trabajo = await trabajoService.cambiarEstado(req.params.id, req.body.estado);
     res.status(200).json({ success: true, data: trabajo });
+  }
+
+  async descargarArchivo(req, res) {
+    const trabajo = await trabajoService.obtenerPorId(req.params.id);
+    if (!trabajo.archivo_url) {
+      const err = new Error('El trabajo no tiene un archivo asociado');
+      err.statusCode = 404;
+      throw err;
+    }
+    const filePath = path.join(__dirname, '../../', trabajo.archivo_url);
+    res.download(filePath, (err) => {
+      if (err) {
+        const downloadErr = new Error('Error al descargar el archivo');
+        downloadErr.statusCode = 404;
+        throw downloadErr;
+      }
+    });
   }
 
   async buscar(req, res) {

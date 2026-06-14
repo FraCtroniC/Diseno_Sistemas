@@ -43,7 +43,10 @@ class TrabajoService {
     return trabajo;
   }
 
-  async crear(data, usuarioId) {
+  async crear(data, usuarioId, archivoUrl = null) {
+    if (data.metadatos && typeof data.metadatos === 'string') {
+      data.metadatos = JSON.parse(data.metadatos);
+    }
     if (data.metadatos) {
       data.metadatos = validarMetadatos(data.metadatos);
     }
@@ -57,11 +60,12 @@ class TrabajoService {
 
     return Trabajo.create({
       ...data,
+      archivo_url: archivoUrl,
       usuario_id: usuarioId
     });
   }
 
-  async actualizar(id, data, usuarioId) {
+  async actualizar(id, data, usuarioId, archivoUrl = null) {
     const trabajo = await Trabajo.findByPk(id);
     if (!trabajo) {
       const err = new Error('Trabajo no encontrado');
@@ -69,6 +73,9 @@ class TrabajoService {
       throw err;
     }
 
+    if (data.metadatos && typeof data.metadatos === 'string') {
+      data.metadatos = JSON.parse(data.metadatos);
+    }
     if (data.metadatos) {
       data.metadatos = validarMetadatos(data.metadatos);
     }
@@ -82,7 +89,11 @@ class TrabajoService {
       }
     }
 
-    await trabajo.update({ ...data, usuario_id: usuarioId });
+    const updateData = { ...data };
+    if (archivoUrl) {
+      updateData.archivo_url = archivoUrl;
+    }
+    await trabajo.update(updateData);
     return trabajo;
   }
 

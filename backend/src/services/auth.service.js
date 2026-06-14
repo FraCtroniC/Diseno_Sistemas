@@ -1,7 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { Usuario } = require('../models');
 const environment = require('../../config/environment');
+const emailService = require('./email.service');
 
 class AuthService {
   async login(email, password) {
@@ -37,7 +39,9 @@ class AuthService {
         id: usuario.id,
         nombre: usuario.nombre,
         email: usuario.email,
-        rol: usuario.rol
+        rol: usuario.rol,
+        cedula: usuario.cedula,
+        telefono: usuario.telefono
       }
     };
   }
@@ -55,14 +59,127 @@ class AuthService {
       nombre: data.nombre,
       email: data.email,
       password_hash: hash,
+      cedula: data.cedula || null,
+      telefono: data.telefono || null,
       rol: data.rol || 'bibliotecario'
     });
 
+    const token = jwt.sign(
+      { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+      environment.jwtSecret,
+      { expiresIn: '8h' }
+    );
+
+    return {
+      token,
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol,
+        cedula: usuario.cedula,
+        telefono: usuario.telefono
+      }
+    };
+  }
+
+  async forgotPassword(email) {
+    const usuario = await Usuario.findOne({ where: { email } });
+    if (!usuario) {
+      const err = new Error('No existe una cuenta con ese correo electrónico');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 30 * 60 * 1000);
+
+    await usuario.update({
+      reset_token: resetToken,
+      reset_token_expires: expires
+    });
+
+    const resetLink = `${environment.frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+    try {
+      await emailService.sendPasswordResetLink(email, resetLink);
+    } catch (emailErr) {
+      console.error('Error al enviar correo de recuperación:', emailErr.message);
+      await usuario.update({ reset_token: null, reset_token_expires: null });
+      if (environment.nodeEnv !== 'development') {
+        const err = new Error('No se pudo enviar el correo. Verifica la configuración SMTP o intenta más tarde.');
+        err.statusCode = 502;
+        throw err;
+      }
+      return { message: 'Modo desarrollo — link de restablecimiento generado, pero no se pudo enviar el correo.', resetLink, devMode: true };
+    }
+
+    return { message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico' };
+  }
+
+  async resetPassword(token, email, newPassword) {
+    const { Op } = require('sequelize');
+    const usuario = await Usuario.findOne({
+      where: {
+        email,
+        reset_token: token,
+        reset_token_expires: { [Op.gt]: new Date() }
+      }
+    });
+
+    if (!usuario) {
+      const err = new Error('El enlace de restablecimiento es inválido o ha expirado');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+    await usuario.update({
+      password_hash: hash,
+      reset_token: null,
+      reset_token_expires: null
+    });
+
+    return { message: 'Contraseña restablecida correctamente. Ahora puedes iniciar sesión.' };
+  }
+
+  async changePassword(userId, currentPassword, newPassword) {
+    const usuario = await Usuario.findByPk(userId);
+    if (!usuario) {
+      const err = new Error('Usuario no encontrado');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const valida = await bcrypt.compare(currentPassword, usuario.password_hash);
+    if (!valida) {
+      const err = new Error('La contraseña actual no es correcta');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+    await usuario.update({ password_hash: hash });
+
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  async perfil(id) {
+    const usuario = await Usuario.findByPk(id, {
+      attributes: { exclude: ['password_hash'] }
+    });
+    if (!usuario) {
+      const err = new Error('Usuario no encontrado');
+      err.statusCode = 404;
+      throw err;
+    }
     return {
       id: usuario.id,
       nombre: usuario.nombre,
       email: usuario.email,
-      rol: usuario.rol
+      rol: usuario.rol,
+      cedula: usuario.cedula,
+      telefono: usuario.telefono
     };
   }
 }

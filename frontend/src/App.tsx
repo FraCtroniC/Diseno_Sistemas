@@ -10,6 +10,8 @@ import Login from './pages/Login'
 import Student from './pages/Student'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import { useAuthStore } from './stores/useAuthStore'
 
 export default function App() {
@@ -31,6 +33,8 @@ export default function App() {
           <Route path="/student" element={<Student />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>

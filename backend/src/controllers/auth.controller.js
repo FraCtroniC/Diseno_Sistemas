@@ -37,10 +37,64 @@ class AuthController {
     });
   }
 
-  async perfil(req, res) {
+  async forgotPassword(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const err = new Error('Error de validación');
+      err.statusCode = 400;
+      err.details = errors.array();
+      throw err;
+    }
+
+    const resultado = await authService.forgotPassword(req.body.email);
+
     res.status(200).json({
       success: true,
-      data: req.user
+      data: resultado
+    });
+  }
+
+  async resetPassword(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const err = new Error('Error de validación');
+      err.statusCode = 400;
+      err.details = errors.array();
+      throw err;
+    }
+
+    const { token, email, newPassword } = req.body;
+    const resultado = await authService.resetPassword(token, email, newPassword);
+
+    res.status(200).json({
+      success: true,
+      data: resultado
+    });
+  }
+
+  async changePassword(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const err = new Error('Error de validación');
+      err.statusCode = 400;
+      err.details = errors.array();
+      throw err;
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const resultado = await authService.changePassword(req.user.id, currentPassword, newPassword);
+
+    res.status(200).json({
+      success: true,
+      data: resultado
+    });
+  }
+
+  async perfil(req, res) {
+    const usuario = await authService.perfil(req.user.id);
+    res.status(200).json({
+      success: true,
+      data: usuario
     });
   }
 }

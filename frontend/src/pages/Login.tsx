@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation, NavLink } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
+import PasswordInput from '../components/ui/PasswordInput'
 import { useAuthStore } from '../stores/useAuthStore'
 
 export default function Login() {
@@ -17,12 +18,13 @@ export default function Login() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    const user = await login(email, password)
-    if (user) {
-      navigate(user.role === 'admin' ? '/admin' : from, { replace: true })
+    try {
+      const user = await login(email, password)
+      const dest = user.role === 'admin' ? '/admin' : from
+      navigate(dest, { replace: true })
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.response?.data?.message || 'Credenciales inválidas')
     }
-    else setError('Credenciales inválidas')
   }
 
   return (
@@ -64,7 +66,7 @@ export default function Login() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Contraseña</span>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="*******" />
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="*******" />
           </label>
 
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
@@ -76,9 +78,11 @@ export default function Login() {
             </Button>
           </div>
         </form>
-        <p className="mt-4 text-sm text-center">
-          ¿No tienes cuenta? <NavLink to="/register" className="text-unefa font-semibold">Regístrate</NavLink>
-        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
+          <NavLink to="/forgot-password" className="text-unefa font-semibold hover:underline">¿Olvidaste tu contraseña?</NavLink>
+          <span className="text-slate-400">·</span>
+          <span>¿No tienes cuenta? <NavLink to="/register" className="text-unefa font-semibold">Regístrate</NavLink></span>
+        </div>
       </div>
     </section>
   )

@@ -24,6 +24,12 @@ const createTrabajoRules = [
     .isUUID().withMessage('categoria_id debe ser un UUID válido'),
   body('metadatos')
     .optional()
+    .customSanitizer((value) => {
+      if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch { return value; }
+      }
+      return value;
+    })
     .isObject().withMessage('metadatos debe ser un objeto JSON')
 ];
 
@@ -54,6 +60,12 @@ const updateTrabajoRules = [
     .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
   body('metadatos')
     .optional()
+    .customSanitizer((value) => {
+      if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch { return value; }
+      }
+      return value;
+    })
     .isObject().withMessage('metadatos debe ser un objeto JSON')
 ];
 

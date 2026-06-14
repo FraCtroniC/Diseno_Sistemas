@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react'
+import { useState, type PropsWithChildren } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import SearchBar from './ui/SearchBar'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -36,6 +36,12 @@ export default function Layout({ children }: PropsWithChildren) {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  function closeMobileMenu() {
+    setMobileMenuOpen(false)
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(11,87,164,0.2),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(255,210,0,0.18),_transparent_24%),linear-gradient(180deg,_#f8fbff_0%,_#eef3fa_55%,_#e7edf7_100%)] text-slate-900">
@@ -58,16 +64,16 @@ export default function Layout({ children }: PropsWithChildren) {
             <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark">
               {user ? `${user.name} · ${user.role}` : 'Exploración institucional'}
             </div>
-            {user?.role === 'estudiante' ? (
+            {user ? (
               <NavLink
-                to="/student"
+                to={user.role === 'admin' ? '/admin' : user.role === 'estudiante' ? '/student' : '/profile'}
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-sm font-semibold transition ${
                     isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
                   }`
                 }
               >
-                Estudiante
+                Dashboard
               </NavLink>
             ) : null}
             {!user ? (
@@ -114,11 +120,68 @@ export default function Layout({ children }: PropsWithChildren) {
               </>
             )}
           </div>
+
+          <button
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            className="inline-flex items-center justify-center rounded-xl p-2 text-slate-700 hover:bg-unefa/5 lg:hidden"
+            aria-label="Menú"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
+
+        {mobileMenuOpen ? (
+          <div className="border-t border-white/70 bg-white/95 backdrop-blur-xl lg:hidden">
+            <div className="mx-auto max-w-[1680px] space-y-4 px-3 py-4 sm:px-4">
+              <SearchBar />
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark">
+                  {user ? `${user.name} · ${user.role}` : 'Exploración institucional'}
+                </div>
+                {user ? (
+                  <NavLink
+                    to={user.role === 'admin' ? '/admin' : user.role === 'estudiante' ? '/student' : '/profile'}
+                    onClick={closeMobileMenu}
+                    className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+                  >
+                    Dashboard
+                  </NavLink>
+                ) : null}
+                {!user ? (
+                  <>
+                    <NavLink to="/login" onClick={closeMobileMenu} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Acceso</NavLink>
+                    <NavLink to="/register" onClick={closeMobileMenu} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Registrarse</NavLink>
+                  </>
+                ) : (
+                  <>
+                    <NavLink to="/profile" onClick={closeMobileMenu} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Mi Perfil</NavLink>
+                    <button onClick={() => { logout(); navigate('/'); closeMobileMenu() }} className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500">Salir</button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </header>
 
       <main className="mx-auto grid w-full max-w-[1680px] gap-6 px-3 py-6 sm:px-4 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-6 lg:py-8">
         <aside className="space-y-4 lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto">
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="flex w-full items-center justify-between rounded-[1.5rem] border border-unefa/10 bg-unefa/5 px-4 py-3 text-left text-sm font-semibold text-unefa lg:hidden"
+          >
+            <span>Panel lateral de navegación</span>
+            <svg className={`h-5 w-5 transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div className={`space-y-4 lg:block ${sidebarOpen ? 'block' : 'hidden'}`}>
           <div className="rounded-[1.75rem] border border-white/80 bg-[linear-gradient(180deg,rgba(11,87,164,0.96),rgba(7,58,106,0.98))] p-5 text-white shadow-[0_30px_70px_-34px_rgba(11,87,164,0.75)]">
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">Panel lateral</p>
             <h2 className="mt-2 text-2xl font-black leading-tight">Módulos y opciones del sistema</h2>
@@ -146,6 +209,7 @@ export default function Layout({ children }: PropsWithChildren) {
                     <NavLink
                       key={`${section.title}-${item.label}`}
                       to={item.to}
+                      onClick={() => setSidebarOpen(false)}
                       className={({ isActive }) =>
                         `flex items-start gap-3 rounded-2xl border px-4 py-3 transition ${
                           isActive
@@ -176,10 +240,12 @@ export default function Layout({ children }: PropsWithChildren) {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Acceso</p>
             <p className="mt-2 text-sm text-slate-600">Los administradores entran por login y el sistema muestra su panel automáticamente.</p>
             {user?.role === 'admin' ? (
-              <div className="mt-4 rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark">
-                Sesión administrativa activa
-              </div>
+              <NavLink to="/admin" onClick={() => setSidebarOpen(false)} className="mt-4 flex items-center justify-between rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10">
+                <span>Sesión administrativa activa</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-unefa">Ir al dashboard →</span>
+              </NavLink>
             ) : null}
+          </div>
           </div>
         </aside>
 

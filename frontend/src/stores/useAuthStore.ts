@@ -25,7 +25,10 @@ function mapBackendUser(authUser: AuthUser): User {
     name: authUser.nombre,
     email: authUser.email,
     role,
-    profile: {},
+    profile: {
+      cedula: authUser.cedula ?? undefined,
+      telefono: authUser.telefono ?? undefined,
+    },
   }
 }
 
@@ -49,16 +52,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   login: async (email: string, password: string) => {
-    try {
-      const res = await authService.login(email, password)
-      const { token, usuario } = res.data.data
-      localStorage.setItem('token', token)
-      const user = mapBackendUser(usuario)
-      set({ user, token })
-      return user
-    } catch {
-      return null
-    }
+    const res = await authService.login(email, password)
+    const { token, usuario } = res.data.data
+    localStorage.setItem('token', token)
+    const user = mapBackendUser(usuario)
+    set({ user, token })
+    return user
   },
 
   logout: () => {
@@ -71,9 +70,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       nombre: payload.name ?? 'Sin nombre',
       email: payload.email ?? '',
       password: payload.password ?? '',
+      cedula: payload.profile?.cedula || undefined,
+      telefono: payload.profile?.telefono || undefined,
     })
-    const user = mapBackendUser(res.data.data)
-    set({ user })
+    const { token, usuario } = res.data.data
+    localStorage.setItem('token', token)
+    const user = mapBackendUser(usuario)
+    set({ user, token })
     return user
   },
 

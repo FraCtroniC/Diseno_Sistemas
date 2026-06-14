@@ -5,6 +5,8 @@ export interface AuthUser {
   nombre: string
   email: string
   rol: string
+  cedula: string | null
+  telefono: string | null
 }
 
 export interface LoginResponse {
@@ -16,8 +18,17 @@ export const authService = {
   login: (email: string, password: string) =>
     api.post<{ success: boolean; data: LoginResponse }>('/auth/login', { email, password }),
 
-  register: (data: { nombre: string; email: string; password: string; rol?: string }) =>
-    api.post<{ success: boolean; data: AuthUser }>('/auth/register', data),
+  register: (data: { nombre: string; email: string; password: string; cedula?: string; telefono?: string; rol?: string }) =>
+    api.post<{ success: boolean; data: LoginResponse }>('/auth/register', data),
+
+  forgotPassword: (email: string) =>
+    api.post<{ success: boolean; data: { message: string } }>('/auth/forgot-password', { email }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.put<{ success: boolean; data: { message: string } }>('/auth/change-password', { currentPassword, newPassword }),
+
+  resetPassword: (token: string, email: string, newPassword: string) =>
+    api.post<{ success: boolean; data: { message: string } }>('/auth/reset-password', { token, email, newPassword }),
 
   perfil: () =>
     api.get<{ success: boolean; data: AuthUser }>('/auth/perfil'),

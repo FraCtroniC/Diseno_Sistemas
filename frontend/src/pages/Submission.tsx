@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
-import { trabajoService } from '../services/trabajoService'
+import { trabajoService, categoriaService, type Categoria } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
 
 type Step = 1 | 2
@@ -13,9 +13,10 @@ type FormState = {
   year: string
   documentType: 'tesis' | 'trabajo' | 'articulo'
   program: string
+  categoryId: string
   description: string
   publicationState: 'draft' | 'published' | 'archived'
-  fileName: string
+  file: File | null
 }
 
 type FormErrors = Partial<Record<keyof FormState, string>>
@@ -26,9 +27,10 @@ const initialState: FormState = {
   year: '',
   documentType: 'tesis',
   program: '',
+  categoryId: '',
   description: '',
   publicationState: 'draft',
-  fileName: '',
+  file: null,
 }
 
 export default function Submission() {
@@ -38,7 +40,15 @@ export default function Submission() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const user = useAuthStore((s) => s.user)
+
+  useEffect(() => {
+    categoriaService.listar()
+      .then((res) => setCategorias(res.data.data))
+      .catch(() => {})
+  }, [])
 
   const authorsPreview = useMemo(
     () => form.authors.split(',').map((author) => author.trim()).filter(Boolean),
@@ -57,6 +67,7 @@ export default function Submission() {
     if (!form.year.trim()) nextErrors.year = 'El año es obligatorio.'
     if (form.year.trim() && Number.isNaN(Number(form.year))) nextErrors.year = 'El año debe ser numérico.'
     if (!form.program.trim()) nextErrors.program = 'Indica el programa académico.'
+    if (!form.categoryId) nextErrors.categoryId = 'Selecciona una categoría.'
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -66,7 +77,6 @@ export default function Submission() {
     const nextErrors: FormErrors = {}
 
     if (!form.description.trim()) nextErrors.description = 'Describe brevemente el documento.'
-    if (!form.fileName.trim()) nextErrors.fileName = 'Adjunta un archivo PDF.'
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -95,24 +105,29 @@ export default function Submission() {
 
     setSubmitting(true)
     try {
-      await trabajoService.crear({
-        titulo: form.title,
-        autor: form.authors,
-        anio: parseInt(form.year),
-        resumen: form.description,
-        estado: form.publicationState === 'published' ? 'publicado' : form.publicationState === 'archived' ? 'archivado' : 'borrador',
-        categoria_id: '',
-        metadatos: {
-          tipo_documento: form.documentType,
-          programa: form.program,
-        },
-      })
+      const formData = new FormData()
+      formData.append('titulo', form.title)
+      formData.append('autor', form.authors)
+      formData.append('anio', form.year)
+      formData.append('resumen', form.description)
+      formData.append('categoria_id', form.categoryId)
+      formData.append('estado', form.publicationState === 'published' ? 'publicado' : form.publicationState === 'archived' ? 'archivado' : 'borrador')
+      formData.append('metadatos', JSON.stringify({
+        tipo_documento: form.documentType,
+        carrera: form.program,
+      }))
+      if (form.file) {
+        formData.append('archivo', form.file)
+      }
+
+      await trabajoService.crearConArchivo(formData)
       setSubmitted(true)
       setForm(initialState)
       setStep(1)
       setErrors({})
+      if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err: any) {
-      setApiError(err.response?.data?.message || 'Error al enviar el trabajo.')
+      setApiError(err.response?.data?.message || err.response?.data?.error || 'Error al enviar el trabajo.')
     } finally {
       setSubmitting(false)
     }
@@ -172,6 +187,21 @@ export default function Submission() {
                     <option value="articulo">Artículo</option>
                   </select>
                 </label>
+
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700">Categoría</span>
+                  <select
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20"
+                    value={form.categoryId}
+                    onChange={(event) => updateField('categoryId', event.target.value)}
+                  >
+                    <option value="">Selecciona una categoría</option>
+                    {categorias.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                    ))}
+                  </select>
+                  {errors.categoryId ? <p className="text-sm text-red-600">{errors.categoryId}</p> : null}
+                </label>
               </div>
 
               <div className="flex justify-end">
@@ -196,12 +226,13 @@ export default function Submission() {
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Archivo PDF</span>
                 <Input
+                  ref={fileInputRef}
                   type="file"
                   accept="application/pdf"
-                  onChange={(event) => updateField('fileName', event.target.files?.[0]?.name ?? '')}
+                  onChange={(event) => updateField('file', event.target.files?.[0] ?? null)}
                 />
-                {errors.fileName ? <p className="text-sm text-red-600">{errors.fileName}</p> : null}
-                {form.fileName ? <p className="text-sm text-slate-500">Archivo seleccionado: {form.fileName}</p> : null}
+                {errors.file ? <p className="text-sm text-red-600">{errors.file}</p> : null}
+                {form.file ? <p className="text-sm text-slate-500">Archivo seleccionado: {form.file.name}</p> : null}
               </label>
 
               <label className="space-y-2">

@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
+import { adminService, type AdminStats } from '../services/adminService'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import ProtectedRoute from '../components/ProtectedRoute'
@@ -39,29 +40,33 @@ const activityFeed = [
   },
 ]
 
-const moduleStatus = [
-  { name: 'Documentos publicados', value: '92%', tone: 'bg-emerald-500' },
-  { name: 'Revisiones pendientes', value: '4', tone: 'bg-amber-500' },
-  { name: 'Normativas vigentes', value: '18', tone: 'bg-sky-500' },
-  { name: 'Usuarios activos', value: '24', tone: 'bg-indigo-500' },
-]
-
 export default function Admin() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
+  const [stats, setStats] = useState<AdminStats | null>(null)
 
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
 
   useEffect(() => {
     fetchCategorias()
     fetchTrabajos()
+    adminService.getStats()
+      .then((res) => setStats(res.data.data))
+      .catch(() => {})
   }, [])
 
   const all = mapToDocumentItems()
   const publishedDocuments = all.filter((document) => document.status === 'published')
   const draftDocuments = all.filter((document) => document.status === 'draft')
   const archivedDocuments = all.filter((document) => document.status === 'archived')
+
+  const moduleStatus = [
+    { name: 'Documentos publicados', value: stats ? `${stats.porcentajePublicado}%` : '...', tone: 'bg-emerald-500' },
+    { name: 'Revisiones pendientes', value: stats ? String(stats.borradores) : '...', tone: 'bg-amber-500' },
+    { name: 'Normativas vigentes', value: stats ? String(stats.normativasVigentes) : '...', tone: 'bg-sky-500' },
+    { name: 'Usuarios activos', value: stats ? String(stats.usuariosActivos) : '...', tone: 'bg-indigo-500' },
+  ]
 
   function handleLogout() {
     logout()
@@ -87,7 +92,7 @@ export default function Admin() {
               <div className="flex flex-wrap gap-3 text-sm font-medium text-white/80">
                 <span className="rounded-full bg-white/12 px-4 py-2">{publishedDocuments.length} documentos publicados</span>
                 <span className="rounded-full bg-white/12 px-4 py-2">{draftDocuments.length} en borrador</span>
-                <span className="rounded-full bg-white/12 px-4 py-2">1 administradores</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.totalUsuarios : '...'} administradores</span>
               </div>
             </div>
 
@@ -122,7 +127,7 @@ export default function Admin() {
           </Card>
           <Card className="border-slate-200 bg-slate-50/70">
             <p className="text-sm font-medium text-slate-600">Usuarios activos</p>
-            <p className="mt-3 text-4xl font-black text-slate-900">{user ? '1' : '0'}</p>
+            <p className="mt-3 text-4xl font-black text-slate-900">{stats ? stats.usuariosActivos : (user ? '1' : '0')}</p>
             <p className="mt-2 text-sm text-slate-600">Administración, docencia y futuras cuentas del sistema.</p>
           </Card>
         </div>
