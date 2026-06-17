@@ -109,7 +109,7 @@ export default function SearchBar() {
       {openAdvanced ? (
         <div className="absolute right-0 top-full z-40 mt-2 w-full max-w-xs rounded-xl border bg-white p-4 shadow-lg">
           <label className="block text-xs text-slate-600">Año</label>
-          <input value={year} onChange={(e) => setYear(e.target.value)} placeholder="2024" className="mt-1 w-full rounded-md border px-2 py-1 text-sm" />
+          <input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))} placeholder="2024" inputMode="numeric" className="mt-1 w-full rounded-md border px-2 py-1 text-sm" />
 
           <label className="mt-3 block text-xs text-slate-600">Categoría</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 w-full rounded-md border px-2 py-1 text-sm">

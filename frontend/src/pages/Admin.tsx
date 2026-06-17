@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 import { adminService, type AdminStats } from '../services/adminService'
+import { authService, type AuthUser } from '../services/authService'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import ProtectedRoute from '../components/ProtectedRoute'
@@ -11,32 +12,17 @@ const quickActions = [
   {
     title: 'Publicar boletín',
     description: 'Preparar y liberar un boletín institucional desde el flujo editorial.',
+    to: '/submission',
   },
   {
     title: 'Revisar envíos',
     description: 'Validar metadatos, formato y estado de los documentos en cola.',
+    to: '/catalogo/postgrado',
   },
   {
     title: 'Gestionar normativas',
     description: 'Actualizar resoluciones, reglamentos y documentos de referencia.',
-  },
-]
-
-const activityFeed = [
-  {
-    label: 'Nueva carga recibida',
-    detail: 'Se registró un documento académico pendiente de revisión.',
-    time: 'Hace 12 min',
-  },
-  {
-    label: 'Boletín programado',
-    detail: 'La publicación institucional quedó lista para difusión.',
-    time: 'Hace 1 h',
-  },
-  {
-    label: 'Normativa actualizada',
-    detail: 'Se agregó una nueva versión en el repositorio normativo.',
-    time: 'Hace 3 h',
+    to: '/catalogo/normativas',
   },
 ]
 
@@ -45,6 +31,7 @@ export default function Admin() {
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [usuarios, setUsuarios] = useState<AuthUser[]>([])
 
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
 
@@ -53,6 +40,9 @@ export default function Admin() {
     fetchTrabajos()
     adminService.getStats()
       .then((res) => setStats(res.data.data))
+      .catch(() => {})
+    authService.listarUsuarios()
+      .then((res) => setUsuarios(res.data.data))
       .catch(() => {})
   }, [])
 
@@ -147,13 +137,13 @@ export default function Admin() {
 
               <div className="mt-6 grid gap-4 md:grid-cols-3">
                 {quickActions.map((action) => (
-                  <article key={action.title} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 transition hover:-translate-y-0.5 hover:border-unefa/20 hover:bg-white hover:shadow-[0_16px_40px_-28px_rgba(11,87,164,0.3)]">
+                  <button key={action.title} type="button" onClick={() => navigate(action.to)} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-unefa/20 hover:bg-white hover:shadow-[0_16px_40px_-28px_rgba(11,87,164,0.3)]">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(11,87,164,0.12),rgba(7,58,106,0.08))] text-lg font-black text-unefa-dark">
                       •
                     </div>
                     <h4 className="mt-4 text-base font-bold text-slate-900">{action.title}</h4>
                     <p className="mt-2 text-sm leading-6 text-slate-600">{action.description}</p>
-                  </article>
+                  </button>
                 ))}
               </div>
             </Card>
@@ -204,18 +194,22 @@ export default function Admin() {
               <h3 className="mt-2 text-2xl font-black text-slate-900">Seguimiento operativo</h3>
 
               <div className="mt-6 space-y-4">
-                {activityFeed.map((item) => (
-                  <div key={item.label} className="flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4">
-                    <div className="mt-1 h-3 w-3 rounded-full bg-unefa" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="font-semibold text-slate-900">{item.label}</p>
-                        <span className="shrink-0 text-xs font-medium text-slate-500">{item.time}</span>
+                {stats && stats.publishedPorCategoria.length > 0 ? (
+                  stats.publishedPorCategoria.slice(0, 5).map((item) => (
+                    <div key={item.categoriaId} className="flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4">
+                      <div className="mt-1 h-3 w-3 rounded-full bg-unefa" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="font-semibold text-slate-900">{item.nombre}</p>
+                          <span className="shrink-0 text-xs font-medium text-slate-500">{item.cantidad} docs</span>
+                        </div>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">Documentos publicados en esta categoría.</p>
                       </div>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{item.detail}</p>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">No hay datos de actividad disponibles.</p>
+                )}
               </div>
             </Card>
 
@@ -224,17 +218,21 @@ export default function Admin() {
               <h3 className="mt-2 text-2xl font-black text-slate-900">Cuentas con acceso</h3>
 
               <div className="mt-5 space-y-3">
-                {user ? (
-                  <div key={user.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
-                    <div>
-                      <p className="font-semibold text-slate-900">{user.name}</p>
-                      <p className="text-sm text-slate-500">{user.email}</p>
+                {usuarios.length > 0 ? (
+                  usuarios.map((u) => (
+                    <div key={u.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
+                      <div>
+                        <p className="font-semibold text-slate-900">{u.nombre}</p>
+                        <p className="text-sm text-slate-500">{u.email}</p>
+                      </div>
+                      <span className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold capitalize text-unefa-dark">
+                        {u.rol}
+                      </span>
                     </div>
-                    <span className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold capitalize text-unefa-dark">
-                      {user.role}
-                    </span>
-                  </div>
-                ) : null}
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">Cargando usuarios...</p>
+                )}
               </div>
             </Card>
 

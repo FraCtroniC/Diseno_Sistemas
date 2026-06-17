@@ -182,6 +182,31 @@ class AuthService {
       telefono: usuario.telefono
     };
   }
+
+  async actualizarPerfil(id, data) {
+    const usuario = await Usuario.findByPk(id);
+    if (!usuario) {
+      const err = new Error('Usuario no encontrado');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const updateData = {};
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.cedula !== undefined) updateData.cedula = data.cedula || null;
+    if (data.telefono !== undefined) updateData.telefono = data.telefono || null;
+
+    await usuario.update(updateData);
+
+    return {
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      rol: usuario.rol,
+      cedula: usuario.cedula,
+      telefono: usuario.telefono
+    };
+  }
 }
 
 module.exports = new AuthService();

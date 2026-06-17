@@ -19,8 +19,8 @@ export default function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      const user = await login(email, password)
-      const dest = user.role === 'admin' ? '/admin' : from
+      const loggedInUser = await login(email, password)
+      const dest = loggedInUser?.role === 'admin' ? '/admin' : from
       navigate(dest, { replace: true })
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.response?.data?.message || 'Credenciales inválidas')
@@ -61,7 +61,7 @@ export default function Login() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Correo institucional</span>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@unefa.edu.ve" />
+            <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@unefa.edu.ve" />
           </label>
 
           <label className="space-y-2">

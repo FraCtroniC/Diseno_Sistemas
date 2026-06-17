@@ -190,9 +190,9 @@ export default function Layout({ children }: PropsWithChildren) {
               colección y proceso.
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-              <span className="rounded-full bg-white/12 px-3 py-1 text-white/90">Normativas</span>
-              <span className="rounded-full bg-unefa-accent px-3 py-1 text-slate-900">Producción</span>
-              <span className="rounded-full bg-white/12 px-3 py-1 text-white/90">Editorial</span>
+              <NavLink to="/catalogo/normativas" className={({ isActive }) => `rounded-full px-3 py-1 transition ${isActive ? 'bg-unefa-accent text-slate-900' : 'bg-white/12 text-white/90 hover:bg-white/25'}`}>Normativas</NavLink>
+              <NavLink to="/catalogo/pregrado" className={({ isActive }) => `rounded-full px-3 py-1 transition ${isActive ? 'bg-unefa-accent text-slate-900' : 'bg-white/12 text-white/90 hover:bg-white/25'}`}>Producción</NavLink>
+              <NavLink to="/catalogo/editorial" className={({ isActive }) => `rounded-full px-3 py-1 transition ${isActive ? 'bg-unefa-accent text-slate-900' : 'bg-white/12 text-white/90 hover:bg-white/25'}`}>Editorial</NavLink>
             </div>
           </div>
 

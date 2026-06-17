@@ -27,7 +27,7 @@ export interface Categoria {
 }
 
 export const trabajoService = {
-  listar: (params?: { pagina?: number; limite?: number; estado?: string }) =>
+  listar: (params?: { pagina?: number; limite?: number; estado?: string; usuario_id?: string }) =>
     api.get<{ success: boolean; total: number; datos: Trabajo[]; pagina: number; limite: number; totalPaginas: number }>('/trabajos', { params }),
 
   obtenerPorId: (id: string) =>
@@ -45,7 +45,7 @@ export const trabajoService = {
   eliminar: (id: string) =>
     api.delete<{ success: boolean; message: string }>(`/trabajos/${id}`),
 
-  buscar: (params: { q?: string; categoria?: string; anio?: number; estado?: string; pagina?: number; limite?: number }) =>
+  buscar: (params: { q?: string; categoria?: string; anio?: number; estado?: string; usuario_id?: string; pagina?: number; limite?: number }) =>
     api.get<{ success: boolean; total: number; datos: Trabajo[] }>('/trabajos/buscar', { params }),
 }
 

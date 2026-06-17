@@ -3,20 +3,46 @@ import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useTrabajoStore } from '../stores/useTrabajoStore'
+import { trabajoService, categoriaService, type Trabajo, type Categoria } from '../services/trabajoService'
 
 export default function Search() {
   const [query, setQuery] = useState('')
   const [yearFilter, setYearFilter] = useState('')
   const [category, setCategory] = useState('')
+  const [results, setResults] = useState<Trabajo[]>([])
+  const [loading, setLoading] = useState(false)
+  const [categorias, setCategorias] = useState<Categoria[]>([])
   const location = useLocation()
   const navigate = useNavigate()
 
-  const { fetchTrabajos, fetchCategorias, mapToDocumentItems, loading } = useTrabajoStore()
-
   useEffect(() => {
-    fetchCategorias()
+    categoriaService.listar()
+      .then((res) => setCategorias(res.data.data))
+      .catch(() => {})
   }, [])
+
+  function slugToId(slug: string): string | undefined {
+    return categorias.find((c) => c.slug === slug)?.id
+  }
+
+  async function doSearch(q: string, y: string, c: string) {
+    setLoading(true)
+    try {
+      const params: Record<string, string> = { estado: 'publicado' }
+      if (q.trim()) params.q = q.trim()
+      if (y) params.anio = y
+      if (c) {
+        const id = slugToId(c)
+        if (id) params.categoria = id
+      }
+      const res = await trabajoService.buscar(params as any)
+      setResults(res.data.datos)
+    } catch {
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -27,21 +53,8 @@ export default function Search() {
     setYearFilter(y)
     setCategory(c)
 
-    fetchTrabajos({ estado: 'publicado' })
-  }, [location.search])
-
-  const all = mapToDocumentItems()
-
-  const results = all.filter((document) => {
-    const matchesQuery =
-      query.trim().length === 0 ||
-      document.title.toLowerCase().includes(query.toLowerCase()) ||
-      document.authors.some((author) => author.toLowerCase().includes(query.toLowerCase()))
-    const matchesYear = yearFilter === '' || String(document.year) === yearFilter
-    const matchesCategory = category === '' || document.category === category
-
-    return matchesQuery && matchesYear && matchesCategory
-  })
+    doSearch(q, y, c)
+  }, [location.search, categorias])
 
   return (
     <section className="space-y-6">
@@ -64,7 +77,7 @@ export default function Search() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Año</span>
-            <Input value={yearFilter} onChange={(event) => setYearFilter(event.target.value)} placeholder="2022" />
+            <Input value={yearFilter} onChange={(event) => setYearFilter(event.target.value.replace(/\D/g, ''))} placeholder="2022" inputMode="numeric" />
           </label>
 
           <label className="space-y-2">
@@ -105,14 +118,14 @@ export default function Search() {
             <Card key={document.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">{document.title}</h3>
-                  <p className="mt-1 text-sm text-slate-600">{document.authors.join(', ')}</p>
+                  <h3 className="text-lg font-bold text-slate-900">{document.titulo}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{document.autor}</p>
                 </div>
                 <span className="inline-flex w-fit rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa">
-                  {document.year} · {document.status}
+                  {document.anio} · {document.estado}
                 </span>
               </div>
-              {document.abstract ? <p className="mt-3 text-sm text-slate-600">{document.abstract}</p> : null}
+              {document.resumen ? <p className="mt-3 text-sm text-slate-600">{document.resumen}</p> : null}
             </Card>
           ))}
 

@@ -165,7 +165,7 @@ export default function Submission() {
 
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700">Año</span>
-                  <Input value={form.year} onChange={(event) => updateField('year', event.target.value)} placeholder="2026" inputMode="numeric" />
+                  <Input value={form.year} onChange={(event) => updateField('year', event.target.value.replace(/\D/g, ''))} placeholder="2026" inputMode="numeric" />
                   {errors.year ? <p className="text-sm text-red-600">{errors.year}</p> : null}
                 </label>
 

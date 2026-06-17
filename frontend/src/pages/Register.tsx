@@ -20,7 +20,7 @@ type FormData = z.infer<typeof schema>
 export default function Register() {
   const registerFn = useAuthStore((s) => s.register)
   const navigate = useNavigate()
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const onSubmit = async (data: FormData) => {
     const profile: UserProfile = {
@@ -69,13 +69,13 @@ export default function Register() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Nombre completo</span>
-            <Input {...register('name')} placeholder="Tu nombre" />
+            <Input {...register('name')} placeholder="Tu nombre" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); setValue('name', t.value, { shouldValidate: true }) }} />
             {errors.name ? <p className="text-sm text-rose-600">{errors.name.message}</p> : null}
           </label>
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Correo electrónico</span>
-            <Input type="email" {...register('email')} placeholder="usuario@correo.com" />
+            <Input type="email" autoComplete="email" {...register('email')} placeholder="usuario@correo.com" />
             {errors.email ? <p className="text-sm text-rose-600">{errors.email.message}</p> : null}
           </label>
 
@@ -95,11 +95,11 @@ export default function Register() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Cédula</span>
-              <Input {...register('cedula')} placeholder="V-12345678" />
+              <Input {...register('cedula')} placeholder="V-12345678" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
             </label>
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Teléfono</span>
-              <Input {...register('telefono')} placeholder="0412-1234567" />
+              <Input {...register('telefono')} placeholder="0412-1234567" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
             </label>
           </div>
 

@@ -83,12 +83,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   updateProfile: async (payload) => {
     const user = get().user
     if (!user) return null
+
+    const res = await authService.actualizarPerfil({
+      email: payload.email,
+      cedula: payload.cedula,
+      telefono: payload.telefono,
+    })
+
     const updated: User = {
       ...user,
-      email: payload.email ?? user.email,
+      email: res.data.data.email,
       profile: {
-        cedula: payload.cedula ?? user.profile?.cedula,
-        telefono: payload.telefono ?? user.profile?.telefono,
+        cedula: res.data.data.cedula ?? undefined,
+        telefono: res.data.data.telefono ?? undefined,
       },
     }
     set({ user: updated })

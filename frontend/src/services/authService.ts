@@ -22,7 +22,7 @@ export const authService = {
     api.post<{ success: boolean; data: LoginResponse }>('/auth/register', data),
 
   forgotPassword: (email: string) =>
-    api.post<{ success: boolean; data: { message: string } }>('/auth/forgot-password', { email }),
+    api.post<{ success: boolean; data: { message: string; devMode?: boolean; resetLink?: string } }>('/auth/forgot-password', { email }),
 
   changePassword: (currentPassword: string, newPassword: string) =>
     api.put<{ success: boolean; data: { message: string } }>('/auth/change-password', { currentPassword, newPassword }),
@@ -32,4 +32,10 @@ export const authService = {
 
   perfil: () =>
     api.get<{ success: boolean; data: AuthUser }>('/auth/perfil'),
+
+  actualizarPerfil: (data: { email?: string; cedula?: string; telefono?: string }) =>
+    api.put<{ success: boolean; data: AuthUser }>('/auth/perfil', data),
+
+  listarUsuarios: () =>
+    api.get<{ success: boolean; data: AuthUser[] }>('/usuarios'),
 }

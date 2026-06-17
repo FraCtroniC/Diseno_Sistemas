@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/useAuthStore'
-import { useTrabajoStore } from '../stores/useTrabajoStore'
+import { trabajoService, type Trabajo } from '../services/trabajoService'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import ProtectedRoute from '../components/ProtectedRoute'
@@ -10,17 +10,19 @@ export default function Student() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
-
-  const { mapToDocumentItems, fetchTrabajos, fetchCategorias } = useTrabajoStore()
+  const [published, setPublished] = useState<Trabajo[]>([])
+  const [myDrafts, setMyDrafts] = useState<Trabajo[]>([])
 
   useEffect(() => {
-    fetchCategorias()
-    fetchTrabajos()
-  }, [])
-
-  const all = mapToDocumentItems()
-  const available = all.filter((d) => d.status === 'published')
-  const myDrafts = all.filter((d) => d.status === 'draft')
+    trabajoService.listar({ estado: 'publicado', limite: 50 })
+      .then((res) => setPublished(res.data.datos))
+      .catch(() => {})
+    if (user) {
+      trabajoService.listar({ estado: 'borrador', usuario_id: user.id, limite: 50 })
+        .then((res) => setMyDrafts(res.data.datos))
+        .catch(() => {})
+    }
+  }, [user])
 
   function handleLogout() {
     logout()
@@ -49,7 +51,7 @@ export default function Student() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card>
             <p className="text-sm font-medium text-slate-500">Lecturas recomendadas</p>
-            <p className="mt-3 text-2xl font-black text-slate-900">{available.length}</p>
+            <p className="mt-3 text-2xl font-black text-slate-900">{published.length}</p>
             <p className="mt-2 text-sm text-slate-600">Documentos publicados disponibles para consulta.</p>
           </Card>
 
@@ -60,15 +62,19 @@ export default function Student() {
           </Card>
 
           <Card>
-            <p className="text-sm font-medium text-slate-500">Subir trabajo</p>
-            <p className="mt-3 text-2xl font-black text-slate-900">Enviar</p>
-            <p className="mt-2 text-sm text-slate-600">Carga tus entregas para revisión docente.</p>
+            <button type="button" onClick={() => navigate('/submission')} className="w-full text-left">
+              <p className="text-sm font-medium text-slate-500">Subir trabajo</p>
+              <p className="mt-3 text-2xl font-black text-slate-900">Enviar</p>
+              <p className="mt-2 text-sm text-slate-600">Carga tus entregas para revisión docente.</p>
+            </button>
           </Card>
 
           <Card>
-            <p className="text-sm font-medium text-slate-500">Búsqueda rápida</p>
-            <p className="mt-3 text-2xl font-black text-slate-900">Explorar</p>
-            <p className="mt-2 text-sm text-slate-600">Encuentra tesis, normativas y recursos por palabra clave.</p>
+            <button type="button" onClick={() => navigate('/search')} className="w-full text-left">
+              <p className="text-sm font-medium text-slate-500">Búsqueda rápida</p>
+              <p className="mt-3 text-2xl font-black text-slate-900">Explorar</p>
+              <p className="mt-2 text-sm text-slate-600">Encuentra tesis, normativas y recursos por palabra clave.</p>
+            </button>
           </Card>
         </div>
 
@@ -76,10 +82,10 @@ export default function Student() {
           <Card>
             <h3 className="text-lg font-black">Recientes</h3>
             <ul className="mt-4 space-y-3 text-sm text-slate-600">
-              {available.slice(0, 5).map((doc) => (
+              {published.slice(0, 5).map((doc) => (
                 <li key={doc.id} className="rounded-xl border border-slate-100 bg-white px-4 py-3">
-                  <p className="font-semibold text-slate-900">{doc.title}</p>
-                  <p className="text-xs text-slate-500">{doc.authors?.join(', ')} &bull; {doc.year}</p>
+                  <p className="font-semibold text-slate-900">{doc.titulo}</p>
+                  <p className="text-xs text-slate-500">{doc.autor} &bull; {doc.anio}</p>
                 </li>
               ))}
             </ul>

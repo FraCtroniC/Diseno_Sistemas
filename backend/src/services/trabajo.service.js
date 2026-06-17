@@ -3,10 +3,11 @@ const { Trabajo, Categoria, Usuario } = require('../models');
 const { validarMetadatos } = require('../validators/metadatos.schema');
 
 class TrabajoService {
-  async listar({ pagina = 1, limite = 10, estado } = {}) {
+  async listar({ pagina = 1, limite = 10, estado, usuario_id } = {}) {
     const offset = (pagina - 1) * limite;
     const where = {};
     if (estado) where.estado = estado;
+    if (usuario_id) where.usuario_id = usuario_id;
 
     const { count, rows } = await Trabajo.findAndCountAll({
       where,
@@ -119,7 +120,7 @@ class TrabajoService {
     return trabajo;
   }
 
-  async buscar({ q, categoria, anio, estado, pagina = 1, limite = 10 }) {
+  async buscar({ q, categoria, anio, estado, usuario_id, pagina = 1, limite = 10 }) {
     const offset = (pagina - 1) * limite;
     const where = {};
 
@@ -135,6 +136,7 @@ class TrabajoService {
     if (categoria) where.categoria_id = categoria;
     if (anio) where.anio = anio;
     if (estado) where.estado = estado;
+    if (usuario_id) where.usuario_id = usuario_id;
 
     const { count, rows } = await Trabajo.findAndCountAll({
       where,

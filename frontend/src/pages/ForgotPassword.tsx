@@ -90,7 +90,7 @@ export default function ForgotPassword() {
 
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Correo institucional</span>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@correo.com" required />
+              <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@correo.com" required />
             </label>
 
             {error ? <p className="text-sm text-rose-600">{error}</p> : null}

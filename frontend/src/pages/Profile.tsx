@@ -22,7 +22,7 @@ export default function Profile() {
   const user = useAuthStore((s) => s.user)
   const updateProfile = useAuthStore((s) => s.updateProfile)
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias } = useTrabajoStore()
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
   const [saved, setSaved] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -34,11 +34,15 @@ export default function Profile() {
 
   useEffect(() => {
     fetchCategorias()
-    fetchTrabajos()
-  }, [])
+    if (user) {
+      fetchTrabajos({ usuario_id: user.id })
+    } else {
+      fetchTrabajos()
+    }
+  }, [user])
 
   const all = mapToDocumentItems()
-  const myWorks = all.filter((w) => w.id)
+  const myWorks = all
 
   useEffect(() => {
     if (user) {
@@ -129,18 +133,18 @@ export default function Profile() {
 
               <label className="space-y-2">
                 <span className="text-sm font-medium text-slate-700">Correo electrónico</span>
-                <Input type="email" {...register('email')} placeholder="tu@correo.com" />
+                <Input type="email" autoComplete="email" {...register('email')} placeholder="tu@correo.com" />
                 {errors.email ? <p className="text-sm text-rose-600">{errors.email.message}</p> : null}
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700">Cédula</span>
-                  <Input {...register('cedula')} placeholder="V-12345678" />
+                  <Input {...register('cedula')} placeholder="V-12345678" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
                 </label>
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700">Teléfono</span>
-                  <Input {...register('telefono')} placeholder="0412-1234567" />
+                  <Input {...register('telefono')} placeholder="0412-1234567" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
                 </label>
               </div>
 

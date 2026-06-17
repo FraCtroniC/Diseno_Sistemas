@@ -55,4 +55,17 @@ const resetPasswordRules = [
     .isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
 ];
 
-module.exports = { loginRules, registerRules, forgotPasswordRules, changePasswordRules, resetPasswordRules };
+const updateProfileRules = [
+  body('email')
+    .optional()
+    .isEmail().withMessage('Debe ser un email válido')
+    .normalizeEmail(),
+  body('cedula')
+    .optional({ values: 'null' })
+    .isString().withMessage('La cédula debe ser texto'),
+  body('telefono')
+    .optional({ values: 'null' })
+    .isString().withMessage('El teléfono debe ser texto'),
+];
+
+module.exports = { loginRules, registerRules, forgotPasswordRules, changePasswordRules, resetPasswordRules, updateProfileRules };
