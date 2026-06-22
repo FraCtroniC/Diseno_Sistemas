@@ -82,6 +82,9 @@ const buscarRules = [
   query('categoria')
     .optional()
     .isUUID().withMessage('categoria debe ser un UUID válido'),
+  query('tipo_documento')
+    .optional()
+    .isString().withMessage('tipo_documento debe ser texto'),
   query('anio')
     .optional()
     .isInt({ min: 1900, max: 2100 }).withMessage('Año inválido'),

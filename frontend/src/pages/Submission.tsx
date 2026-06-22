@@ -4,6 +4,7 @@ import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import { trabajoService, categoriaService, type Categoria } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
+import { TIPOS_DOCUMENTO } from '../types'
 
 type Step = 1 | 2
 
@@ -11,7 +12,7 @@ type FormState = {
   title: string
   authors: string
   year: string
-  documentType: 'tesis' | 'trabajo' | 'articulo'
+  documentType: string
   program: string
   categoryId: string
   description: string
@@ -180,11 +181,12 @@ export default function Submission() {
                   <select
                     className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20"
                     value={form.documentType}
-                    onChange={(event) => updateField('documentType', event.target.value as FormState['documentType'])}
+                    onChange={(event) => updateField('documentType', event.target.value)}
                   >
-                    <option value="tesis">Tesis</option>
-                    <option value="trabajo">Trabajo de grado</option>
-                    <option value="articulo">Artículo</option>
+                    <option value="">Selecciona un tipo</option>
+                    {TIPOS_DOCUMENTO.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
                   </select>
                 </label>
 

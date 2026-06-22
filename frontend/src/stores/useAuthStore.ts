@@ -16,15 +16,11 @@ interface AuthState {
 }
 
 function mapBackendUser(authUser: AuthUser): User {
-  let role: User['role'] = 'estudiante'
-  if (authUser.rol === 'admin' || authUser.rol === 'repositor') role = 'admin'
-  else if (authUser.rol === 'bibliotecario') role = 'docente'
-
   return {
     id: authUser.id,
     name: authUser.nombre,
     email: authUser.email,
-    role,
+    role: authUser.rol as User['role'],
     profile: {
       cedula: authUser.cedula ?? undefined,
       telefono: authUser.telefono ?? undefined,

@@ -171,24 +171,27 @@ export default function Home() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-unefa/15 bg-[linear-gradient(180deg,rgba(11,87,164,0.04),rgba(255,255,255,0.94))]">
-          <p className="text-sm font-semibold text-unefa">Normativas</p>
-          <p className="mt-2 text-sm text-slate-600">Reglamentos, resoluciones y lineamientos institucionales.</p>
-        </Card>
-        <Card className="border-unefa/15 bg-[linear-gradient(180deg,rgba(255,210,0,0.10),rgba(255,255,255,0.94))]">
-          <p className="text-sm font-semibold text-slate-900">Producción de pregrado y postgrado</p>
-          <p className="mt-2 text-sm text-slate-600">Tesis, trabajos de grado y producción académica por nivel.</p>
-        </Card>
-        <Card className="border-unefa/15 bg-[linear-gradient(180deg,rgba(11,87,164,0.08),rgba(255,255,255,0.94))]">
-          <p className="text-sm font-semibold text-unefa">Documentación institucional</p>
-          <p className="mt-2 text-sm text-slate-600">Manuales, procedimientos y boletines estadísticos.</p>
-        </Card>
-        <Card className="border-unefa/15 bg-[linear-gradient(180deg,rgba(7,58,106,0.08),rgba(255,255,255,0.94))]">
-          <p className="text-sm font-semibold text-unefa-dark">Editorial y divulgación</p>
-          <p className="mt-2 text-sm text-slate-600">Libros, memorias y recursos educativos publicados.</p>
-        </Card>
-      </div>
+      {all.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            { tipo: 'pregrado' as const, label: 'Pregrado', desc: 'Trabajos de grado y tesis de pregrado.' },
+            { tipo: 'postgrado' as const, label: 'Postgrado', desc: 'Investigación avanzada y tesis de postgrado.' },
+            { tipo: 'normativas' as const, label: 'Normativas', desc: 'Reglamentos, resoluciones y lineamientos.' },
+            { tipo: 'institucional' as const, label: 'Documentación institucional', desc: 'Manuales, procedimientos y guías.' },
+            { tipo: 'editorial' as const, label: 'Editorial', desc: 'Libros, memorias y publicaciones.' },
+            { tipo: 'divulgacion' as const, label: 'Divulgación', desc: 'Boletines y recursos de difusión.' },
+          ].map((item) => {
+            const count = all.filter((d) => d.tipoDocumento === item.tipo && d.status === 'published').length
+            return (
+              <Card key={item.tipo} className="border-unefa/15 bg-white/90 transition hover:shadow-md">
+                <p className="text-sm font-semibold text-unefa">{item.label}</p>
+                <p className="mt-1 text-3xl font-black text-slate-900">{count}</p>
+                <p className="mt-1 text-sm text-slate-600">{item.desc}</p>
+              </Card>
+            )
+          })}
+        </div>
+      ) : null}
     </section>
   )
 }

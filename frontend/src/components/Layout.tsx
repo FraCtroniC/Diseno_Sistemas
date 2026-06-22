@@ -66,7 +66,7 @@ export default function Layout({ children }: PropsWithChildren) {
             </div>
             {user ? (
               <NavLink
-                to={user.role === 'admin' ? '/admin' : user.role === 'estudiante' ? '/student' : '/profile'}
+                    to={user.role === 'admin' ? '/admin' : '/profile'}
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-sm font-semibold transition ${
                     isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
@@ -146,7 +146,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 </div>
                 {user ? (
                   <NavLink
-                    to={user.role === 'admin' ? '/admin' : user.role === 'estudiante' ? '/student' : '/profile'}
+                to={user.role === 'admin' ? '/admin' : '/profile'}
                     onClick={closeMobileMenu}
                     className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
                   >

@@ -98,8 +98,8 @@ export default function Profile() {
 
   const roleLabel: Record<string, string> = {
     admin: 'Administrador',
-    docente: 'Docente',
-    estudiante: 'Estudiante',
+    repositor: 'Repositor',
+    bibliotecario: 'Bibliotecario',
   }
 
   return (

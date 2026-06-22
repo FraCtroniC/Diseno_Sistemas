@@ -22,12 +22,12 @@ class AdminService {
     });
 
     const normativasVigentes = await Trabajo.count({
-      include: [{
-        model: Categoria,
-        as: 'categoria',
-        where: { slug: 'normativas' }
-      }],
-      where: { estado: 'publicado' }
+      where: {
+        estado: 'publicado',
+        metadatos: {
+          [require('sequelize').Op.contains]: { tipo_documento: 'normativas' }
+        }
+      }
     });
 
     return {

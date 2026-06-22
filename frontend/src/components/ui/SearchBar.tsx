@@ -1,25 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockDocuments } from '../../mocks/data'
-
-const categories = [
-  { value: '', label: 'Todas' },
-  { value: 'pregrado', label: 'Pregrado' },
-  { value: 'postgrado', label: 'Postgrado' },
-  { value: 'normativas', label: 'Normativas' },
-  { value: 'institucional', label: 'Documentación institucional' },
-  { value: 'editorial', label: 'Editorial' },
-  { value: 'divulgacion', label: 'Divulgación' },
-]
+import { trabajoService, type Trabajo } from '../../services/trabajoService'
+import { TIPOS_DOCUMENTO } from '../../types'
 
 export default function SearchBar() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [year, setYear] = useState('')
-  const [category, setCategory] = useState('')
+  const [tipoDoc, setTipoDoc] = useState('')
   const [openAdvanced, setOpenAdvanced] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [suggestions, setSuggestions] = useState<Trabajo[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -33,20 +26,29 @@ export default function SearchBar() {
     return () => window.removeEventListener('click', onClick)
   }, [])
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (q.length === 0) return []
-    return mockDocuments
-      .filter((d) => d.status === 'published')
-      .filter((d) => d.title.toLowerCase().includes(q) || d.authors.join(' ').toLowerCase().includes(q))
-      .slice(0, 6)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    const q = query.trim()
+    if (q.length === 0) {
+      setSuggestions([])
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await trabajoService.buscar({ q, limite: 6, estado: 'publicado' })
+        setSuggestions(res.data.datos)
+      } catch {
+        setSuggestions([])
+      }
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [query])
 
   function submitSearch() {
     const params = new URLSearchParams()
     if (query.trim()) params.set('query', query.trim())
     if (year) params.set('year', year)
-    if (category) params.set('category', category)
+    if (tipoDoc) params.set('tipo_documento', tipoDoc)
     navigate(`/search?${params.toString()}`)
     setFocused(false)
     setOpenAdvanced(false)
@@ -79,20 +81,20 @@ export default function SearchBar() {
         >Buscar</button>
       </div>
 
-      {focused && results.length > 0 ? (
+      {focused && suggestions.length > 0 ? (
         <div className="absolute left-0 top-full z-40 mt-2 w-full rounded-xl border bg-white shadow-lg">
           <ul className="divide-y">
-            {results.map((r) => (
+            {suggestions.map((r) => (
               <li key={r.id} className="px-4 py-3 hover:bg-slate-50">
                 <button
                   type="button"
-                  onClick={() => { setQuery(r.title); navigate(`/search?query=${encodeURIComponent(r.title)}`); setFocused(false) }}
+                  onClick={() => { setQuery(r.titulo); navigate(`/search?query=${encodeURIComponent(r.titulo)}`); setFocused(false) }}
                   className="w-full text-left"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-slate-900">{r.title}</div>
-                      <div className="text-xs text-slate-500">{r.authors.join(', ')} • {r.year}</div>
+                      <div className="text-sm font-semibold text-slate-900">{r.titulo}</div>
+                      <div className="text-xs text-slate-500">{r.autor} • {r.anio}</div>
                     </div>
                     <div className="text-xs text-slate-400">Ver</div>
                   </div>
@@ -111,9 +113,10 @@ export default function SearchBar() {
           <label className="block text-xs text-slate-600">Año</label>
           <input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))} placeholder="2024" inputMode="numeric" className="mt-1 w-full rounded-md border px-2 py-1 text-sm" />
 
-          <label className="mt-3 block text-xs text-slate-600">Categoría</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 w-full rounded-md border px-2 py-1 text-sm">
-            {categories.map((c) => (
+          <label className="mt-3 block text-xs text-slate-600">Tipo de documento</label>
+          <select value={tipoDoc} onChange={(e) => setTipoDoc(e.target.value)} className="mt-1 w-full rounded-md border px-2 py-1 text-sm">
+            <option value="">Todos</option>
+            {TIPOS_DOCUMENTO.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>

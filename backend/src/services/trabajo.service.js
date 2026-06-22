@@ -120,7 +120,7 @@ class TrabajoService {
     return trabajo;
   }
 
-  async buscar({ q, categoria, anio, estado, usuario_id, pagina = 1, limite = 10 }) {
+  async buscar({ q, categoria, tipo_documento, anio, estado, usuario_id, pagina = 1, limite = 10 }) {
     const offset = (pagina - 1) * limite;
     const where = {};
 
@@ -134,6 +134,11 @@ class TrabajoService {
     }
 
     if (categoria) where.categoria_id = categoria;
+    if (tipo_documento) {
+      where.metadatos = {
+        [Op.contains]: { tipo_documento }
+      };
+    }
     if (anio) where.anio = anio;
     if (estado) where.estado = estado;
     if (usuario_id) where.usuario_id = usuario_id;

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { trabajoService, categoriaService, type Trabajo, type Categoria } from '../services/trabajoService'
+import type { DocumentItem } from '../types'
 
 interface TrabajoState {
   trabajos: Trabajo[]
@@ -44,6 +45,9 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
       if (t.estado === 'publicado') status = 'published'
       else if (t.estado === 'archivado') status = 'archived'
 
+      const metadatos = t.metadatos as Record<string, unknown> | undefined
+      const tipoDocumento = metadatos?.tipo_documento as string | undefined
+
       return {
         id: t.id,
         title: t.titulo,
@@ -52,6 +56,8 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
         abstract: t.resumen ?? '',
         status,
         category: cat?.slug ?? t.categoria_id,
+        tipoDocumento: tipoDocumento as DocumentItem['tipoDocumento'],
+        carrera: cat?.nombre,
       }
     })
   },

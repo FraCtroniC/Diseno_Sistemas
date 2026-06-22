@@ -4,9 +4,11 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 import { adminService, type AdminStats } from '../services/adminService'
 import { authService, type AuthUser } from '../services/authService'
+import { categoriaService, type Categoria } from '../services/trabajoService'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
-import ProtectedRoute from '../components/ProtectedRoute'
+import Input from '../components/ui/Input'
+
 
 const quickActions = [
   {
@@ -32,8 +34,20 @@ export default function Admin() {
   const navigate = useNavigate()
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [usuarios, setUsuarios] = useState<AuthUser[]>([])
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [newCatNombre, setNewCatNombre] = useState('')
+  const [newCatSlug, setNewCatSlug] = useState('')
+  const [newCatDesc, setNewCatDesc] = useState('')
+  const [catLoading, setCatLoading] = useState(false)
+  const [editingCat, setEditingCat] = useState<Categoria | null>(null)
 
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
+
+  function loadCategorias() {
+    categoriaService.listar()
+      .then((res) => setCategorias(res.data.data))
+      .catch(() => {})
+  }
 
   useEffect(() => {
     fetchCategorias()
@@ -44,6 +58,7 @@ export default function Admin() {
     authService.listarUsuarios()
       .then((res) => setUsuarios(res.data.data))
       .catch(() => {})
+    loadCategorias()
   }, [])
 
   const all = mapToDocumentItems()
@@ -64,7 +79,6 @@ export default function Admin() {
   }
 
   return (
-    <ProtectedRoute roles={["admin"]}>
       <section className="space-y-6 pb-6">
         <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(135deg,rgba(11,87,164,0.92),rgba(10,31,68,0.98))] p-6 text-white shadow-[0_35px_80px_-38px_rgba(11,87,164,0.75)] sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -247,7 +261,122 @@ export default function Admin() {
             </Card>
           </div>
         </div>
+
+        <Card className="border-white/80 bg-white/90">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gestión de categorías</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900">Administrar carreras y categorías</h3>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-bold text-slate-900">{editingCat ? 'Editar categoría' : 'Nueva categoría'}</p>
+              <div className="mt-4 space-y-3">
+                <Input
+                  value={newCatNombre}
+                  onChange={(e) => setNewCatNombre(e.target.value)}
+                  placeholder="Nombre (ej: Ingeniería de Sistemas)"
+                />
+                <Input
+                  value={newCatSlug}
+                  onChange={(e) => setNewCatSlug(e.target.value)}
+                  placeholder="Slug (ej: ingenieria-de-sistemas)"
+                />
+                <Input
+                  value={newCatDesc}
+                  onChange={(e) => setNewCatDesc(e.target.value)}
+                  placeholder="Descripción (opcional)"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    disabled={catLoading || !newCatNombre || !newCatSlug}
+                    onClick={async () => {
+                      setCatLoading(true)
+                      try {
+                        if (editingCat) {
+                          await categoriaService.actualizar(editingCat.id, {
+                            nombre: newCatNombre,
+                            slug: newCatSlug,
+                            descripcion: newCatDesc || undefined,
+                          })
+                        } else {
+                          await categoriaService.crear({
+                            nombre: newCatNombre,
+                            slug: newCatSlug,
+                            descripcion: newCatDesc || undefined,
+                          })
+                        }
+                        setNewCatNombre('')
+                        setNewCatSlug('')
+                        setNewCatDesc('')
+                        setEditingCat(null)
+                        loadCategorias()
+                      } catch {
+                        // silencio
+                      } finally {
+                        setCatLoading(false)
+                      }
+                    }}
+                  >
+                    {editingCat ? 'Actualizar' : 'Crear'}
+                  </Button>
+                  {editingCat ? (
+                    <Button variant="secondary" type="button" onClick={() => { setEditingCat(null); setNewCatNombre(''); setNewCatSlug(''); setNewCatDesc('') }}>
+                      Cancelar
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {categorias.length === 0 ? (
+                <p className="text-sm text-slate-500">No hay categorías creadas.</p>
+              ) : (
+                categorias.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
+                    <div>
+                      <p className="font-semibold text-slate-900">{cat.nombre}</p>
+                      <p className="text-sm text-slate-500">{cat.slug}{cat.descripcion ? ` · ${cat.descripcion}` : ''}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCat(cat)
+                          setNewCatNombre(cat.nombre)
+                          setNewCatSlug(cat.slug)
+                          setNewCatDesc(cat.descripcion ?? '')
+                        }}
+                        className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!confirm(`¿Eliminar "${cat.nombre}"?`)) return
+                          try {
+                            await categoriaService.eliminar(cat.id)
+                            loadCategorias()
+                          } catch {
+                            // silencio
+                          }
+                        }}
+                        className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-200"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </Card>
       </section>
-    </ProtectedRoute>
   )
 }

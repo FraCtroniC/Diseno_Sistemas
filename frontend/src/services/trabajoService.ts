@@ -55,4 +55,13 @@ export const categoriaService = {
 
   obtenerPorId: (id: string) =>
     api.get<{ success: boolean; data: Categoria }>(`/categorias/${id}`),
+
+  crear: (data: { nombre: string; descripcion?: string; slug: string }) =>
+    api.post<{ success: boolean; data: Categoria }>('/categorias', data),
+
+  actualizar: (id: string, data: { nombre?: string; descripcion?: string; slug?: string }) =>
+    api.put<{ success: boolean; data: Categoria }>(`/categorias/${id}`, data),
+
+  eliminar: (id: string) =>
+    api.delete<{ success: boolean; message: string }>(`/categorias/${id}`),
 }

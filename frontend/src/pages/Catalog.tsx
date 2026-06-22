@@ -2,10 +2,9 @@ import { useEffect, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Card from '../components/ui/Card'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
+import { TIPOS_DOCUMENTO, type TipoDocumento } from '../types'
 
-type CatalogCategory = 'pregrado' | 'postgrado' | 'normativas' | 'institucional' | 'editorial' | 'divulgacion'
-
-const catalogConfig: Record<CatalogCategory, { title: string; subtitle: string; description: string; accent: string }> = {
+const catalogConfig: Record<TipoDocumento, { title: string; subtitle: string; description: string; accent: string }> = {
   pregrado: {
     title: 'Pregrado',
     subtitle: 'Trabajos de grado y proyectos académicos',
@@ -44,16 +43,16 @@ const catalogConfig: Record<CatalogCategory, { title: string; subtitle: string; 
   },
 }
 
-const categoryOrder: CatalogCategory[] = ['pregrado', 'postgrado', 'normativas', 'institucional', 'editorial', 'divulgacion']
+const categoryOrder: TipoDocumento[] = ['pregrado', 'postgrado', 'normativas', 'institucional', 'editorial', 'divulgacion']
 
-function isCatalogCategory(value: string | undefined): value is CatalogCategory {
-  return Boolean(value && categoryOrder.includes(value as CatalogCategory))
+function isTipoDocumento(value: string | undefined): value is TipoDocumento {
+  return Boolean(value && categoryOrder.includes(value as TipoDocumento))
 }
 
 export default function Catalog() {
   const params = useParams()
-  const category = isCatalogCategory(params.category) ? params.category : 'pregrado'
-  const config = catalogConfig[category]
+  const tipo = isTipoDocumento(params.category) ? params.category : 'pregrado'
+  const config = catalogConfig[tipo]
 
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
 
@@ -64,8 +63,8 @@ export default function Catalog() {
 
   const all = mapToDocumentItems()
   const documents = useMemo(
-    () => all.filter((document) => document.status === 'published' && document.category === category).sort((a, b) => b.year - a.year),
-    [all, category],
+    () => all.filter((document) => document.status === 'published' && document.tipoDocumento === tipo).sort((a, b) => b.year - a.year),
+    [all, tipo],
   )
 
   const highlight = documents[0]
@@ -151,13 +150,13 @@ export default function Catalog() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {categoryOrder.map((item) => (
+        {TIPOS_DOCUMENTO.map((item) => (
           <Link
-            key={item}
-            to={`/catalogo/${item}`}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${item === category ? 'bg-unefa text-white shadow-sm' : 'bg-white/85 text-slate-700 hover:bg-unefa/10 hover:text-unefa-dark'}`}
+            key={item.value}
+            to={`/catalogo/${item.value}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${item.value === tipo ? 'bg-unefa text-white shadow-sm' : 'bg-white/85 text-slate-700 hover:bg-unefa/10 hover:text-unefa-dark'}`}
           >
-            {catalogConfig[item].title}
+            {item.label}
           </Link>
         ))}
       </div>

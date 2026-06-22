@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const metadatosSchema = Joi.object({
-  tipo_documento: Joi.string().valid('tesis', 'tfg', 'pasantia', 'articulo', 'monografia', 'trabajo').optional(),
+  tipo_documento: Joi.string().valid('pregrado', 'postgrado', 'normativas', 'institucional', 'editorial', 'divulgacion', 'tesis', 'tfg', 'pasantia', 'articulo', 'monografia', 'trabajo').optional(),
   idioma: Joi.string().valid('es', 'en', 'pt').optional(),
   paginas: Joi.number().integer().min(5).max(5000).optional(),
   institucion: Joi.string().max(200).optional(),

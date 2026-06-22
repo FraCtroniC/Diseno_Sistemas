@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { trabajoService, type Trabajo } from '../services/trabajoService'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
-import ProtectedRoute from '../components/ProtectedRoute'
+
 
 export default function Student() {
   const user = useAuthStore((s) => s.user)
@@ -30,7 +30,6 @@ export default function Student() {
   }
 
   return (
-    <ProtectedRoute roles={["estudiante"]}>
       <section className="space-y-6 pb-6">
         <div className="overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/95 p-6 shadow-sm">
           <div className="flex items-center justify-between gap-4">
@@ -100,6 +99,5 @@ export default function Student() {
           </Card>
         </div>
       </section>
-    </ProtectedRoute>
   )
 }

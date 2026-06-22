@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Search from './pages/Search'
 import Catalog from './pages/Catalog'
@@ -29,13 +30,13 @@ export default function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/catalogo/:category" element={<Catalog />} />
           <Route path="/submission" element={<Submission />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/student" element={<Student />} />
+          <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><Admin /></ProtectedRoute>} />
+          <Route path="/student" element={<ProtectedRoute roles={["bibliotecario", "repositor"]}><Student /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </div>
     </Layout>

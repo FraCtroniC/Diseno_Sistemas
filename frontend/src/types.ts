@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'docente' | 'estudiante'
+export type UserRole = 'admin' | 'repositor' | 'bibliotecario'
 
 export interface UserProfile {
   cedula?: string
@@ -13,6 +13,8 @@ export interface User {
   profile?: UserProfile
 }
 
+export type TipoDocumento = 'pregrado' | 'postgrado' | 'normativas' | 'institucional' | 'editorial' | 'divulgacion'
+
 export interface DocumentItem {
   id: string
   title: string
@@ -20,7 +22,9 @@ export interface DocumentItem {
   year: number
   abstract?: string
   status: 'draft' | 'published' | 'archived'
-  category: 'pregrado' | 'postgrado' | 'normativas' | 'institucional' | 'editorial' | 'divulgacion'
+  category: string
+  tipoDocumento?: TipoDocumento
+  carrera?: string
 }
 
 export interface Work {
@@ -30,3 +34,12 @@ export interface Work {
   year: number
   status: 'draft' | 'published' | 'archived'
 }
+
+export const TIPOS_DOCUMENTO: { value: TipoDocumento; label: string }[] = [
+  { value: 'pregrado', label: 'Pregrado' },
+  { value: 'postgrado', label: 'Postgrado' },
+  { value: 'normativas', label: 'Normativas' },
+  { value: 'institucional', label: 'Documentación institucional' },
+  { value: 'editorial', label: 'Editorial' },
+  { value: 'divulgacion', label: 'Divulgación' },
+]
