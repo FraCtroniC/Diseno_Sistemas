@@ -11,6 +11,7 @@ type Step = 1 | 2
 type FormState = {
   title: string
   authors: string
+  tutor: string
   year: string
   documentType: string
   program: string
@@ -25,8 +26,9 @@ type FormErrors = Partial<Record<keyof FormState, string>>
 const initialState: FormState = {
   title: '',
   authors: '',
+  tutor: '',
   year: '',
-  documentType: 'tesis',
+  documentType: '',
   program: '',
   categoryId: '',
   description: '',
@@ -109,6 +111,7 @@ export default function Submission() {
       const formData = new FormData()
       formData.append('titulo', form.title)
       formData.append('autor', form.authors)
+      if (form.tutor.trim()) formData.append('tutor', form.tutor.trim())
       formData.append('anio', form.year)
       formData.append('resumen', form.description)
       formData.append('categoria_id', form.categoryId)
@@ -162,6 +165,11 @@ export default function Submission() {
                   <span className="text-sm font-medium text-slate-700">Autores separados por coma</span>
                   <Input value={form.authors} onChange={(event) => updateField('authors', event.target.value)} placeholder="Nombre Apellido, Nombre Apellido" />
                   {errors.authors ? <p className="text-sm text-red-600">{errors.authors}</p> : null}
+                </label>
+
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700">Tutor / asesor</span>
+                  <Input value={form.tutor} onChange={(event) => updateField('tutor', event.target.value)} placeholder="Nombre del tutor (opcional)" />
                 </label>
 
                 <label className="space-y-2">

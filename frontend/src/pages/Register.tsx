@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -21,8 +22,10 @@ export default function Register() {
   const registerFn = useAuthStore((s) => s.register)
   const navigate = useNavigate()
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const [registerError, setRegisterError] = useState('')
 
   const onSubmit = async (data: FormData) => {
+    setRegisterError('')
     const profile: UserProfile = {
       cedula: data.cedula,
       telefono: data.telefono,
@@ -30,8 +33,8 @@ export default function Register() {
     try {
       await registerFn({ name: data.name, email: data.email, password: data.password, profile })
       navigate('/')
-    } catch {
-      alert('Error al registrarse. Intente de nuevo.')
+    } catch (err: any) {
+      setRegisterError(err?.response?.data?.error || err?.response?.data?.message || 'Error al registrarse. Intente de nuevo.')
     }
   }
 
@@ -102,6 +105,8 @@ export default function Register() {
               <Input {...register('telefono')} placeholder="0412-1234567" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
             </label>
           </div>
+
+          {registerError ? <p className="text-sm text-rose-600">{registerError}</p> : null}
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit">Crear cuenta</Button>

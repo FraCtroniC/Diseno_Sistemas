@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Search from './pages/Search'
 import Catalog from './pages/Catalog'
+import TrabajoDetalle from './pages/TrabajoDetalle'
 import Submission from './pages/Submission'
 import Admin from './pages/Admin'
 import Login from './pages/Login'
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
           <Route path="/catalogo/:category" element={<Catalog />} />
+          <Route path="/trabajos/:id" element={<TrabajoDetalle />} />
           <Route path="/submission" element={<Submission />} />
           <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><Admin /></ProtectedRoute>} />
           <Route path="/student" element={<ProtectedRoute roles={["bibliotecario", "repositor"]}><Student /></ProtectedRoute>} />
@@ -37,6 +39,15 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="*" element={
+            <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center shadow-sm backdrop-blur">
+              <p className="text-4xl font-black text-slate-300">404</p>
+              <p className="mt-2 text-lg font-semibold text-slate-600">Página no encontrada</p>
+              <a href="/" className="mt-4 inline-block rounded-full bg-unefa px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-unefa/20 hover:brightness-110">
+                Volver al inicio
+              </a>
+            </section>
+          } />
         </Routes>
       </div>
     </Layout>

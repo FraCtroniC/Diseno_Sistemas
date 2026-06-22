@@ -5,6 +5,7 @@ import { useTrabajoStore } from '../stores/useTrabajoStore'
 import { adminService, type AdminStats } from '../services/adminService'
 import { authService, type AuthUser } from '../services/authService'
 import { categoriaService, type Categoria } from '../services/trabajoService'
+import api from '../services/api'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
@@ -33,7 +34,9 @@ export default function Admin() {
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [statsError, setStatsError] = useState('')
   const [usuarios, setUsuarios] = useState<AuthUser[]>([])
+  const [usuariosError, setUsuariosError] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [newCatNombre, setNewCatNombre] = useState('')
   const [newCatSlug, setNewCatSlug] = useState('')
@@ -53,11 +56,11 @@ export default function Admin() {
     fetchCategorias()
     fetchTrabajos()
     adminService.getStats()
-      .then((res) => setStats(res.data.data))
-      .catch(() => {})
+      .then((res) => { setStats(res.data.data); setStatsError('') })
+      .catch(() => setStatsError('No se pudieron cargar estadísticas'))
     authService.listarUsuarios()
-      .then((res) => setUsuarios(res.data.data))
-      .catch(() => {})
+      .then((res) => { setUsuarios(res.data.data); setUsuariosError('') })
+      .catch(() => setUsuariosError('No se pudieron cargar los usuarios'))
     loadCategorias()
   }, [])
 
@@ -234,18 +237,36 @@ export default function Admin() {
               <div className="mt-5 space-y-3">
                 {usuarios.length > 0 ? (
                   usuarios.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
-                      <div>
+                    <div key={u.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
+                      <div className="min-w-0 flex-1">
                         <p className="font-semibold text-slate-900">{u.nombre}</p>
-                        <p className="text-sm text-slate-500">{u.email}</p>
+                        <p className="text-sm text-slate-500 truncate">{u.email}</p>
                       </div>
-                      <span className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold capitalize text-unefa-dark">
-                        {u.rol}
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="relative">
+                          <select
+                            value={u.rol}
+                            onChange={async (e) => {
+                              const newRol = e.target.value
+                              try {
+                                await api.put(`/usuarios/${u.id}`, { rol: newRol })
+                                setUsuarios((prev) => prev.map((x) => x.id === u.id ? { ...x, rol: newRol } : x))
+                              } catch { /* silencio */ }
+                            }}
+                            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-unefa-dark appearance-none cursor-pointer hover:border-unefa/30"
+                          >
+                            <option value="admin">admin</option>
+                            <option value="repositor">repositor</option>
+                            <option value="bibliotecario">bibliotecario</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   ))
+                ) : usuariosError ? (
+                  <p className="text-sm text-rose-600">{usuariosError}</p>
                 ) : (
-                  <p className="text-sm text-slate-500">Cargando usuarios...</p>
+                  <p className="text-sm text-slate-500">No hay usuarios registrados.</p>
                 )}
               </div>
             </Card>

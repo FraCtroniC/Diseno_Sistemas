@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Card from '../components/ui/Card'
+import { SkeletonCard } from '../components/ui/Skeleton'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 
 export default function Home() {
@@ -43,6 +45,11 @@ export default function Home() {
         <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center text-slate-500 shadow-sm">
           Cargando publicaciones...
         </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </section>
     )
   }
@@ -81,13 +88,9 @@ export default function Home() {
                 const isSelected = document.id === selectedPublication?.id
 
                 return (
-                  <button
+                  <Link
                     key={document.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedId(document.id)
-                      setIsDetailOpen(true)
-                    }}
+                    to={`/trabajos/${document.id}`}
                     className={`min-w-[260px] snap-start rounded-[1.4rem] border p-5 text-left transition focus:outline-none focus:ring-2 focus:ring-unefa/40 lg:min-w-0 ${
                       isSelected
                         ? 'border-unefa bg-[linear-gradient(180deg,rgba(11,87,164,0.08),rgba(255,255,255,1))] shadow-[0_18px_50px_-34px_rgba(11,87,164,0.55)]'
@@ -110,7 +113,7 @@ export default function Home() {
                     <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-unefa">
                       Ver ficha técnica
                     </p>
-                  </button>
+                  </Link>
                 )
               })}
             </div>

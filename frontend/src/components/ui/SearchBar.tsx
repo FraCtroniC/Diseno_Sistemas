@@ -69,7 +69,7 @@ export default function SearchBar() {
         <button
           type="button"
           onClick={() => setOpenAdvanced((s) => !s)}
-          className="hidden rounded-full bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-unefa/5 lg:inline-flex"
+          className="rounded-full bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-unefa/5"
         >
           Filtros
         </button>

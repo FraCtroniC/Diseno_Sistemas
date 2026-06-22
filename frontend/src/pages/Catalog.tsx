@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Card from '../components/ui/Card'
+import { SkeletonCard } from '../components/ui/Skeleton'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 import { TIPOS_DOCUMENTO, type TipoDocumento } from '../types'
 
@@ -49,10 +50,13 @@ function isTipoDocumento(value: string | undefined): value is TipoDocumento {
   return Boolean(value && categoryOrder.includes(value as TipoDocumento))
 }
 
+const ITEMS_PER_PAGE = 6
+
 export default function Catalog() {
   const params = useParams()
   const tipo = isTipoDocumento(params.category) ? params.category : 'pregrado'
   const config = catalogConfig[tipo]
+  const [page, setPage] = useState(1)
 
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
 
@@ -62,10 +66,12 @@ export default function Catalog() {
   }, [])
 
   const all = mapToDocumentItems()
-  const documents = useMemo(
+  const filtered = useMemo(
     () => all.filter((document) => document.status === 'published' && document.tipoDocumento === tipo).sort((a, b) => b.year - a.year),
     [all, tipo],
   )
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const documents = filtered.slice(0, page * ITEMS_PER_PAGE)
 
   const highlight = documents[0]
 
@@ -91,21 +97,44 @@ export default function Catalog() {
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {loading ? (
-              <div className="md:col-span-2 text-sm text-slate-500 py-4">Cargando...</div>
+              <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
             ) : (
               documents.map((document) => (
-                <article key={document.id} className="rounded-[1.4rem] border border-slate-200 bg-white p-5 transition hover:border-unefa/25 hover:shadow-md">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{document.year}</p>
+                <Link key={document.id} to={`/trabajos/${document.id}`} className="block rounded-[1.4rem] border border-slate-200 bg-white p-5 transition hover:border-unefa/25 hover:shadow-md">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{document.year}</p>
+                    {document.tipoDocumento ? (
+                      <span className="rounded-full bg-unefa/10 px-2 py-0.5 text-xs font-semibold text-unefa-dark">
+                        {TIPOS_DOCUMENTO.find(t => t.value === document.tipoDocumento)?.label || document.tipoDocumento}
+                      </span>
+                    ) : null}
+                  </div>
                   <h4 className="mt-2 text-lg font-black leading-6 text-slate-900">{document.title}</h4>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{document.abstract}</p>
-                  <p className="mt-4 text-xs font-medium text-slate-500">{document.authors.join(' · ')}</p>
-                </article>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{document.abstract}</p>
+                  <p className="mt-3 text-xs font-medium text-slate-500">{document.authors.join(' · ')}</p>
+                </Link>
               ))
             )}
 
             {!loading && documents.length === 0 ? (
               <div className="rounded-[1.4rem] border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600 md:col-span-2">
                 Todavía no hay publicaciones cargadas para esta categoría.
+              </div>
+            ) : null}
+            {!loading && filtered.length > ITEMS_PER_PAGE && documents.length < filtered.length ? (
+              <div className="md:col-span-2 flex justify-center pt-4">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => p + 1)}
+                  className="rounded-full border border-unefa/20 bg-white px-6 py-2 text-sm font-semibold text-unefa-dark transition hover:bg-unefa/5 hover:shadow-sm"
+                >
+                  Mostrar más ({filtered.length - documents.length} restantes)
+                </button>
               </div>
             ) : null}
           </div>
@@ -150,6 +179,7 @@ export default function Catalog() {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <span className="self-center text-xs font-semibold uppercase tracking-wider text-slate-400 mr-2">Filtrar:</span>
         {TIPOS_DOCUMENTO.map((item) => (
           <Link
             key={item.value}

@@ -73,8 +73,8 @@ export default function Login() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit">Entrar</Button>
-            <Button type="button" variant="secondary" onClick={() => { setEmail('admin@example.com'); setPassword('') }}>
-              Usar cuenta demo
+            <Button type="button" variant="secondary" onClick={() => { setEmail('admin@unefa.edu.ve'); setPassword('admin123') }}>
+              Usar cuenta demo (admin)
             </Button>
           </div>
         </form>
