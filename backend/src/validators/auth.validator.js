@@ -6,7 +6,7 @@ const loginRules = [
     .normalizeEmail(),
   body('password')
     .notEmpty().withMessage('La contraseña es requerida')
-    .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
 ];
 
 const registerRules = [
@@ -18,16 +18,13 @@ const registerRules = [
     .normalizeEmail(),
   body('password')
     .notEmpty().withMessage('La contraseña es requerida')
-    .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
   body('cedula')
     .optional({ values: 'null' })
     .isString().withMessage('La cédula debe ser texto'),
   body('telefono')
     .optional({ values: 'null' })
     .isString().withMessage('El teléfono debe ser texto'),
-  body('rol')
-    .optional()
-    .isIn(['admin', 'repositor', 'bibliotecario']).withMessage('Rol inválido')
 ];
 
 const forgotPasswordRules = [
@@ -41,7 +38,7 @@ const changePasswordRules = [
     .notEmpty().withMessage('La contraseña actual es requerida'),
   body('newPassword')
     .notEmpty().withMessage('La nueva contraseña es requerida')
-    .isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
+    .isLength({ min: 8 }).withMessage('La nueva contraseña debe tener al menos 8 caracteres')
 ];
 
 const resetPasswordRules = [
@@ -52,7 +49,7 @@ const resetPasswordRules = [
     .normalizeEmail(),
   body('newPassword')
     .notEmpty().withMessage('La nueva contraseña es requerida')
-    .isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
+    .isLength({ min: 8 }).withMessage('La nueva contraseña debe tener al menos 8 caracteres')
 ];
 
 const updateProfileRules = [

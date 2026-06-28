@@ -10,7 +10,7 @@ export default function Home() {
   useEffect(() => {
     fetchCategorias()
     fetchTrabajos({ estado: 'publicado' })
-  }, [])
+  }, [fetchCategorias, fetchTrabajos])
 
   const all = mapToDocumentItems()
   const latestPublications = all.sort((a, b) => b.year - a.year)

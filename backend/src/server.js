@@ -6,6 +6,11 @@ const PORT = environment.port;
 
 async function startServer() {
   try {
+    if (!environment.jwtSecret) {
+      console.error('JWT_SECRET no está definido. Configura la variable de entorno.');
+      process.exit(1);
+    }
+
     console.log('Conectando a la base de datos de Neon...');
     await sequelize.authenticate();
     console.log('¡Conexión a la base de datos establecida correctamente!');

@@ -1,13 +1,20 @@
 import { useState } from 'react'
-import { useSearchParams, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import PasswordInput from '../components/ui/PasswordInput'
 import { authService } from '../services/authService'
 
+function parseHashParams() {
+  const hash = window.location.hash.replace(/^#/, '')
+  const params = new URLSearchParams(hash)
+  return {
+    token: params.get('token') || '',
+    email: params.get('email') || '',
+  }
+}
+
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams()
-  const token = searchParams.get('token') || ''
-  const email = searchParams.get('email') || ''
+  const { token, email } = parseHashParams()
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -18,8 +25,8 @@ export default function ResetPassword() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    if (newPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres')
+    if (newPassword.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres')
       return
     }
     if (newPassword !== confirmPassword) {

@@ -63,14 +63,13 @@ export default function Catalog() {
   useEffect(() => {
     fetchCategorias()
     fetchTrabajos({ estado: 'publicado' })
-  }, [])
+  }, [fetchCategorias, fetchTrabajos])
 
   const all = mapToDocumentItems()
   const filtered = useMemo(
     () => all.filter((document) => document.status === 'published' && document.tipoDocumento === tipo).sort((a, b) => b.year - a.year),
     [all, tipo],
   )
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
   const documents = filtered.slice(0, page * ITEMS_PER_PAGE)
 
   const highlight = documents[0]

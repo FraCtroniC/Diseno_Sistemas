@@ -30,6 +30,9 @@ export const authService = {
   resetPassword: (token: string, email: string, newPassword: string) =>
     api.post<{ success: boolean; data: { message: string } }>('/auth/reset-password', { token, email, newPassword }),
 
+  logout: () =>
+    api.post<{ success: boolean; message: string }>('/auth/logout'),
+
   perfil: () =>
     api.get<{ success: boolean; data: AuthUser }>('/auth/perfil'),
 

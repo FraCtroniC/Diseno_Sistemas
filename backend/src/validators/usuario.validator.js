@@ -9,7 +9,7 @@ const createUsuarioRules = [
     .normalizeEmail(),
   body('password')
     .notEmpty().withMessage('La contraseña es requerida')
-    .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
   body('rol')
     .optional()
     .isIn(['admin', 'repositor', 'bibliotecario']).withMessage('Rol inválido')

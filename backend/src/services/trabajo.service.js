@@ -2,6 +2,19 @@ const { Op } = require('sequelize');
 const { Trabajo, Categoria, Usuario } = require('../models');
 const { validarMetadatos } = require('../validators/metadatos.schema');
 
+const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'metadatos', 'estado'];
+const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'metadatos', 'estado'];
+
+function pick(obj, keys) {
+  const result = {};
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
+
 class TrabajoService {
   async listar({ pagina = 1, limite = 10, estado, usuario_id } = {}) {
     const offset = (pagina - 1) * limite;
@@ -60,7 +73,7 @@ class TrabajoService {
     }
 
     return Trabajo.create({
-      ...data,
+      ...pick(data, CAMPOS_CREAR),
       archivo_url: archivoUrl,
       usuario_id: usuarioId
     });
@@ -90,7 +103,7 @@ class TrabajoService {
       }
     }
 
-    const updateData = { ...data };
+    const updateData = pick(data, CAMPOS_ACTUALIZAR);
     if (archivoUrl) {
       updateData.archivo_url = archivoUrl;
     }

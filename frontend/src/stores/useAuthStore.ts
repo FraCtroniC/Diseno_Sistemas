@@ -5,7 +5,6 @@ import type { User, UserProfile } from '../types'
 
 interface AuthState {
   user: User | null
-  token: string | null
   loading: boolean
   login: (email: string, password: string) => Promise<User | null>
   logout: () => void
@@ -30,35 +29,34 @@ function mapBackendUser(authUser: AuthUser): User {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: localStorage.getItem('token'),
   loading: false,
 
   init: async () => {
-    const token = localStorage.getItem('token')
-    if (!token) return
     set({ loading: true })
     try {
       const res = await authService.perfil()
       const user = mapBackendUser(res.data.data)
-      set({ user, token, loading: false })
+      set({ user, loading: false })
     } catch {
-      localStorage.removeItem('token')
-      set({ user: null, token: null, loading: false })
+      set({ user: null, loading: false })
     }
   },
 
   login: async (email: string, password: string) => {
     const res = await authService.login(email, password)
-    const { token, usuario } = res.data.data
-    localStorage.setItem('token', token)
+    const { usuario } = res.data.data
     const user = mapBackendUser(usuario)
-    set({ user, token })
+    set({ user })
     return user
   },
 
-  logout: () => {
-    localStorage.removeItem('token')
-    set({ user: null, token: null })
+  logout: async () => {
+    try {
+      await authService.logout()
+    } catch {
+      // ignore
+    }
+    set({ user: null })
   },
 
   register: async (payload) => {
@@ -69,10 +67,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       cedula: payload.profile?.cedula || undefined,
       telefono: payload.profile?.telefono || undefined,
     })
-    const { token, usuario } = res.data.data
-    localStorage.setItem('token', token)
+    const { usuario } = res.data.data
     const user = mapBackendUser(usuario)
-    set({ user, token })
+    set({ user })
     return user
   },
 

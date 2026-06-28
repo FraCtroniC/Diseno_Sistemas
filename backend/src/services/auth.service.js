@@ -30,7 +30,7 @@ class AuthService {
     const token = jwt.sign(
       { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
       environment.jwtSecret,
-      { expiresIn: '8h' }
+      { expiresIn: '2h' }
     );
 
     return {
@@ -61,13 +61,13 @@ class AuthService {
       password_hash: hash,
       cedula: data.cedula || null,
       telefono: data.telefono || null,
-      rol: data.rol || 'bibliotecario'
+      rol: 'bibliotecario'
     });
 
     const token = jwt.sign(
       { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
       environment.jwtSecret,
-      { expiresIn: '8h' }
+      { expiresIn: '2h' }
     );
 
     return {
@@ -85,10 +85,10 @@ class AuthService {
 
   async forgotPassword(email) {
     const usuario = await Usuario.findOne({ where: { email } });
+    const message = 'Si el correo está registrado, recibirás un enlace de restablecimiento.';
+
     if (!usuario) {
-      const err = new Error('No existe una cuenta con ese correo electrónico');
-      err.statusCode = 404;
-      throw err;
+      return { message };
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -99,7 +99,7 @@ class AuthService {
       reset_token_expires: expires
     });
 
-    const resetLink = `${environment.frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    const resetLink = `${environment.frontendUrl}/reset-password#token=${resetToken}&email=${encodeURIComponent(email)}`;
 
     try {
       await emailService.sendPasswordResetLink(email, resetLink);
@@ -107,14 +107,12 @@ class AuthService {
       console.error('Error al enviar correo de recuperación:', emailErr.message);
       await usuario.update({ reset_token: null, reset_token_expires: null });
       if (environment.nodeEnv !== 'development') {
-        const err = new Error('No se pudo enviar el correo. Verifica la configuración SMTP o intenta más tarde.');
-        err.statusCode = 502;
-        throw err;
+        return { message };
       }
       return { message: 'Modo desarrollo — link de restablecimiento generado, pero no se pudo enviar el correo.', resetLink, devMode: true };
     }
 
-    return { message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico' };
+    return { message };
   }
 
   async resetPassword(token, email, newPassword) {

@@ -1,9 +1,15 @@
 'use strict';
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 module.exports = {
   up: async (queryInterface) => {
-    const hash = await bcrypt.hash('admin123', 10);
+    const rawPassword = process.env.ADMIN_PASSWORD || `admin_${crypto.randomUUID().split('-')[0]}`;
+    if (!process.env.ADMIN_PASSWORD) {
+      console.log(`[ADVERTENCIA] Usando contraseña generada para admin: ${rawPassword}`);
+      console.log('[ADVERTENCIA] Define ADMIN_PASSWORD en .env para evitar contraseñas aleatorias.');
+    }
+    const hash = await bcrypt.hash(rawPassword, 10);
 
     await queryInterface.bulkInsert('usuarios', [
       {

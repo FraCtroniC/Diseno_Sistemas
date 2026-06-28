@@ -4,8 +4,8 @@ const { validationResult } = require('express-validator');
 
 class TrabajoController {
   async listar(req, res) {
-    const { pagina, limite, estado } = req.query;
-    const resultado = await trabajoService.listar({ pagina, limite, estado });
+    const { pagina, limite, estado, usuario_id } = req.query;
+    const resultado = await trabajoService.listar({ pagina, limite, estado, usuario_id });
     res.status(200).json({ success: true, ...resultado });
   }
 
@@ -67,7 +67,13 @@ class TrabajoController {
       err.statusCode = 404;
       throw err;
     }
-    const filePath = path.join(__dirname, '../../', trabajo.archivo_url);
+    const uploadsDir = path.resolve(__dirname, '../../uploads');
+    const filePath = path.resolve(path.join(__dirname, '../../', trabajo.archivo_url));
+    if (!filePath.startsWith(uploadsDir)) {
+      const err = new Error('Acceso denegado');
+      err.statusCode = 403;
+      throw err;
+    }
     res.download(filePath, (err) => {
       if (err) {
         const downloadErr = new Error('Error al descargar el archivo');

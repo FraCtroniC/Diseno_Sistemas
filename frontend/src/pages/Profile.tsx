@@ -8,7 +8,6 @@ import { authService } from '../services/authService'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
-import type { UserProfile } from '../types'
 
 const schema = z.object({
   email: z.string().email('Correo inválido'),
@@ -39,7 +38,7 @@ export default function Profile() {
     } else {
       fetchTrabajos()
     }
-  }, [user])
+  }, [user, fetchCategorias, fetchTrabajos])
 
   const all = mapToDocumentItems()
   const myWorks = all
@@ -52,7 +51,7 @@ export default function Profile() {
         telefono: user.profile?.telefono,
       })
     }
-  }, [user])
+  }, [user, reset])
 
   if (!user) return (
     <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center shadow-sm backdrop-blur">
