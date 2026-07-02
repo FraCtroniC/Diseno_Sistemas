@@ -54,8 +54,8 @@ export default function Profile() {
   }, [user, reset])
 
   if (!user) return (
-    <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center shadow-sm backdrop-blur">
-      <p className="text-lg font-semibold text-slate-600">Debe iniciar sesión para ver su perfil.</p>
+    <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
+      <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">Debe iniciar sesión para ver su perfil.</p>
     </section>
   )
 
@@ -123,26 +123,26 @@ export default function Profile() {
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
-          <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+          <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Editar perfil</p>
-                <h3 className="mt-2 text-2xl font-black text-slate-900">Actualizar información</h3>
+                <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Actualizar información</h3>
               </div>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Correo electrónico</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Correo electrónico</span>
                 <Input type="email" autoComplete="email" {...register('email')} placeholder="tu@correo.com" />
                 {errors.email ? <p className="text-sm text-rose-600">{errors.email.message}</p> : null}
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Cédula</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Cédula</span>
                   <Input {...register('cedula')} placeholder="V-12345678" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
                 </label>
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Teléfono</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Teléfono</span>
                   <Input {...register('telefono')} placeholder="0412-1234567" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
                 </label>
               </div>
@@ -154,25 +154,25 @@ export default function Profile() {
             </form>
           </div>
 
-          <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+          <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
             <form onSubmit={handleChangePassword} className="space-y-5">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Seguridad</p>
-                <h3 className="mt-2 text-2xl font-black text-slate-900">Cambiar contraseña</h3>
+                <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Cambiar contraseña</h3>
               </div>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Contraseña actual</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Contraseña actual</span>
                 <PasswordInput value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="*******" />
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Nueva contraseña</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nueva contraseña</span>
                   <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
                 </label>
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Confirmar contraseña</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirmar contraseña</span>
                   <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repite la contraseña" />
                 </label>
               </div>
@@ -187,21 +187,21 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+        <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Documentos</p>
-          <h3 className="mt-2 text-2xl font-black text-slate-900">Trabajos en el repositorio</h3>
+          <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Trabajos en el repositorio</h3>
 
           <div className="mt-5 space-y-3">
             {myWorks.length === 0 ? (
-              <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+              <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 dark:bg-slate-700/50 dark:text-slate-400">
                 No hay trabajos disponibles.
               </p>
             ) : (
               <ul className="space-y-2">
                 {myWorks.slice(0, 10).map((w) => (
-                  <li key={w.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 transition hover:border-unefa/20">
-                    <p className="text-sm font-semibold text-slate-900">{w.title}</p>
-                    <p className="text-xs text-slate-500">
+                  <li key={w.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 transition hover:border-unefa/20 dark:border-slate-700/50 dark:bg-slate-800/50">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{w.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {w.year}
                       <span className="mx-2">&bull;</span>
                       <span className={`font-medium ${w.status === 'published' ? 'text-emerald-600' : w.status === 'draft' ? 'text-amber-600' : 'text-slate-500'}`}>

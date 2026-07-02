@@ -49,8 +49,8 @@ export default function ResetPassword() {
   if (!token || !email) {
     return (
       <section className="mx-auto max-w-lg pt-12">
-        <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center shadow-sm backdrop-blur">
-          <p className="text-lg font-semibold text-slate-600">Enlace inválido. Faltan parámetros de recuperación.</p>
+        <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
+          <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">Enlace inválido. Faltan parámetros de recuperación.</p>
           <NavLink to="/forgot-password" className="mt-4 inline-block font-semibold text-unefa">Solicitar nuevo enlace</NavLink>
         </div>
       </section>
@@ -67,7 +67,7 @@ export default function ResetPassword() {
         </p>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
         {success ? (
           <div className="space-y-5 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -77,8 +77,8 @@ export default function ResetPassword() {
             </div>
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Contraseña restablecida</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Todo listo</h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Todo listo</h3>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 Tu contraseña ha sido cambiada correctamente. Ahora puedes iniciar sesión con tu nueva clave.
               </p>
             </div>
@@ -90,17 +90,17 @@ export default function ResetPassword() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Restablecimiento</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Ingresa tu nueva contraseña</h3>
-              <p className="mt-1 text-sm text-slate-500">Para la cuenta <strong>{email}</strong></p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Ingresa tu nueva contraseña</h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Para la cuenta <strong>{email}</strong></p>
             </div>
 
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Nueva contraseña</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nueva contraseña</span>
               <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
             </label>
 
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Confirmar contraseña</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirmar contraseña</span>
               <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repite la contraseña" />
             </label>
 

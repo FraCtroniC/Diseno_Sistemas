@@ -41,17 +41,17 @@ export default function Student() {
 
   return (
     <section className="space-y-6 pb-6">
-      <div className="overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/95 p-6 shadow-sm">
+      <div className="overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/95 p-6 shadow-sm dark:border-slate-700/50 dark:bg-slate-800/90">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Bienvenido</p>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">Panel del estudiante</h2>
-            <p className="mt-1 text-sm text-slate-600">Accede a tus recursos, envíos y lecturas recomendadas.</p>
+            <h2 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Panel del estudiante</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Accede a tus recursos, envíos y lecturas recomendadas.</p>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <p className="text-sm font-semibold">{user?.name}</p>
-            <p className="text-xs text-slate-500">{user?.email}</p>
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-600 dark:bg-slate-700">
+            <p className="text-sm font-semibold dark:text-slate-100">{user?.name}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
             <Button variant="secondary" onClick={handleLogout} className="mt-2">Salir</Button>
           </div>
         </div>
@@ -59,9 +59,9 @@ export default function Student() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <p className="text-sm font-medium text-slate-500">Lecturas recomendadas</p>
-          <p className="mt-3 text-2xl font-black text-slate-900">{published.length}</p>
-          <p className="mt-2 text-sm text-slate-600">Documentos publicados disponibles para consulta.</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Lecturas recomendadas</p>
+          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-slate-100">{published.length}</p>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Documentos publicados disponibles para consulta.</p>
         </Card>
 
         <Card>
@@ -95,14 +95,14 @@ export default function Student() {
 
       {pendingReviews.length > 0 ? (
         <Card>
-          <h3 className="text-lg font-black text-unefa-dark">Trabajos pendientes de revisión</h3>
-          <p className="mt-1 text-sm text-slate-600">Documentos enviados por bibliotecarios esperando tu aprobación.</p>
+          <h3 className="text-lg font-black text-unefa-dark dark:text-unefa-accent">Trabajos pendientes de revisión</h3>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Documentos enviados por bibliotecarios esperando tu aprobación.</p>
           <ul className="mt-4 space-y-3">
             {pendingReviews.map((doc) => (
               <li key={doc.id} className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3">
                 <Link to={`/trabajos/${doc.id}`} className="block">
-                  <p className="font-semibold text-slate-900 hover:text-unefa">{doc.titulo}</p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="font-semibold text-slate-900 hover:text-unefa dark:text-slate-100">{doc.titulo}</p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {doc.autor} &bull; {doc.anio} &bull; {doc.categoria?.nombre}
                   </p>
                   <span className="mt-2 inline-flex rounded-full bg-sky-200/60 px-2 py-0.5 text-xs font-semibold text-sky-700">
@@ -117,19 +117,19 @@ export default function Student() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <h3 className="text-lg font-black">Recientes</h3>
-          <ul className="mt-4 space-y-3 text-sm text-slate-600">
+          <h3 className="text-lg font-black dark:text-slate-100">Recientes</h3>
+          <ul className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
             {published.slice(0, 5).map((doc) => (
-              <li key={doc.id} className="rounded-xl border border-slate-100 bg-white px-4 py-3">
-                <p className="font-semibold text-slate-900">{doc.titulo}</p>
-                <p className="text-xs text-slate-500">{doc.autor} &bull; {doc.anio}</p>
+              <li key={doc.id} className="rounded-xl border border-slate-100 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+                <p className="font-semibold text-slate-900 dark:text-slate-100">{doc.titulo}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{doc.autor} &bull; {doc.anio}</p>
               </li>
             ))}
           </ul>
         </Card>
 
         <Card>
-          <h3 className="text-lg font-black">Acciones rápidas</h3>
+          <h3 className="text-lg font-black dark:text-slate-100">Acciones rápidas</h3>
           <div className="mt-4 flex flex-col gap-3">
             <Button onClick={() => navigate('/submission')}>Subir trabajo</Button>
             <Button variant="secondary" onClick={() => navigate('/search')}>Buscar recursos</Button>

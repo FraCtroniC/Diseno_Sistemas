@@ -67,14 +67,14 @@ export default function Search() {
     <section className="space-y-6">
       <div className="max-w-3xl space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Repository / Search</p>
-        <h2 className="text-3xl font-black tracking-tight text-slate-900">Búsqueda avanzada</h2>
-        <p className="text-slate-600">Consulta documentos académicos en el repositorio.</p>
+        <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">Búsqueda avanzada</h2>
+        <p className="text-slate-600 dark:text-slate-300">Consulta documentos académicos en el repositorio.</p>
       </div>
 
       <Card>
         <div className="grid gap-4 md:grid-cols-4 md:items-end">
           <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-slate-700">Término de búsqueda</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Término de búsqueda</span>
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -83,13 +83,13 @@ export default function Search() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Año</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Año</span>
             <Input value={yearFilter} onChange={(event) => setYearFilter(event.target.value.replace(/\D/g, ''))} placeholder="2022" inputMode="numeric" />
           </label>
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Carrera</span>
-            <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm">
+            <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
               <option value="">Todas</option>
               {categorias.map((c) => (
                 <option key={c.id} value={c.id}>{c.nombre}</option>
@@ -99,7 +99,7 @@ export default function Search() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Tipo de documento</span>
-            <select value={tipoDocFilter} onChange={(e) => setTipoDocFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm">
+            <select value={tipoDocFilter} onChange={(e) => setTipoDocFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
               <option value="">Todos</option>
               {TIPOS_DOCUMENTO.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -139,17 +139,17 @@ export default function Search() {
               <Link to={`/trabajos/${document.id}`} className="block">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 hover:text-unefa transition-colors">{document.titulo}</h3>
-                    <p className="mt-1 text-sm text-slate-600">{document.autor}</p>
+                    <h3 className="text-lg font-bold text-slate-900 hover:text-unefa transition-colors dark:text-slate-100">{document.titulo}</h3>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{document.autor}</p>
                   </div>
                   <span className="inline-flex w-fit shrink-0 rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa">
                     {document.anio} · {document.estado}
                   </span>
                 </div>
                 {document.snippet ? (
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600 [&>b]:font-semibold [&>b]:text-unefa-dark" dangerouslySetInnerHTML={{ __html: document.snippet }} />
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300 [&>b]:font-semibold [&>b]:text-unefa-dark" dangerouslySetInnerHTML={{ __html: document.snippet }} />
                 ) : document.resumen ? (
-                  <p className="mt-3 text-sm text-slate-600">{document.resumen}</p>
+                  <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{document.resumen}</p>
                 ) : null}
               </Link>
               {document.archivo_url ? (
@@ -157,7 +157,7 @@ export default function Search() {
                   href={document.archivo_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
+                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark hover:bg-unefa/20 dark:text-unefa-accent"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -168,7 +168,7 @@ export default function Search() {
             </Card>
           ))}
 
-          {results.length === 0 ? <Card><p className="text-sm text-slate-600">No hay resultados con esos filtros.</p></Card> : null}
+          {results.length === 0 ? <Card><p className="text-sm text-slate-600 dark:text-slate-400">No hay resultados con esos filtros.</p></Card> : null}
         </div>
       )}
 
@@ -182,11 +182,11 @@ export default function Search() {
               params.set('pagina', String(pagina - 1))
               navigate(`/search?${params.toString()}`)
             }}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-unefa/30 hover:text-unefa-dark disabled:opacity-40"
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-unefa/30 hover:text-unefa-dark disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:border-unefa/30"
           >
             ← Anterior
           </button>
-          <span className="text-sm font-medium text-slate-500">
+          <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
             Página {pagina} de {totalPaginas} ({total} resultados)
           </span>
           <button
@@ -197,7 +197,7 @@ export default function Search() {
               params.set('pagina', String(pagina + 1))
               navigate(`/search?${params.toString()}`)
             }}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-unefa/30 hover:text-unefa-dark disabled:opacity-40"
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-unefa/30 hover:text-unefa-dark disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:border-unefa/30"
           >
             Siguiente →
           </button>

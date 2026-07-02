@@ -62,7 +62,7 @@ export default function ComentariosSection({ trabajoId }: Props) {
     <Card>
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Comentarios</p>
       <div className="mt-2 flex items-center gap-3">
-        <h3 className="text-2xl font-black text-slate-900">
+        <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">
           {total} {total === 1 ? 'comentario' : 'comentarios'}
         </h3>
         {promedio > 0 ? (
@@ -102,16 +102,16 @@ export default function ComentariosSection({ trabajoId }: Props) {
           </button>
         </form>
       ) : (
-        <p className="mt-4 text-sm text-slate-500">
+        <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
           <a href="/login" className="font-semibold text-unefa">Inicia sesión</a> para comentar.
         </p>
       )}
 
       <div className="mt-6 space-y-4">
         {loading ? (
-          <p className="text-sm text-slate-400">Cargando comentarios...</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Cargando comentarios...</p>
         ) : comentarios.length === 0 ? (
-          <p className="text-sm text-slate-500">No hay comentarios aún.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">No hay comentarios aún.</p>
         ) : (
           comentarios.map((c) => (
             <div key={c.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/50 dark:bg-slate-800/50">
@@ -122,7 +122,7 @@ export default function ComentariosSection({ trabajoId }: Props) {
                     <span className="text-xs text-amber-500">{'★'.repeat(c.calificacion)}{'☆'.repeat(5 - c.calificacion)}</span>
                   ) : null}
                 </div>
-                <span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleDateString('es-ES')}</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(c.createdAt).toLocaleDateString('es-ES')}</span>
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{c.comentario}</p>
             </div>

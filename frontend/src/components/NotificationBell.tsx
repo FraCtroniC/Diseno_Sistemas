@@ -26,7 +26,7 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => { setOpen((v) => !v); if (!open) fetch() }}
-        className="relative rounded-full p-2 text-slate-600 hover:bg-unefa/10 transition"
+        className="relative rounded-full p-2 text-slate-600 hover:bg-unefa/10 transition dark:text-slate-300"
         aria-label="Notificaciones"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -40,9 +40,9 @@ export default function NotificationBell() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl border border-slate-200/80 bg-white shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <p className="text-sm font-bold text-slate-900">Notificaciones</p>
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl border border-slate-200/80 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Notificaciones</p>
             {noLeidas > 0 ? (
               <button
                 onClick={marcarTodasLeidas}
@@ -54,7 +54,7 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notificaciones.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-slate-500">No hay notificaciones</p>
+              <p className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">No hay notificaciones</p>
             ) : (
               notificaciones.map((n) => (
                 <button
@@ -64,14 +64,14 @@ export default function NotificationBell() {
                     if (n.trabajo_id) navigate(`/trabajos/${n.trabajo_id}`)
                     setOpen(false)
                   }}
-                  className={`w-full px-4 py-3 text-left transition hover:bg-slate-50 ${
+                  className={`w-full px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
                     !n.leida ? 'border-l-2 border-unefa bg-unefa/[0.03]' : ''
                   }`}
                 >
-                  <p className={`text-sm ${n.leida ? 'text-slate-600' : 'font-semibold text-slate-900'}`}>
+                  <p className={`text-sm ${n.leida ? 'text-slate-600 dark:text-slate-400' : 'font-semibold text-slate-900 dark:text-slate-100'}`}>
                     {n.mensaje}
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                     {new Date(n.createdAt).toLocaleDateString('es-ES', {
                       day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                     })}

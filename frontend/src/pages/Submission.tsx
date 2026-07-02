@@ -142,13 +142,13 @@ export default function Submission() {
       <div className="space-y-6">
         <div className="max-w-3xl space-y-2">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Submission</p>
-          <h2 className="text-3xl font-black tracking-tight text-slate-900">Carga de documentos</h2>
-          <p className="text-slate-600">Flujo multistep para registrar metadatos, adjuntar archivo y definir el estado de publicación.</p>
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">Carga de documentos</h2>
+          <p className="text-slate-600 dark:text-slate-300">Flujo multistep para registrar metadatos, adjuntar archivo y definir el estado de publicación.</p>
         </div>
 
         <div className="flex items-center gap-3 text-sm font-medium">
-          <span className={`rounded-full px-3 py-1 ${step === 1 ? 'bg-unefa text-white' : 'bg-slate-100 text-slate-500'}`}>1. Metadatos</span>
-          <span className={`rounded-full px-3 py-1 ${step === 2 ? 'bg-unefa text-white' : 'bg-slate-100 text-slate-500'}`}>2. Archivo y revisión</span>
+          <span className={`rounded-full px-3 py-1 ${step === 1 ? 'bg-unefa text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'}`}>1. Metadatos</span>
+          <span className={`rounded-full px-3 py-1 ${step === 2 ? 'bg-unefa text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'}`}>2. Archivo y revisión</span>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -156,38 +156,38 @@ export default function Submission() {
             <Card className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">Título</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Título</span>
                   <Input value={form.title} onChange={(event) => updateField('title', event.target.value)} placeholder="Título del trabajo" />
                   {errors.title ? <p className="text-sm text-red-600">{errors.title}</p> : null}
                 </label>
 
                 <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">Autores separados por coma</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Autores separados por coma</span>
                   <Input value={form.authors} onChange={(event) => updateField('authors', event.target.value)} placeholder="Nombre Apellido, Nombre Apellido" />
                   {errors.authors ? <p className="text-sm text-red-600">{errors.authors}</p> : null}
                 </label>
 
                 <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">Tutor / asesor</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tutor / asesor</span>
                   <Input value={form.tutor} onChange={(event) => updateField('tutor', event.target.value)} placeholder="Nombre del tutor (opcional)" />
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Año</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Año</span>
                   <Input value={form.year} onChange={(event) => updateField('year', event.target.value.replace(/\D/g, ''))} placeholder="2026" inputMode="numeric" />
                   {errors.year ? <p className="text-sm text-red-600">{errors.year}</p> : null}
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Programa académico</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Programa académico</span>
                   <Input value={form.program} onChange={(event) => updateField('program', event.target.value)} placeholder="Ingeniería / Educación / Administración" />
                   {errors.program ? <p className="text-sm text-red-600">{errors.program}</p> : null}
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700">Tipo de documento</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tipo de documento</span>
                   <select
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                     value={form.documentType}
                     onChange={(event) => updateField('documentType', event.target.value)}
                   >
@@ -199,9 +199,9 @@ export default function Submission() {
                 </label>
 
                 <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700">Categoría</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Categoría</span>
                   <select
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                     value={form.categoryId}
                     onChange={(event) => updateField('categoryId', event.target.value)}
                   >
@@ -223,9 +223,9 @@ export default function Submission() {
           {step === 2 ? (
             <Card className="space-y-5">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Resumen / descripción</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Resumen / descripción</span>
                 <textarea
-                  className="min-h-32 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20"
+                  className="min-h-32 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                   value={form.description}
                   onChange={(event) => updateField('description', event.target.value)}
                   placeholder="Resumen del contenido, objetivos y alcance"
@@ -234,7 +234,7 @@ export default function Submission() {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Archivo PDF</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Archivo PDF</span>
                 <Input
                   ref={fileInputRef}
                   type="file"
@@ -242,13 +242,13 @@ export default function Submission() {
                   onChange={(event) => updateField('file', event.target.files?.[0] ?? null)}
                 />
                 {errors.file ? <p className="text-sm text-red-600">{errors.file}</p> : null}
-                {form.file ? <p className="text-sm text-slate-500">Archivo seleccionado: {form.file.name}</p> : null}
+                {form.file ? <p className="text-sm text-slate-500 dark:text-slate-400">Archivo seleccionado: {form.file.name}</p> : null}
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-700">Estado inicial de publicación</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Estado inicial de publicación</span>
                 <select
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                   value={form.publicationState}
                   onChange={(event) => updateField('publicationState', event.target.value as FormState['publicationState'])}
                 >
@@ -287,10 +287,10 @@ export default function Submission() {
       <div className="space-y-4">
         <Card>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Vista previa</p>
-          <h3 className="mt-2 text-xl font-bold text-slate-900">{form.title || 'Sin título aún'}</h3>
-          <p className="mt-2 text-sm text-slate-600">{authorsPreview.length > 0 ? authorsPreview.join(', ') : 'Autores pendientes'}</p>
+          <h3 className="mt-2 text-xl font-bold text-slate-900 dark:text-slate-100">{form.title || 'Sin título aún'}</h3>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{authorsPreview.length > 0 ? authorsPreview.join(', ') : 'Autores pendientes'}</p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{form.documentType}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-700 dark:text-slate-300">{form.documentType}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{form.year || 'Año'}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{form.publicationState}</span>
           </div>
@@ -298,7 +298,7 @@ export default function Submission() {
 
         <Card>
           <p className="text-sm font-semibold text-unefa">Validaciones activas</p>
-          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+          <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li>Metadatos obligatorios antes de avanzar.</li>
             <li>Archivo PDF requerido en la segunda etapa.</li>
             <li>Los datos se envían a la API real del backend.</li>

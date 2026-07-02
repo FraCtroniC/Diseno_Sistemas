@@ -85,11 +85,11 @@ export default function Catalog() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-        <Card className="border-unefa/15 bg-white/90 shadow-[0_24px_70px_-50px_rgba(11,87,164,0.45)]">
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 pb-4">
+        <Card className="border-unefa/15 bg-white/90 shadow-[0_24px_70px_-50px_rgba(11,87,164,0.45)] dark:bg-slate-800/90 dark:shadow-[0_24px_70px_-50px_rgba(0,0,0,0.5)]">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 pb-4 dark:border-slate-700/50">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">{config.subtitle}</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">{documents.length} documentos publicados</h3>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">{documents.length} documentos publicados</h3>
             </div>
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${config.accent}`}>{config.title}</span>
           </div>
@@ -104,24 +104,24 @@ export default function Catalog() {
               </div>
             ) : (
               documents.map((document) => (
-                <Link key={document.id} to={`/trabajos/${document.id}`} className="block rounded-[1.4rem] border border-slate-200 bg-white p-5 transition hover:border-unefa/25 hover:shadow-md">
+                <Link key={document.id} to={`/trabajos/${document.id}`} className="block rounded-[1.4rem] border border-slate-200 bg-white p-5 transition hover:border-unefa/25 hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{document.year}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">{document.year}</p>
                     {document.tipoDocumento ? (
                       <span className="rounded-full bg-unefa/10 px-2 py-0.5 text-xs font-semibold text-unefa-dark">
                         {TIPOS_DOCUMENTO.find(t => t.value === document.tipoDocumento)?.label || document.tipoDocumento}
                       </span>
                     ) : null}
                   </div>
-                  <h4 className="mt-2 text-lg font-black leading-6 text-slate-900">{document.title}</h4>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{document.abstract}</p>
-                  <p className="mt-3 text-xs font-medium text-slate-500">{document.authors.join(' · ')}</p>
+                  <h4 className="mt-2 text-lg font-black leading-6 text-slate-900 dark:text-slate-100">{document.title}</h4>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{document.abstract}</p>
+                  <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">{document.authors.join(' · ')}</p>
                 </Link>
               ))
             )}
 
             {!loading && documents.length === 0 ? (
-              <div className="rounded-[1.4rem] border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600 md:col-span-2">
+              <div className="rounded-[1.4rem] border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600 md:col-span-2 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-400">
                 Todavía no hay publicaciones cargadas para esta categoría.
               </div>
             ) : null}
@@ -130,7 +130,7 @@ export default function Catalog() {
                 <button
                   type="button"
                   onClick={() => setPage((p) => p + 1)}
-                  className="rounded-full border border-unefa/20 bg-white px-6 py-2 text-sm font-semibold text-unefa-dark transition hover:bg-unefa/5 hover:shadow-sm"
+                  className="rounded-full border border-unefa/20 bg-white px-6 py-2 text-sm font-semibold text-unefa-dark transition hover:bg-unefa/5 hover:shadow-sm dark:border-unefa/30 dark:bg-slate-800 dark:text-unefa-accent dark:hover:bg-slate-700"
                 >
                   Mostrar más ({filtered.length - documents.length} restantes)
                 </button>
@@ -139,31 +139,31 @@ export default function Catalog() {
           </div>
         </Card>
 
-        <Card className="border-unefa/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.98))] shadow-[0_24px_70px_-50px_rgba(11,87,164,0.45)]">
+        <Card className="border-unefa/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.98))] shadow-[0_24px_70px_-50px_rgba(11,87,164,0.45)] dark:bg-[linear-gradient(180deg,rgba(30,41,59,0.98),rgba(15,23,42,0.98))] dark:shadow-[0_24px_70px_-50px_rgba(0,0,0,0.5)]">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Destacado</p>
-          <h3 className="mt-2 text-2xl font-black text-slate-900">Ficha rápida</h3>
+          <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Ficha rápida</h3>
 
           {highlight ? (
             <div className="mt-5 space-y-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Título</p>
-                <p className="mt-2 text-xl font-black leading-tight text-slate-900">{highlight.title}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Título</p>
+                <p className="mt-2 text-xl font-black leading-tight text-slate-900 dark:text-slate-100">{highlight.title}</p>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Autores</p>
-                <p className="mt-2 text-sm font-medium text-slate-700">{highlight.authors.join(', ')}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Autores</p>
+                <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">{highlight.authors.join(', ')}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Resumen</p>
-                <p className="mt-2 text-sm leading-7 text-slate-700">{highlight.abstract}</p>
+                <p className="mt-2 text-sm leading-7 text-slate-700 dark:text-slate-300">{highlight.abstract}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-600 dark:bg-slate-800">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Año</p>
-                <p className="mt-2 text-sm font-medium text-slate-800">{highlight.year}</p>
+                <p className="mt-2 text-sm font-medium text-slate-800 dark:text-slate-200">{highlight.year}</p>
               </div>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-slate-600">No hay contenido destacado para mostrar.</p>
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">No hay contenido destacado para mostrar.</p>
           )}
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -183,7 +183,7 @@ export default function Catalog() {
           <Link
             key={item.value}
             to={`/catalogo/${item.value}`}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${item.value === tipo ? 'bg-unefa text-white shadow-sm' : 'bg-white/85 text-slate-700 hover:bg-unefa/10 hover:text-unefa-dark'}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${item.value === tipo ? 'bg-unefa text-white shadow-sm' : 'bg-white/85 text-slate-700 hover:bg-unefa/10 hover:text-unefa-dark dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-unefa/20 dark:hover:text-unefa-accent'}`}
           >
             {item.label}
           </Link>

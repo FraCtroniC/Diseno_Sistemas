@@ -102,7 +102,7 @@ export default function Admin() {
                 <p className="mt-2 text-lg font-bold">{user?.name}</p>
                 <p className="text-sm text-white/72">{user?.email} · {user?.role}</p>
               </div>
-              <Button variant="secondary" onClick={handleLogout} className="justify-center border-white/20 bg-white text-slate-900 hover:bg-slate-100">
+              <Button variant="secondary" onClick={handleLogout} className="justify-center border-white/20 bg-white text-slate-900 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">
                 Cerrar sesión
               </Button>
             </div>
@@ -110,22 +110,22 @@ export default function Admin() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="border-unefa/10 bg-white/95">
-            <p className="text-sm font-medium text-slate-500">Documentos totales</p>
-            <p className="mt-3 text-4xl font-black text-slate-900">{loading ? '...' : all.length}</p>
-            <p className="mt-2 text-sm text-slate-600">Contenido académico y editorial disponible en el repositorio.</p>
+          <Card className="border-unefa/10 bg-white/95 dark:border-slate-700/50 dark:bg-slate-800/90">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Documentos totales</p>
+            <p className="mt-3 text-4xl font-black text-slate-900 dark:text-slate-100">{loading ? '...' : all.length}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Contenido académico y editorial disponible en el repositorio.</p>
           </Card>
-          <Card className="border-emerald-100 bg-emerald-50/70">
+          <Card className="border-emerald-100 bg-emerald-50/70 dark:border-emerald-800/30 dark:bg-emerald-900/20">
             <p className="text-sm font-medium text-emerald-700">Publicados</p>
             <p className="mt-3 text-4xl font-black text-emerald-700">{publishedDocuments.length}</p>
             <p className="mt-2 text-sm text-emerald-900/70">Listos para consulta pública o institucional.</p>
           </Card>
-          <Card className="border-amber-100 bg-amber-50/70">
+          <Card className="border-amber-100 bg-amber-50/70 dark:border-amber-800/30 dark:bg-amber-900/20">
             <p className="text-sm font-medium text-amber-700">Borradores</p>
             <p className="mt-3 text-4xl font-black text-amber-700">{draftDocuments.length}</p>
             <p className="mt-2 text-sm text-amber-900/70">Pendientes de validación antes de su difusión.</p>
           </Card>
-          <Card className="border-slate-200 bg-slate-50/70">
+          <Card className="border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/50">
             <p className="text-sm font-medium text-slate-600">Usuarios activos</p>
             <p className="mt-3 text-4xl font-black text-slate-900">{stats ? stats.usuariosActivos : (user ? '1' : '0')}</p>
             <p className="mt-2 text-sm text-slate-600">Administración, docencia y futuras cuentas del sistema.</p>
@@ -134,41 +134,41 @@ export default function Admin() {
 
         <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
           <div className="space-y-6">
-            <Card className="border-white/80 bg-white/90">
+            <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Accesos rápidos</p>
-                  <h3 className="mt-2 text-2xl font-black text-slate-900">Operaciones frecuentes del admin</h3>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Operaciones frecuentes del admin</h3>
                 </div>
-                <p className="max-w-md text-sm leading-6 text-slate-600">
+                <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
                   Estos bloques sirven como atajos visuales para las tareas que más se repiten en un panel de control.
                 </p>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-3">
                 {quickActions.map((action) => (
-                  <button key={action.title} type="button" onClick={() => navigate(action.to)} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-unefa/20 hover:bg-white hover:shadow-[0_16px_40px_-28px_rgba(11,87,164,0.3)]">
+                  <button key={action.title} type="button" onClick={() => navigate(action.to)} className="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-unefa/20 hover:bg-white hover:shadow-[0_16px_40px_-28px_rgba(11,87,164,0.3)] dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:border-unefa/20 dark:hover:bg-slate-700 dark:hover:shadow-[0_16px_40px_-28px_rgba(0,0,0,0.5)]">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(11,87,164,0.12),rgba(7,58,106,0.08))] text-lg font-black text-unefa-dark">
                       •
                     </div>
-                    <h4 className="mt-4 text-base font-bold text-slate-900">{action.title}</h4>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{action.description}</p>
+                    <h4 className="mt-4 text-base font-bold text-slate-900 dark:text-slate-100">{action.title}</h4>
+                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{action.description}</p>
                   </button>
                 ))}
               </div>
             </Card>
 
-            <Card className="border-white/80 bg-white/90">
+            <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gráficos</p>
-                  <h3 className="mt-2 text-2xl font-black text-slate-900">Distribución del repositorio</h3>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Distribución del repositorio</h3>
                 </div>
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-500">Estado de documentos</p>
+                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Estado de documentos</p>
                   <div className="mt-4 space-y-3">
                     {[
                       { label: 'Publicados', value: stats?.publicados ?? 0, color: 'bg-emerald-500', max: all.length || 1 },
@@ -178,10 +178,10 @@ export default function Admin() {
                     ].map((item) => (
                       <div key={item.label}>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">{item.label}</span>
-                          <span className="font-bold text-slate-900">{item.value}</span>
+                          <span className="text-slate-600 dark:text-slate-300">{item.label}</span>
+                          <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
                         </div>
-                        <div className="mt-1 h-2 w-full rounded-full bg-slate-100">
+                        <div className="mt-1 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700">
                           <div className={`h-2 rounded-full ${item.color}`} style={{ width: `${(item.value / item.max) * 100}%` }} />
                         </div>
                       </div>
@@ -194,15 +194,15 @@ export default function Admin() {
                   {stats ? (
                     <div className="mt-4 space-y-4">
                       <div className="flex items-end gap-3">
-                        <p className="text-4xl font-black text-slate-900">{stats.visitas.total}</p>
-                        <p className="mb-1 text-sm text-slate-500">interacciones</p>
+                        <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{stats.visitas.total}</p>
+                        <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">interacciones</p>
                       </div>
                       <div className="flex gap-4">
-                        <div className="flex-1 rounded-xl bg-sky-50 p-3 text-center">
+                        <div className="flex-1 rounded-xl bg-sky-50 p-3 text-center dark:bg-sky-900/30">
                           <p className="text-lg font-black text-sky-700">{stats.visitas.vistas}</p>
                           <p className="text-xs text-sky-600">Visitas</p>
                         </div>
-                        <div className="flex-1 rounded-xl bg-emerald-50 p-3 text-center">
+                        <div className="flex-1 rounded-xl bg-emerald-50 p-3 text-center dark:bg-emerald-900/30">
                           <p className="text-lg font-black text-emerald-700">{stats.visitas.descargas}</p>
                           <p className="text-xs text-emerald-600">Descargas</p>
                         </div>
@@ -223,12 +223,12 @@ export default function Admin() {
                       const h = Math.max((item.cantidad / max) * 120, 8)
                       return (
                         <div key={item.mes} className="flex flex-1 flex-col items-center gap-1">
-                          <span className="text-xs font-bold text-slate-700">{item.cantidad}</span>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{item.cantidad}</span>
                           <div
                             className="w-full rounded-t-md bg-gradient-to-t from-unefa to-unefa/60 transition-all hover:to-unefa/80"
                             style={{ height: `${h}px`, minHeight: '8px' }}
                           />
-                          <span className="text-[10px] text-slate-500">{item.mes.slice(5)}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">{item.mes.slice(5)}</span>
                         </div>
                       )
                     })}
@@ -241,9 +241,9 @@ export default function Admin() {
           </div>
 
           <div className="space-y-6">
-            <Card className="border-white/80 bg-white/90">
+            <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Top documentos</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Más consultados</h3>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Más consultados</h3>
 
               <div className="mt-6 space-y-4">
                 {stats && stats.topTrabajos.length > 0 ? (
@@ -253,20 +253,20 @@ export default function Admin() {
                       <button
                         key={item.id}
                         onClick={() => navigate(`/trabajos/${item.id}`)}
-                        className="w-full flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4 text-left transition hover:border-unefa/20 hover:bg-white"
+                        className="w-full flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4 text-left transition hover:border-unefa/20 hover:bg-white dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:border-unefa/20 dark:hover:bg-slate-700"
                       >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-unefa/10 text-sm font-black text-unefa">
                           {i + 1}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-3">
-                            <p className="font-semibold text-slate-900 truncate">{item.titulo}</p>
-                            <span className="shrink-0 text-xs font-medium text-slate-500">{item.total}</span>
+                            <p className="font-semibold text-slate-900 truncate dark:text-slate-100">{item.titulo}</p>
+                            <span className="shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400">{item.total}</span>
                           </div>
-                          <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200">
+                          <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                             <div className="h-1.5 rounded-full bg-unefa/60" style={{ width: `${(item.total / maxVistas) * 100}%` }} />
                           </div>
-                          <div className="mt-1 flex gap-3 text-xs text-slate-500">
+                          <div className="mt-1 flex gap-3 text-xs text-slate-500 dark:text-slate-400">
                             <span>{item.vistas} visitas</span>
                             <span>{item.descargas} descargas</span>
                           </div>
@@ -280,17 +280,17 @@ export default function Admin() {
               </div>
             </Card>
 
-            <Card className="border-white/80 bg-white/90">
+            <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Usuarios y permisos</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Cuentas con acceso</h3>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Cuentas con acceso</h3>
 
               <div className="mt-5 space-y-3">
                 {usuarios.length > 0 ? (
                   usuarios.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
+                    <div key={u.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 dark:border-slate-700/50 dark:bg-slate-800">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900">{u.nombre}</p>
-                        <p className="text-sm text-slate-500 truncate">{u.email}</p>
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">{u.nombre}</p>
+                        <p className="text-sm text-slate-500 truncate dark:text-slate-400">{u.email}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="relative">
@@ -303,7 +303,7 @@ export default function Admin() {
                                 setUsuarios((prev) => prev.map((x) => x.id === u.id ? { ...x, rol: newRol } : x))
                               } catch { /* silencio */ }
                             }}
-                            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-unefa-dark appearance-none cursor-pointer hover:border-unefa/30"
+                            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-unefa-dark appearance-none cursor-pointer hover:border-unefa/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-unefa/30"
                           >
                             <option value="admin">admin</option>
                             <option value="repositor">repositor</option>
@@ -314,18 +314,18 @@ export default function Admin() {
                     </div>
                   ))
                 ) : usuariosError ? (
-                  <p className="text-sm text-rose-600">{usuariosError}</p>
+                  <p className="text-sm text-rose-600 dark:text-rose-400">{usuariosError}</p>
                 ) : (
                   <p className="text-sm text-slate-500">No hay usuarios registrados.</p>
                 )}
               </div>
             </Card>
 
-            <Card className="border-white/80 bg-white/90">
+            <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Notas del sistema</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Acciones sugeridas</h3>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                <li className="rounded-2xl bg-slate-50 px-4 py-3">Revisar los documentos en borrador antes de liberar nuevas publicaciones.</li>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Acciones sugeridas</h3>
+              <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                <li className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/50">Revisar los documentos en borrador antes de liberar nuevas publicaciones.</li>
                 <li className="rounded-2xl bg-slate-50 px-4 py-3">Mantener la normativa vigente visible desde el panel principal.</li>
                 <li className="rounded-2xl bg-slate-50 px-4 py-3">Centralizar el seguimiento de envíos y publicaciones desde este espacio.</li>
               </ul>
@@ -333,17 +333,17 @@ export default function Admin() {
           </div>
         </div>
 
-        <Card className="border-white/80 bg-white/90">
+        <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gestión de categorías</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Administrar carreras y categorías</h3>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Administrar carreras y categorías</h3>
             </div>
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-bold text-slate-900">{editingCat ? 'Editar categoría' : 'Nueva categoría'}</p>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+              <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{editingCat ? 'Editar categoría' : 'Nueva categoría'}</p>
               <div className="mt-4 space-y-3">
                 <Input
                   value={newCatNombre}
@@ -408,10 +408,10 @@ export default function Admin() {
                 <p className="text-sm text-slate-500">No hay categorías creadas.</p>
               ) : (
                 categorias.map((cat) => (
-                  <div key={cat.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3">
+                  <div key={cat.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3 dark:border-slate-700/50 dark:bg-slate-800">
                     <div>
-                      <p className="font-semibold text-slate-900">{cat.nombre}</p>
-                      <p className="text-sm text-slate-500">{cat.slug}{cat.descripcion ? ` · ${cat.descripcion}` : ''}</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">{cat.nombre}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{cat.slug}{cat.descripcion ? ` · ${cat.descripcion}` : ''}</p>
                     </div>
                     <div className="flex gap-2">
                       <button

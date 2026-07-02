@@ -55,7 +55,7 @@ export default function Layout({ children }: PropsWithChildren) {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-unefa">UNEFA</p>
-              <h1 className="text-lg font-bold text-slate-900">Repositorio Digital Núcleo Táchira</h1>
+              <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">Repositorio Digital Núcleo Táchira</h1>
             </div>
           </div>
           <div className="mx-6 hidden flex-1 lg:block">
@@ -127,7 +127,7 @@ export default function Layout({ children }: PropsWithChildren) {
 
           <button
             onClick={() => setMobileMenuOpen((v) => !v)}
-            className="inline-flex items-center justify-center rounded-xl p-2 text-slate-700 hover:bg-unefa/5 lg:hidden"
+            className="inline-flex items-center justify-center rounded-xl p-2 text-slate-700 hover:bg-unefa/5 lg:hidden dark:text-slate-300"
             aria-label="Menú"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -141,12 +141,12 @@ export default function Layout({ children }: PropsWithChildren) {
         </div>
 
         {mobileMenuOpen ? (
-          <div className="border-t border-white/70 bg-white/95 backdrop-blur-xl lg:hidden">
+          <div className="border-t border-white/70 bg-white/95 backdrop-blur-xl lg:hidden dark:border-slate-700/50 dark:bg-slate-900/95">
             <div className="mx-auto max-w-[1680px] space-y-4 px-3 py-4 sm:px-4">
               <SearchBar />
               <div className="flex flex-wrap items-center gap-3">
                 {user ? <NotificationBell /> : null}
-                <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark">
+                <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark dark:border-white/15 dark:bg-white/10 dark:text-unefa-accent">
                   {user ? `${user.name} · ${user.role}` : 'Exploración institucional'}
                 </div>
                 {user ? (
@@ -203,10 +203,10 @@ export default function Layout({ children }: PropsWithChildren) {
 
           <nav className="space-y-4">
             {navSections.map((section) => (
-              <section key={section.title} className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur">
+              <section key={section.title} className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/70">
                 <div className="mb-4">
-                  <p className="text-sm font-bold text-slate-900">{section.title}</p>
-                  <p className="text-xs text-slate-500">{section.description}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{section.title}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{section.description}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -219,7 +219,7 @@ export default function Layout({ children }: PropsWithChildren) {
                         `flex items-start gap-3 rounded-2xl border px-4 py-3 transition ${
                           isActive
                             ? 'border-unefa/25 bg-unefa text-white shadow-lg shadow-unefa/15'
-                            : 'border-slate-200/80 bg-white/90 text-slate-700 hover:border-unefa/20 hover:bg-unefa/5 hover:text-slate-900'
+                            : 'border-slate-200/80 bg-white/90 text-slate-700 hover:border-unefa/20 hover:bg-unefa/5 hover:text-slate-900 dark:border-slate-700/50 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-unefa/20 dark:hover:bg-slate-700/50 dark:hover:text-slate-100'
                         }`
                       }
                     >
@@ -228,7 +228,7 @@ export default function Layout({ children }: PropsWithChildren) {
                           <span className={`mt-1 h-2.5 w-2.5 rounded-full ${isActive ? 'bg-unefa-accent' : 'bg-unefa/40'}`} />
                           <span className="min-w-0">
                             <span className="block text-sm font-semibold">{item.label}</span>
-                            <span className={`block text-xs leading-5 ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
+                            <span className={`block text-xs leading-5 ${isActive ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
                               {item.description}
                             </span>
                           </span>
@@ -245,7 +245,7 @@ export default function Layout({ children }: PropsWithChildren) {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Acceso</p>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Los administradores entran por login y el sistema muestra su panel automáticamente.</p>
             {user?.role === 'admin' ? (
-              <NavLink to="/admin" onClick={() => setSidebarOpen(false)} className="mt-4 flex items-center justify-between rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10">
+              <NavLink to="/admin" onClick={() => setSidebarOpen(false)} className="mt-4 flex items-center justify-between rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10 dark:text-unefa-accent">
                 <span>Sesión administrativa activa</span>
                 <span className="text-xs font-semibold uppercase tracking-wider text-unefa">Ir al dashboard →</span>
               </NavLink>

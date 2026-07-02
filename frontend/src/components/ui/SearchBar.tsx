@@ -109,12 +109,12 @@ export default function SearchBar() {
       ) : null}
 
       {openAdvanced ? (
-        <div className="absolute right-0 top-full z-40 mt-2 w-full max-w-xs rounded-xl border bg-white p-4 shadow-lg">
-          <label className="block text-xs text-slate-600">Año</label>
-          <input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))} placeholder="2024" inputMode="numeric" className="mt-1 w-full rounded-md border px-2 py-1 text-sm" />
+        <div className="absolute right-0 top-full z-40 mt-2 w-full max-w-xs rounded-xl border bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          <label className="block text-xs text-slate-600 dark:text-slate-300">Año</label>
+          <input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))} placeholder="2024" inputMode="numeric" className="mt-1 w-full rounded-md border px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100" />
 
-          <label className="mt-3 block text-xs text-slate-600">Tipo de documento</label>
-          <select value={tipoDoc} onChange={(e) => setTipoDoc(e.target.value)} className="mt-1 w-full rounded-md border px-2 py-1 text-sm">
+          <label className="mt-3 block text-xs text-slate-600 dark:text-slate-300">Tipo de documento</label>
+          <select value={tipoDoc} onChange={(e) => setTipoDoc(e.target.value)} className="mt-1 w-full rounded-md border px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">
             <option value="">Todos</option>
             {TIPOS_DOCUMENTO.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>

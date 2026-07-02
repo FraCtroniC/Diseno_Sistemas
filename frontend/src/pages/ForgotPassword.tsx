@@ -52,7 +52,7 @@ export default function ForgotPassword() {
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
         {sent ? (
           <div className="space-y-5 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -62,9 +62,9 @@ export default function ForgotPassword() {
             </div>
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Correo enviado</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Revisa tu bandeja de entrada</h3>
-              <p className="mt-2 text-sm text-slate-600">
-                Te hemos enviado un enlace de restablecimiento a <strong className="text-slate-900">{email}</strong>.
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Revisa tu bandeja de entrada</h3>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                Te hemos enviado un enlace de restablecimiento a <strong className="text-slate-900 dark:text-slate-100">{email}</strong>.
                 El enlace expira en 30 minutos. Si no lo encuentras, revisa la carpeta de spam.
               </p>
             </div>
@@ -85,11 +85,11 @@ export default function ForgotPassword() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Recuperación</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Ingresa tu correo electrónico</h3>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Ingresa tu correo electrónico</h3>
             </div>
 
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Correo institucional</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Correo institucional</span>
               <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@correo.com" required />
             </label>
 

@@ -67,12 +67,12 @@ export default function HistorialVersiones({ trabajoId, onRestore }: Props) {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100">v{v.version}</span>
-                <span className="ml-2 text-xs text-slate-500">
+                <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
                   {new Date(v.createdAt).toLocaleDateString('es-ES', {
                     day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
                   })}
                 </span>
-                {v.creador ? <span className="ml-2 text-xs text-slate-400">por {v.creador.nombre}</span> : null}
+                {v.creador ? <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">por {v.creador.nombre}</span> : null}
               </div>
               {isAdmin ? (
                 <button

@@ -63,15 +63,15 @@ export default function Register() {
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Nuevo usuario</p>
-            <h3 className="mt-2 text-2xl font-black text-slate-900">Información personal</h3>
+            <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Información personal</h3>
           </div>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Nombre completo</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre completo</span>
             <Input {...register('name')} placeholder="Tu nombre" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); setValue('name', t.value, { shouldValidate: true }) }} />
             {errors.name ? <p className="text-sm text-rose-600">{errors.name.message}</p> : null}
           </label>
@@ -88,11 +88,11 @@ export default function Register() {
             {errors.password ? <p className="text-sm text-rose-600">{errors.password.message}</p> : null}
           </label>
 
-          <hr className="border-slate-200" />
+          <hr className="border-slate-200 dark:border-slate-700" />
 
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Información adicional</p>
-            <p className="text-xs text-slate-500">Campos opcionales para completar tu perfil</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Campos opcionales para completar tu perfil</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -112,7 +112,7 @@ export default function Register() {
             <Button type="submit">Crear cuenta</Button>
           </div>
         </form>
-        <p className="mt-4 text-center text-sm">
+        <p className="mt-4 text-center text-sm dark:text-slate-300">
           ¿Ya tienes cuenta? <NavLink to="/login" className="font-semibold text-unefa">Inicia sesión</NavLink>
         </p>
       </div>

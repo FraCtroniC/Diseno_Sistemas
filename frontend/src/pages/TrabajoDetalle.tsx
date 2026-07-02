@@ -66,7 +66,7 @@ export default function TrabajoDetalle() {
   if (loading) {
     return (
       <section className="space-y-6">
-        <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center text-slate-500 shadow-sm">
+        <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-8 text-center text-slate-500 shadow-sm dark:border-slate-700/50 dark:bg-slate-800/80 dark:text-slate-400">
           Cargando documento...
         </div>
       </section>
@@ -121,13 +121,13 @@ export default function TrabajoDetalle() {
 
       <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <div className="space-y-6">
-          <Card className="border-unefa/15 bg-white/90">
+          <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Resumen</p>
-            <p className="mt-3 text-sm leading-7 text-slate-700">{trabajo.resumen || 'Sin resumen disponible.'}</p>
+            <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">{trabajo.resumen || 'Sin resumen disponible.'}</p>
           </Card>
 
           {trabajo.palabras_clave && trabajo.palabras_clave.length > 0 ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Palabras clave</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {trabajo.palabras_clave.map((p) => (
@@ -140,7 +140,7 @@ export default function TrabajoDetalle() {
           ) : null}
 
           {metadatos && Object.keys(metadatos).length > 0 ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Metadatos</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {Object.entries(metadatos).map(([key, val]) => {
@@ -160,9 +160,9 @@ export default function TrabajoDetalle() {
                     doi: 'DOI',
                   }
                   return (
-                    <div key={key} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                      <p className="text-xs font-semibold text-slate-500">{labelMap[key] || key}</p>
-                      <p className="mt-1 text-sm font-medium text-slate-800">{String(val)}</p>
+                    <div key={key} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{labelMap[key] || key}</p>
+                      <p className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-200">{String(val)}</p>
                     </div>
                   )
                 })}
@@ -172,78 +172,78 @@ export default function TrabajoDetalle() {
         </div>
 
         <div className="space-y-6">
-          <Card className="border-unefa/15 bg-white/90">
+          <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Autores</p>
-            <p className="mt-3 text-sm font-medium text-slate-800">{trabajo.autor}</p>
+            <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.autor}</p>
           </Card>
 
           {stats ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Estadísticas de uso</p>
               <div className="mt-3 flex gap-4">
                 <div className="flex-1 rounded-xl bg-slate-50 px-3 py-2 text-center">
-                  <p className="text-lg font-black text-slate-900">{stats.vistas}</p>
-                  <p className="text-xs text-slate-500">Visitas</p>
+                  <p className="text-lg font-black text-slate-900 dark:text-slate-100">{stats.vistas}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Visitas</p>
                 </div>
                 <div className="flex-1 rounded-xl bg-slate-50 px-3 py-2 text-center">
-                  <p className="text-lg font-black text-slate-900">{stats.descargas}</p>
-                  <p className="text-xs text-slate-500">Descargas</p>
+                  <p className="text-lg font-black text-slate-900 dark:text-slate-100">{stats.descargas}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Descargas</p>
                 </div>
               </div>
             </Card>
           ) : null}
 
           {trabajo.estudiante ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Estudiante</p>
-              <p className="mt-3 text-sm font-medium text-slate-800">{trabajo.estudiante.nombre}</p>
+              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.estudiante.nombre}</p>
               {trabajo.estudiante.cedula ? (
-                <p className="text-xs text-slate-500">C.I.: {trabajo.estudiante.cedula}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">C.I.: {trabajo.estudiante.cedula}</p>
               ) : null}
             </Card>
           ) : null}
 
           {trabajo.tutorAsignado ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Tutor asignado</p>
-              <p className="mt-3 text-sm font-medium text-slate-800">{trabajo.tutorAsignado.nombre}</p>
+              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.tutorAsignado.nombre}</p>
             </Card>
           ) : trabajo.tutor ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Tutor</p>
-              <p className="mt-3 text-sm font-medium text-slate-800">{trabajo.tutor}</p>
+              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.tutor}</p>
             </Card>
           ) : null}
 
           {trabajo.carrera ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Carrera</p>
-              <p className="mt-3 text-sm font-medium text-slate-800">{trabajo.carrera.nombre}</p>
+              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.carrera.nombre}</p>
             </Card>
           ) : null}
 
           {trabajo.categoria ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Categoría</p>
-              <p className="mt-3 text-sm font-medium text-slate-800">{trabajo.categoria.nombre}</p>
+              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.categoria.nombre}</p>
             </Card>
           ) : null}
 
           {trabajo.archivo_url ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Vista previa del documento</p>
               <div className="mt-4">
                 <PDFViewer url={trabajo.archivo_url} />
               </div>
             </Card>
           ) : (
-            <Card className="border-slate-200 bg-slate-50/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Sin archivo</p>
-              <p className="mt-2 text-sm text-slate-600">Este documento no tiene un archivo adjunto.</p>
+            <Card className="border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/50">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Sin archivo</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Este documento no tiene un archivo adjunto.</p>
             </Card>
           )}
 
-          <Card className="border-unefa/15 bg-white/90">
+          <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Citar este documento</p>
             <div className="mt-3 flex gap-2">
               {(['apa', 'bibtex', 'ris'] as const).map((fmt) => (
@@ -264,7 +264,7 @@ export default function TrabajoDetalle() {
                       setCitaLoading(false)
                     }
                   }}
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-unefa/5 hover:border-unefa/30"
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-unefa/5 hover:border-unefa/30 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   {fmt.toUpperCase()}
                 </button>
@@ -272,7 +272,7 @@ export default function TrabajoDetalle() {
             </div>
 
             {citaLoading ? (
-              <p className="mt-2 text-xs text-slate-500">Generando cita...</p>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Generando cita...</p>
             ) : null}
 
             {showCita && citaContenido ? (
@@ -281,7 +281,7 @@ export default function TrabajoDetalle() {
                   readOnly
                   value={citaContenido}
                   rows={citaFormato === 'bibtex' || citaFormato === 'ris' ? 6 : 3}
-                  className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700"
+                  className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
                   onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                 />
                 <div className="flex gap-2">
@@ -295,14 +295,14 @@ export default function TrabajoDetalle() {
                   <a
                     href={`/api/v1/trabajos/${trabajo.id}/cita?formato=${citaFormato}`}
                     download
-                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                   >
                     Descargar
                   </a>
                   <button
                     type="button"
                     onClick={() => setShowCita(false)}
-                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                   >
                     Cerrar
                   </button>
@@ -316,7 +316,7 @@ export default function TrabajoDetalle() {
               <div className="flex gap-3">
                 <Link
                   to={`/submission?edit=${trabajo.id}`}
-                  className="flex-1 rounded-xl bg-unefa/10 px-4 py-2 text-center text-sm font-semibold text-unefa-dark transition hover:bg-unefa/20"
+                  className="flex-1 rounded-xl bg-unefa/10 px-4 py-2 text-center text-sm font-semibold text-unefa-dark transition hover:bg-unefa/20 dark:text-unefa-accent"
                 >
                   Editar
                 </Link>
@@ -363,7 +363,7 @@ export default function TrabajoDetalle() {
                         value={rejectComment}
                         onChange={(e) => setRejectComment(e.target.value)}
                         placeholder="Indica el motivo del rechazo..."
-                        className="w-full rounded-lg border border-rose-200 p-2 text-sm"
+                        className="w-full rounded-lg border border-rose-200 p-2 text-sm dark:border-rose-800 dark:bg-slate-800 dark:text-slate-100"
                         rows={3}
                       />
                       <div className="flex gap-2">
@@ -378,7 +378,7 @@ export default function TrabajoDetalle() {
                         <button
                           type="button"
                           onClick={() => { setShowRejectForm(false); setRejectComment('') }}
-                          className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
+                          className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:text-slate-300"
                         >
                           Cancelar
                         </button>
@@ -402,20 +402,20 @@ export default function TrabajoDetalle() {
           ) : null}
 
           {revisiones.length > 0 ? (
-            <Card className="border-unefa/15 bg-white/90">
+            <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Historial de revisiones</p>
               <div className="mt-3 space-y-2">
                 {revisiones.map((rev) => (
-                  <div key={rev.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs">
+                  <div key={rev.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-800">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-700">{rev.revisor?.nombre || 'Usuario'}</span>
-                      <span className="text-slate-400">{new Date(rev.createdAt).toLocaleDateString()}</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">{rev.revisor?.nombre || 'Usuario'}</span>
+                      <span className="text-slate-400 dark:text-slate-500">{new Date(rev.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <p className="mt-1 text-slate-600">
+                    <p className="mt-1 text-slate-600 dark:text-slate-300">
                       {rev.estado_anterior} → {rev.estado_nuevo}
                     </p>
                     {rev.comentario ? (
-                      <p className="mt-1 italic text-slate-500">{rev.comentario}</p>
+                      <p className="mt-1 italic text-slate-500 dark:text-slate-400">{rev.comentario}</p>
                     ) : null}
                   </div>
                 ))}
@@ -427,7 +427,7 @@ export default function TrabajoDetalle() {
 
           <Link
             to="/search"
-            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-unefa/30 hover:text-unefa-dark"
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-unefa/30 hover:text-unefa-dark dark:border-slate-600 dark:text-slate-300 dark:hover:border-unefa/30"
           >
             ← Volver a resultados
           </Link>

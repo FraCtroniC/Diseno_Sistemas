@@ -52,15 +52,15 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Ingreso seguro</p>
-            <h3 className="mt-2 text-2xl font-black text-slate-900">Validación de credenciales</h3>
+            <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Validación de credenciales</h3>
           </div>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Correo institucional</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Correo institucional</span>
             <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@unefa.edu.ve" />
           </label>
 
@@ -80,8 +80,8 @@ export default function Login() {
         </form>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
           <NavLink to="/forgot-password" className="text-unefa font-semibold hover:underline">¿Olvidaste tu contraseña?</NavLink>
-          <span className="text-slate-400">·</span>
-          <span>¿No tienes cuenta? <NavLink to="/register" className="text-unefa font-semibold">Regístrate</NavLink></span>
+          <span className="text-slate-400 dark:text-slate-500">·</span>
+          <span className="dark:text-slate-300">¿No tienes cuenta? <NavLink to="/register" className="text-unefa font-semibold">Regístrate</NavLink></span>
         </div>
       </div>
     </section>
