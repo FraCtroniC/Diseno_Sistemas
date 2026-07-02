@@ -5,6 +5,10 @@ module.exports = (sequelize) => {
     static associate(models) {
       Trabajo.belongsTo(models.Categoria, { foreignKey: 'categoria_id', as: 'categoria' });
       Trabajo.belongsTo(models.Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
+      Trabajo.belongsTo(models.Carrera, { foreignKey: 'carrera_id', as: 'carrera' });
+      Trabajo.belongsTo(models.Tutor, { foreignKey: 'tutor_id', as: 'tutorAsignado' });
+      Trabajo.belongsTo(models.Estudiante, { foreignKey: 'estudiante_id', as: 'estudiante' });
+      Trabajo.hasMany(models.Revision, { foreignKey: 'trabajo_id', as: 'revisiones' });
     }
   }
 
@@ -54,8 +58,17 @@ module.exports = (sequelize) => {
       type: DataTypes.JSONB,
       defaultValue: {}
     },
+    identificador: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      unique: true
+    },
+    texto_completo: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     estado: {
-      type: DataTypes.ENUM('borrador', 'publicado', 'archivado'),
+      type: DataTypes.ENUM('borrador', 'en_revision', 'publicado', 'archivado'),
       defaultValue: 'borrador'
     },
     usuario_id: {

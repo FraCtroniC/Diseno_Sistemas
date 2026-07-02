@@ -15,14 +15,30 @@ if (config.use_env_variable) {
 const UsuarioModel = require('./Usuario');
 const CategoriaModel = require('./Categoria');
 const TrabajoModel = require('./Trabajo');
+const RevisionModel = require('./Revision');
+const CarreraModel = require('./Carrera');
+const TutorModel = require('./Tutor');
+const EstudianteModel = require('./Estudiante');
+const VisitaModel = require('./Visita');
+const NotificacionModel = require('./Notificacion');
+const ComentarioModel = require('./Comentario');
+const VersionModel = require('./Version');
 
 const Usuario = UsuarioModel(sequelize);
 const Categoria = CategoriaModel(sequelize);
 const Trabajo = TrabajoModel(sequelize);
+const Revision = RevisionModel(sequelize);
+const Carrera = CarreraModel(sequelize);
+const Tutor = TutorModel(sequelize);
+const Estudiante = EstudianteModel(sequelize);
+const Visita = VisitaModel(sequelize);
+const Notificacion = NotificacionModel(sequelize);
+const Comentario = ComentarioModel(sequelize);
+const Version = VersionModel(sequelize);
 
-Object.values({ Usuario, Categoria, Trabajo }).forEach((model) => {
+Object.values({ Usuario, Categoria, Trabajo, Revision, Carrera, Tutor, Estudiante, Visita, Notificacion, Comentario, Version }).forEach((model) => {
   if (model.associate) {
-    model.associate({ Usuario, Categoria, Trabajo });
+    model.associate({ Usuario, Categoria, Trabajo, Revision, Carrera, Tutor, Estudiante, Visita, Notificacion, Comentario, Version });
   }
 });
 
@@ -31,7 +47,15 @@ const db = {
   Sequelize,
   Usuario,
   Categoria,
-  Trabajo
+  Trabajo,
+  Revision,
+  Carrera,
+  Tutor,
+  Estudiante,
+  Visita,
+  Notificacion,
+  Comentario,
+  Version
 };
 
 module.exports = db;

@@ -62,14 +62,14 @@ export default function SearchBar() {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onKeyDown={(e) => { if (e.key === 'Enter') submitSearch() }}
-          placeholder="Buscar títulos o autores..."
-          className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-unefa/40"
+          placeholder="Buscar títulos, autores o contenido de PDFs..."
+          className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-unefa/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
         />
 
         <button
           type="button"
           onClick={() => setOpenAdvanced((s) => !s)}
-          className="rounded-full bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-unefa/5"
+          className="rounded-full bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-unefa/5 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
           Filtros
         </button>
@@ -82,10 +82,10 @@ export default function SearchBar() {
       </div>
 
       {focused && suggestions.length > 0 ? (
-        <div className="absolute left-0 top-full z-40 mt-2 w-full rounded-xl border bg-white shadow-lg">
-          <ul className="divide-y">
+        <div className="absolute left-0 top-full z-40 mt-2 w-full rounded-xl border bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          <ul className="divide-y dark:divide-slate-700">
             {suggestions.map((r) => (
-              <li key={r.id} className="px-4 py-3 hover:bg-slate-50">
+              <li key={r.id} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                 <button
                   type="button"
                   onClick={() => { setQuery(r.titulo); navigate(`/search?query=${encodeURIComponent(r.titulo)}`); setFocused(false) }}
@@ -93,7 +93,7 @@ export default function SearchBar() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-slate-900">{r.titulo}</div>
+                      <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{r.titulo}</div>
                       <div className="text-xs text-slate-500">{r.autor} • {r.anio}</div>
                     </div>
                     <div className="text-xs text-slate-400">Ver</div>

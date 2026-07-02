@@ -142,15 +142,19 @@ export default function Search() {
                     <h3 className="text-lg font-bold text-slate-900 hover:text-unefa transition-colors">{document.titulo}</h3>
                     <p className="mt-1 text-sm text-slate-600">{document.autor}</p>
                   </div>
-                  <span className="inline-flex w-fit rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa">
+                  <span className="inline-flex w-fit shrink-0 rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa">
                     {document.anio} · {document.estado}
                   </span>
                 </div>
-                {document.resumen ? <p className="mt-3 text-sm text-slate-600">{document.resumen}</p> : null}
+                {document.snippet ? (
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600 [&>b]:font-semibold [&>b]:text-unefa-dark" dangerouslySetInnerHTML={{ __html: document.snippet }} />
+                ) : document.resumen ? (
+                  <p className="mt-3 text-sm text-slate-600">{document.resumen}</p>
+                ) : null}
               </Link>
               {document.archivo_url ? (
                 <a
-                  href={`/api/v1${document.archivo_url}`}
+                  href={document.archivo_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 inline-flex items-center gap-1 rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"

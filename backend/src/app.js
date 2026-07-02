@@ -6,6 +6,8 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const errorMiddleware = require('./middlewares/error.middleware');
 const routes = require('./routes');
+const oaiRoutes = require('./routes/oai.routes');
+const feedRoutes = require('./routes/feed.routes');
 
 const app = express();
 
@@ -16,7 +18,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "cdnjs.cloudflare.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:5173'],
@@ -46,6 +48,12 @@ app.get('/health', (req, res) => {
 
 // Montaje de rutas API
 app.use('/api/v1', routes);
+
+// OAI-PMH endpoint para Google Scholar y recolectores
+app.use('/oai', oaiRoutes);
+
+// RSS/Atom feeds
+app.use('/feed', feedRoutes);
 
 // Middleware unificado de manejo de errores (Siempre al final)
 app.use(errorMiddleware);

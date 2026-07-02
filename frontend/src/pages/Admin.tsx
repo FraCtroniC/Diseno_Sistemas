@@ -68,13 +68,6 @@ export default function Admin() {
   const draftDocuments = all.filter((document) => document.status === 'draft')
   const archivedDocuments = all.filter((document) => document.status === 'archived')
 
-  const moduleStatus = [
-    { name: 'Documentos publicados', value: stats ? `${stats.porcentajePublicado}%` : '...', tone: 'bg-emerald-500' },
-    { name: 'Revisiones pendientes', value: stats ? String(stats.borradores) : '...', tone: 'bg-amber-500' },
-    { name: 'Normativas vigentes', value: stats ? String(stats.normativasVigentes) : '...', tone: 'bg-sky-500' },
-    { name: 'Usuarios activos', value: stats ? String(stats.usuariosActivos) : '...', tone: 'bg-indigo-500' },
-  ]
-
   function handleLogout() {
     logout()
     navigate('/')
@@ -99,6 +92,7 @@ export default function Admin() {
                 <span className="rounded-full bg-white/12 px-4 py-2">{publishedDocuments.length} documentos publicados</span>
                 <span className="rounded-full bg-white/12 px-4 py-2">{draftDocuments.length} en borrador</span>
                 <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.totalUsuarios : '...'} administradores</span>
+                {stats ? <span className="rounded-full bg-white/12 px-4 py-2">{stats.visitas.total} visitas totales</span> : null}
               </div>
             </div>
 
@@ -167,62 +161,119 @@ export default function Admin() {
             <Card className="border-white/80 bg-white/90">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Estado general</p>
-                  <h3 className="mt-2 text-2xl font-black text-slate-900">Salud de módulos y contenidos</h3>
-                </div>
-                <div className="rounded-full bg-unefa/5 px-4 py-2 text-sm font-semibold text-unefa-dark">
-                  Actualización continua
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gráficos</p>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900">Distribución del repositorio</h3>
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {moduleStatus.map((module) => (
-                  <div key={module.name} className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm">
-                    <div className={`h-2.5 w-14 rounded-full ${module.tone}`} />
-                    <p className="mt-4 text-sm font-medium text-slate-500">{module.name}</p>
-                    <p className="mt-2 text-3xl font-black text-slate-900">{module.value}</p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-500">Estado de documentos</p>
+                  <div className="mt-4 space-y-3">
+                    {[
+                      { label: 'Publicados', value: stats?.publicados ?? 0, color: 'bg-emerald-500', max: all.length || 1 },
+                      { label: 'En revisión', value: stats?.enRevision ?? 0, color: 'bg-amber-400', max: all.length || 1 },
+                      { label: 'Borradores', value: stats?.borradores ?? 0, color: 'bg-slate-400', max: all.length || 1 },
+                      { label: 'Archivados', value: stats?.archivados ?? 0, color: 'bg-rose-400', max: all.length || 1 },
+                    ].map((item) => (
+                      <div key={item.label}>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-600">{item.label}</span>
+                          <span className="font-bold text-slate-900">{item.value}</span>
+                        </div>
+                        <div className="mt-1 h-2 w-full rounded-full bg-slate-100">
+                          <div className={`h-2 rounded-full ${item.color}`} style={{ width: `${(item.value / item.max) * 100}%` }} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-500">Tráfico total</p>
+                  {stats ? (
+                    <div className="mt-4 space-y-4">
+                      <div className="flex items-end gap-3">
+                        <p className="text-4xl font-black text-slate-900">{stats.visitas.total}</p>
+                        <p className="mb-1 text-sm text-slate-500">interacciones</p>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="flex-1 rounded-xl bg-sky-50 p-3 text-center">
+                          <p className="text-lg font-black text-sky-700">{stats.visitas.vistas}</p>
+                          <p className="text-xs text-sky-600">Visitas</p>
+                        </div>
+                        <div className="flex-1 rounded-xl bg-emerald-50 p-3 text-center">
+                          <p className="text-lg font-black text-emerald-700">{stats.visitas.descargas}</p>
+                          <p className="text-xs text-emerald-600">Descargas</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-sm text-slate-400">Cargando...</p>
+                  )}
+                </div>
               </div>
 
-              <div className="mt-6 grid gap-3 rounded-[1.5rem] bg-slate-950 px-5 py-5 text-white sm:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/60">Revisión más reciente</p>
-                  <p className="mt-2 text-lg font-bold">Documento académico</p>
-                  <p className="mt-1 text-sm text-white/70">Validación editorial y metadatos completada.</p>
-                </div>
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-white/55">Pendientes</p>
-                    <p className="mt-1 text-2xl font-black">{draftDocuments.length + archivedDocuments.length}</p>
+              <div className="mt-6">
+                <p className="text-sm font-semibold text-slate-500 mb-3">Trabajos subidos por mes</p>
+                {stats && stats.trabajosPorMes.length > 0 ? (
+                  <div className="flex items-end gap-2">
+                    {stats.trabajosPorMes.map((item) => {
+                      const max = Math.max(...stats.trabajosPorMes.map((m) => m.cantidad), 1)
+                      const h = Math.max((item.cantidad / max) * 120, 8)
+                      return (
+                        <div key={item.mes} className="flex flex-1 flex-col items-center gap-1">
+                          <span className="text-xs font-bold text-slate-700">{item.cantidad}</span>
+                          <div
+                            className="w-full rounded-t-md bg-gradient-to-t from-unefa to-unefa/60 transition-all hover:to-unefa/80"
+                            style={{ height: `${h}px`, minHeight: '8px' }}
+                          />
+                          <span className="text-[10px] text-slate-500">{item.mes.slice(5)}</span>
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div className="rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/80">
-                    Flujo activo
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-slate-400">No hay datos disponibles.</p>
+                )}
               </div>
             </Card>
           </div>
 
           <div className="space-y-6">
             <Card className="border-white/80 bg-white/90">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Actividad reciente</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900">Seguimiento operativo</h3>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Top documentos</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900">Más consultados</h3>
 
               <div className="mt-6 space-y-4">
-                {stats && stats.publishedPorCategoria.length > 0 ? (
-                  stats.publishedPorCategoria.slice(0, 5).map((item) => (
-                    <div key={item.categoriaId} className="flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4">
-                      <div className="mt-1 h-3 w-3 rounded-full bg-unefa" />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="font-semibold text-slate-900">{item.nombre}</p>
-                          <span className="shrink-0 text-xs font-medium text-slate-500">{item.cantidad} docs</span>
+                {stats && stats.topTrabajos.length > 0 ? (
+                  stats.topTrabajos.map((item, i) => {
+                    const maxVistas = Math.max(...stats.topTrabajos.map((t) => t.total), 1)
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => navigate(`/trabajos/${item.id}`)}
+                        className="w-full flex gap-4 rounded-3xl border border-slate-200/70 bg-slate-50/80 p-4 text-left transition hover:border-unefa/20 hover:bg-white"
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-unefa/10 text-sm font-black text-unefa">
+                          {i + 1}
                         </div>
-                        <p className="mt-1 text-sm leading-6 text-slate-600">Documentos publicados en esta categoría.</p>
-                      </div>
-                    </div>
-                  ))
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="font-semibold text-slate-900 truncate">{item.titulo}</p>
+                            <span className="shrink-0 text-xs font-medium text-slate-500">{item.total}</span>
+                          </div>
+                          <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200">
+                            <div className="h-1.5 rounded-full bg-unefa/60" style={{ width: `${(item.total / maxVistas) * 100}%` }} />
+                          </div>
+                          <div className="mt-1 flex gap-3 text-xs text-slate-500">
+                            <span>{item.vistas} visitas</span>
+                            <span>{item.descargas} descargas</span>
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })
                 ) : (
                   <p className="text-sm text-slate-500">No hay datos de actividad disponibles.</p>
                 )}

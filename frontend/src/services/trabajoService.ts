@@ -1,11 +1,35 @@
 import api from './api'
 
+export interface CarreraEntity {
+  id: string
+  nombre: string
+  slug: string
+}
+
+export interface TutorEntity {
+  id: string
+  nombre: string
+}
+
+export interface EstudianteEntity {
+  id: string
+  nombre: string
+  cedula: string | null
+}
+
 export interface Trabajo {
   id: string
   titulo: string
   autor: string
   tutor: string | null
   anio: number
+  identificador: string | null
+  carrera_id: string | null
+  tutor_id: string | null
+  estudiante_id: string | null
+  carrera?: CarreraEntity | null
+  tutorAsignado?: TutorEntity | null
+  estudiante?: EstudianteEntity | null
   resumen: string | null
   palabras_clave: string[]
   categoria_id: string
@@ -17,6 +41,7 @@ export interface Trabajo {
   usuario?: { id: string; nombre: string }
   createdAt: string
   updatedAt: string
+  snippet?: string | null
 }
 
 export interface Categoria {

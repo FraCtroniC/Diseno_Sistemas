@@ -4,6 +4,7 @@ export interface AdminStats {
   totalDocumentos: number
   publicados: number
   borradores: number
+  enRevision: number
   archivados: number
   porcentajePublicado: number
   totalUsuarios: number
@@ -16,6 +17,9 @@ export interface AdminStats {
     slug: string
     cantidad: number
   }[]
+  trabajosPorMes: { mes: string; cantidad: number }[]
+  visitas: { total: number; vistas: number; descargas: number }
+  topTrabajos: { id: string; titulo: string; identificador: string; total: number; vistas: number; descargas: number }[]
 }
 
 export const adminService = {

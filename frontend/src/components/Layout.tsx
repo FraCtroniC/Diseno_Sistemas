@@ -1,6 +1,8 @@
 import { useState, type PropsWithChildren } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import SearchBar from './ui/SearchBar'
+import NotificationBell from './NotificationBell'
+import ThemeToggle from './ThemeToggle'
 import { useAuthStore } from '../stores/useAuthStore'
 
 const navSections = [
@@ -44,8 +46,8 @@ export default function Layout({ children }: PropsWithChildren) {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(11,87,164,0.2),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(255,210,0,0.18),_transparent_24%),linear-gradient(180deg,_#f8fbff_0%,_#eef3fa_55%,_#e7edf7_100%)] text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/75 backdrop-blur-xl">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(11,87,164,0.2),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(255,210,0,0.18),_transparent_24%),linear-gradient(180deg,_#f8fbff_0%,_#eef3fa_55%,_#e7edf7_100%)] text-slate-900 dark:bg-[radial-gradient(circle_at_top_left,_rgba(11,87,164,0.3),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(255,210,0,0.15),_transparent_24%),linear-gradient(180deg,_#0f172a_0%,_#1e293b_55%,_#0f172a_100%)] dark:text-slate-100">
+      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/75 backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
         <div className="mx-auto flex w-full max-w-[1680px] items-center justify-between gap-4 px-3 py-4 sm:px-4 lg:px-6">
           <div className="flex items-center gap-3">
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-unefa text-sm font-black text-white shadow-lg shadow-unefa/25">
@@ -61,7 +63,9 @@ export default function Layout({ children }: PropsWithChildren) {
           </div>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark">
+            <ThemeToggle />
+            {user ? <NotificationBell /> : null}
+            <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark dark:border-white/15 dark:bg-white/10 dark:text-unefa-accent">
               {user ? `${user.name} · ${user.role}` : 'Exploración institucional'}
             </div>
             {user ? (
@@ -141,6 +145,7 @@ export default function Layout({ children }: PropsWithChildren) {
             <div className="mx-auto max-w-[1680px] space-y-4 px-3 py-4 sm:px-4">
               <SearchBar />
               <div className="flex flex-wrap items-center gap-3">
+                {user ? <NotificationBell /> : null}
                 <div className="rounded-full border border-unefa/15 bg-unefa/5 px-4 py-2 text-sm font-medium text-unefa-dark">
                   {user ? `${user.name} · ${user.role}` : 'Exploración institucional'}
                 </div>
@@ -236,15 +241,19 @@ export default function Layout({ children }: PropsWithChildren) {
             ))}
           </nav>
 
-          <div className="rounded-[1.5rem] border border-unefa/10 bg-white/80 p-4 shadow-sm backdrop-blur">
+          <div className="rounded-[1.5rem] border border-unefa/10 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Acceso</p>
-            <p className="mt-2 text-sm text-slate-600">Los administradores entran por login y el sistema muestra su panel automáticamente.</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Los administradores entran por login y el sistema muestra su panel automáticamente.</p>
             {user?.role === 'admin' ? (
               <NavLink to="/admin" onClick={() => setSidebarOpen(false)} className="mt-4 flex items-center justify-between rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10">
                 <span>Sesión administrativa activa</span>
                 <span className="text-xs font-semibold uppercase tracking-wider text-unefa">Ir al dashboard →</span>
               </NavLink>
             ) : null}
+            <a href="/feed/rss" target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center gap-2 rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10 dark:text-unefa-accent">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 010 4.36 2.18 2.18 0 010-4.36M4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44m0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93v-2.83z"/></svg>
+              <span>Feed RSS</span>
+            </a>
           </div>
           </div>
         </aside>

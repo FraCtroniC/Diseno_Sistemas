@@ -1,5 +1,8 @@
 const path = require('path');
 const trabajoService = require('../services/trabajo.service');
+const citaService = require('../services/cita.service');
+const estadisticaService = require('../services/estadistica.service');
+const versionService = require('../services/version.service');
 const { validationResult } = require('express-validator');
 
 class TrabajoController {
@@ -11,6 +14,7 @@ class TrabajoController {
 
   async obtenerPorId(req, res) {
     const trabajo = await trabajoService.obtenerPorId(req.params.id);
+    estadisticaService.registrar(req.params.id, 'vista').catch(() => {});
     res.status(200).json({ success: true, data: trabajo });
   }
 
@@ -24,7 +28,7 @@ class TrabajoController {
     }
 
     const archivoUrl = req.file ? `/uploads/${req.file.filename}` : null;
-    const trabajo = await trabajoService.crear(req.body, req.user.id, archivoUrl);
+    const trabajo = await trabajoService.crear(req.body, req.user.id, archivoUrl, req.file?.path, req.user.rol);
     res.status(201).json({ success: true, data: trabajo });
   }
 
@@ -37,8 +41,11 @@ class TrabajoController {
       throw err;
     }
 
+    const trabajoActual = await trabajoService.obtenerPorId(req.params.id);
+    await versionService.crearDesdeTrabajo(trabajoActual, req.user.id);
+
     const archivoUrl = req.file ? `/uploads/${req.file.filename}` : null;
-    const trabajo = await trabajoService.actualizar(req.params.id, req.body, req.user.id, archivoUrl);
+    const trabajo = await trabajoService.actualizar(req.params.id, req.body, req.user.id, archivoUrl, req.file?.path, req.user.rol);
     res.status(200).json({ success: true, data: trabajo });
   }
 
@@ -60,6 +67,19 @@ class TrabajoController {
     res.status(200).json({ success: true, data: trabajo });
   }
 
+  async estadisticas(req, res) {
+    const stats = await estadisticaService.obtenerPorTrabajo(req.params.id);
+    res.status(200).json({ success: true, data: stats });
+  }
+
+  async citar(req, res) {
+    const formato = req.query.formato || 'apa';
+    const result = await citaService.generar(req.params.id, formato);
+    res.setHeader('Content-Type', result.mime);
+    res.setHeader('Content-Disposition', `attachment; filename="cita-${req.params.id.slice(0, 8)}.${result.extension}"`);
+    res.status(200).send(result.contenido);
+  }
+
   async descargarArchivo(req, res) {
     const trabajo = await trabajoService.obtenerPorId(req.params.id);
     if (!trabajo.archivo_url) {
@@ -74,6 +94,7 @@ class TrabajoController {
       err.statusCode = 403;
       throw err;
     }
+    estadisticaService.registrar(req.params.id, 'descarga').catch(() => {});
     res.download(filePath, (err) => {
       if (err) {
         const downloadErr = new Error('Error al descargar el archivo');
