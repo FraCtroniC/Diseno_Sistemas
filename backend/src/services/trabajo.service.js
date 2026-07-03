@@ -66,7 +66,7 @@ class TrabajoService {
     return trabajo;
   }
 
-  async crear(data, usuarioId, archivoUrl = null, archivoPath = null, rol = 'bibliotecario') {
+  async crear(data, usuarioId, archivoUrl = null, archivoBuffer = null, rol = 'bibliotecario') {
     if (data.metadatos && typeof data.metadatos === 'string') {
       data.metadatos = JSON.parse(data.metadatos);
     }
@@ -91,8 +91,8 @@ class TrabajoService {
     }
 
     let textoCompleto = null;
-    if (archivoPath) {
-      textoCompleto = await extractTextFromPdf(archivoPath);
+    if (archivoBuffer) {
+      textoCompleto = await extractTextFromPdf(archivoBuffer);
     }
 
     return Trabajo.create({
@@ -103,7 +103,7 @@ class TrabajoService {
     });
   }
 
-  async actualizar(id, data, usuarioId, archivoUrl = null, archivoPath = null, rol = 'bibliotecario') {
+  async actualizar(id, data, usuarioId, archivoUrl = null, archivoBuffer = null, rol = 'bibliotecario') {
     const trabajo = await Trabajo.findByPk(id);
     if (!trabajo) {
       const err = new Error('Trabajo no encontrado');
@@ -137,8 +137,8 @@ class TrabajoService {
     if (archivoUrl) {
       updateData.archivo_url = archivoUrl;
     }
-    if (archivoPath) {
-      updateData.texto_completo = await extractTextFromPdf(archivoPath);
+    if (archivoBuffer) {
+      updateData.texto_completo = await extractTextFromPdf(archivoBuffer);
     }
     await trabajo.update(updateData);
     return trabajo;

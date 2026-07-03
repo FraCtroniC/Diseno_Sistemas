@@ -1,5 +1,5 @@
-const app = require('./app');
 const environment = require('../config/environment');
+const app = require('./app');
 const { sequelize } = require('./models');
 
 const PORT = environment.port;
