@@ -1,6 +1,7 @@
 
 import { useState } from 'react'
 import { useNavigate, useLocation, NavLink } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
@@ -21,6 +22,7 @@ export default function Login() {
     try {
       const loggedInUser = await login(identifier, password)
       const dest = loggedInUser?.role === 'admin' ? '/admin' : from
+      toast.success(`Bienvenido, ${loggedInUser?.name}`)
       navigate(dest, { replace: true })
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.response?.data?.message || 'Credenciales inválidas')

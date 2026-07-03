@@ -18,6 +18,7 @@ interface NotificationState {
   loading: boolean
   fetch: () => Promise<void>
   contar: () => Promise<void>
+  setNoLeidas: (n: number) => void
   marcarLeida: (id: string) => Promise<void>
   marcarTodasLeidas: () => Promise<void>
 }
@@ -37,6 +38,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }
     get().contar()
   },
+
+  setNoLeidas: (n) => set({ noLeidas: n }),
 
   contar: async () => {
     try {

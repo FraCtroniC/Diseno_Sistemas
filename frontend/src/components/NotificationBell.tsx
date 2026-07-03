@@ -3,15 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { useNotificationStore } from '../stores/useNotificationStore'
 
 export default function NotificationBell() {
-  const { notificaciones, noLeidas, fetch, contar, marcarLeida, marcarTodasLeidas } = useNotificationStore()
+  const { notificaciones, noLeidas, fetch, setNoLeidas, marcarLeida, marcarTodasLeidas } = useNotificationStore()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetch()
-    const interval = setInterval(contar, 30000)
-    return () => clearInterval(interval)
+    const es = new EventSource('/api/v1/notificaciones/stream')
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        if (data.type === 'count' && typeof data.noLeidas === 'number') {
+          setNoLeidas(data.noLeidas)
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    es.onerror = () => {
+      es.close()
+    }
+    return () => es.close()
   }, [])
 
   useEffect(() => {

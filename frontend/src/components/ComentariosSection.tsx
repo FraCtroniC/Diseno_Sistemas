@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import toast from 'react-hot-toast'
 import Card from './ui/Card'
 import { useAuthStore } from '../stores/useAuthStore'
 
@@ -25,8 +26,11 @@ export default function ComentariosSection({ trabajoId }: Props) {
   const [calif, setCalif] = useState(0)
   const [loading, setLoading] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [editandoTexto, setEditandoTexto] = useState('')
+  const [editandoCalif, setEditandoCalif] = useState(0)
 
-  useEffect(() => {
+  function cargarComentarios() {
     setLoading(true)
     axios.get(`/api/v1/trabajos/${trabajoId}/comentarios`)
       .then((r) => {
@@ -36,8 +40,12 @@ export default function ComentariosSection({ trabajoId }: Props) {
           setTotal(r.data.total)
         }
       })
-      .catch(() => {})
+      .catch(() => toast.error('Error al cargar comentarios'))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    cargarComentarios()
   }, [trabajoId])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,9 +61,35 @@ export default function ComentariosSection({ trabajoId }: Props) {
         setComentarios((prev) => [r.data.data, ...prev])
         setTexto('')
         setCalif(0)
+        toast.success('Comentario publicado')
       }
-    } catch { /* ignore */ }
+    } catch { toast.error('Error al publicar comentario') }
     setEnviando(false)
+  }
+
+  async function handleEdit(comentarioId: string) {
+    try {
+      const r = await axios.put(`/api/v1/trabajos/${trabajoId}/comentarios/${comentarioId}`, {
+        comentario: editandoTexto.trim(),
+        calificacion: editandoCalif || null,
+      })
+      if (r.data.success) {
+        setComentarios((prev) => prev.map((c) => c.id === comentarioId ? { ...c, comentario: editandoTexto.trim(), calificacion: editandoCalif || null } : c))
+        setEditandoId(null)
+        setEditandoTexto('')
+        setEditandoCalif(0)
+        toast.success('Comentario actualizado')
+      }
+    } catch { toast.error('Error al actualizar comentario') }
+  }
+
+  async function handleDelete(comentarioId: string) {
+    if (!confirm('¿Eliminar este comentario?')) return
+    try {
+      await axios.delete(`/api/v1/trabajos/${trabajoId}/comentarios/${comentarioId}`)
+      setComentarios((prev) => prev.filter((c) => c.id !== comentarioId))
+      toast.success('Comentario eliminado')
+    } catch { toast.error('Error al eliminar comentario') }
   }
 
   return (
@@ -122,9 +156,32 @@ export default function ComentariosSection({ trabajoId }: Props) {
                     <span className="text-xs text-amber-500">{'★'.repeat(c.calificacion)}{'☆'.repeat(5 - c.calificacion)}</span>
                   ) : null}
                 </div>
-                <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(c.createdAt).toLocaleDateString('es-ES')}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(c.createdAt).toLocaleDateString('es-ES')}</span>
+                  {user?.id === c.usuario_id ? (
+                    <>
+                      <button type="button" onClick={() => { setEditandoId(c.id); setEditandoTexto(c.comentario); setEditandoCalif(c.calificacion ?? 0) }} className="text-xs font-semibold text-unefa hover:underline">Editar</button>
+                      <button type="button" onClick={() => handleDelete(c.id)} className="text-xs font-semibold text-rose-600 hover:underline">Eliminar</button>
+                    </>
+                  ) : null}
+                </div>
               </div>
-              <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{c.comentario}</p>
+              {editandoId === c.id ? (
+                <div className="mt-2 space-y-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button key={star} type="button" onClick={() => setEditandoCalif(star === editandoCalif ? 0 : star)} className={`text-lg transition ${star <= editandoCalif ? 'text-amber-400' : 'text-slate-300'}`}>★</button>
+                    ))}
+                  </div>
+                  <textarea value={editandoTexto} onChange={(e) => setEditandoTexto(e.target.value)} rows={2} className="w-full rounded-xl border border-slate-300/90 bg-white/90 px-3 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => handleEdit(c.id)} className="rounded-lg bg-unefa px-3 py-1 text-xs font-semibold text-white hover:brightness-110">Guardar</button>
+                    <button type="button" onClick={() => setEditandoId(null)} className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:text-slate-300">Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{c.comentario}</p>
+              )}
             </div>
           ))
         )}

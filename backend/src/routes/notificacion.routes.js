@@ -7,6 +7,7 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', notificacionController.listar);
+router.get('/stream', notificacionController.stream);
 router.get('/contar', notificacionController.contarNoLeidas);
 router.patch('/:id/leer', notificacionController.marcarLeida);
 router.post('/leer-todas', notificacionController.marcarTodasLeidas);

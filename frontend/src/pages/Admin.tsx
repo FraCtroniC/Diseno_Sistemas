@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 import { adminService, type AdminStats } from '../services/adminService'
@@ -9,7 +11,9 @@ import api from '../services/api'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
+import PasswordInput from '../components/ui/PasswordInput'
 
+const COLORS = ['#0b57a4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
 const quickActions = [
   {
@@ -29,6 +33,21 @@ const quickActions = [
   },
 ]
 
+function exportCSV(data: Record<string, unknown>[], filename: string) {
+  if (data.length === 0) return
+  const headers = Object.keys(data[0])
+  const rows = data.map((row) => headers.map((h) => `"${String(row[h] ?? '').replace(/"/g, '""')}"`).join(','))
+  const csv = [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+  toast.success('Reporte exportado')
+}
+
 export default function Admin() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
@@ -43,12 +62,19 @@ export default function Admin() {
   const [catLoading, setCatLoading] = useState(false)
   const [editingCat, setEditingCat] = useState<Categoria | null>(null)
 
+  const [showCreateUser, setShowCreateUser] = useState(false)
+  const [newUserName, setNewUserName] = useState('')
+  const [newUserEmail, setNewUserEmail] = useState('')
+  const [newUserPassword, setNewUserPassword] = useState('')
+  const [newUserRole, setNewUserRole] = useState<'admin' | 'repositor' | 'bibliotecario'>('bibliotecario')
+  const [creatingUser, setCreatingUser] = useState(false)
+
   const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
 
   function loadCategorias() {
     categoriaService.listar()
       .then((res) => setCategorias(res.data.data))
-      .catch(() => {})
+      .catch(() => toast.error('Error al cargar categorías'))
   }
 
   useEffect(() => {
@@ -56,7 +82,7 @@ export default function Admin() {
     fetchTrabajos()
     adminService.getStats()
       .then((res) => setStats(res.data.data))
-      .catch(() => {})
+      .catch(() => toast.error('Error al cargar estadísticas'))
     authService.listarUsuarios()
       .then((res) => { setUsuarios(res.data.data); setUsuariosError('') })
       .catch(() => setUsuariosError('No se pudieron cargar los usuarios'))
@@ -71,7 +97,12 @@ export default function Admin() {
   function handleLogout() {
     logout()
     navigate('/')
+    toast.success('Sesión cerrada')
   }
+
+  const chartData = stats?.trabajosPorMes.map((m) => ({ mes: m.mes.slice(5) + '/' + m.mes.slice(0, 4), cantidad: m.cantidad })) ?? []
+
+  const pieData = stats?.publishedPorCategoria.map((c) => ({ name: c.nombre, value: c.cantidad })) ?? []
 
   return (
       <section className="space-y-6 pb-6">
@@ -161,81 +192,142 @@ export default function Admin() {
             <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gráficos</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gráficos interactivos</p>
                   <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Distribución del repositorio</h3>
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
                 <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Estado de documentos</p>
-                  <div className="mt-4 space-y-3">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Documentos por mes</p>
+                  {chartData.length > 0 ? (
+                    <div className="mt-4 h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData}>
+                          <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                          <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                          <Bar dataKey="cantidad" fill="#0b57a4" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-sm text-slate-400">No hay datos disponibles.</p>
+                  )}
+                </div>
+
+                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Documentos por categoría</p>
+                  {pieData.length > 0 ? (
+                    <div className="mt-4 h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}>
+                            {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <Legend
+                        payload={pieData.map((d, i) => ({ value: d.name, color: COLORS[i % COLORS.length], id: d.name }))}
+                        wrapperStyle={{ fontSize: '11px' }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-sm text-slate-400">No hay datos disponibles.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/50 dark:bg-slate-800">
+                  <p className="text-xs font-semibold text-slate-500">Estado de documentos</p>
+                  <div className="mt-3 space-y-2">
                     {[
-                      { label: 'Publicados', value: stats?.publicados ?? 0, color: 'bg-emerald-500', max: all.length || 1 },
-                      { label: 'En revisión', value: stats?.enRevision ?? 0, color: 'bg-amber-400', max: all.length || 1 },
-                      { label: 'Borradores', value: stats?.borradores ?? 0, color: 'bg-slate-400', max: all.length || 1 },
-                      { label: 'Archivados', value: stats?.archivados ?? 0, color: 'bg-rose-400', max: all.length || 1 },
+                      { label: 'Publicados', value: stats?.publicados ?? 0, color: 'bg-emerald-500' },
+                      { label: 'En revisión', value: stats?.enRevision ?? 0, color: 'bg-amber-400' },
+                      { label: 'Borradores', value: stats?.borradores ?? 0, color: 'bg-slate-400' },
+                      { label: 'Archivados', value: stats?.archivados ?? 0, color: 'bg-rose-400' },
                     ].map((item) => (
-                      <div key={item.label}>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600 dark:text-slate-300">{item.label}</span>
-                          <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
-                        </div>
-                        <div className="mt-1 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700">
-                          <div className={`h-2 rounded-full ${item.color}`} style={{ width: `${(item.value / item.max) * 100}%` }} />
-                        </div>
+                      <div key={item.label} className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                          <span className={`inline-block h-2.5 w-2.5 rounded-full ${item.color}`} />
+                          {item.label}
+                        </span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-500">Tráfico total</p>
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/50 dark:bg-slate-800">
+                  <p className="text-xs font-semibold text-slate-500">Tráfico total</p>
                   {stats ? (
-                    <div className="mt-4 space-y-4">
-                      <div className="flex items-end gap-3">
-                        <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{stats.visitas.total}</p>
-                        <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">interacciones</p>
+                    <div className="mt-3 space-y-3">
+                      <div className="flex items-end gap-2">
+                        <p className="text-3xl font-black text-slate-900 dark:text-slate-100">{stats.visitas.total}</p>
+                        <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">interacciones</p>
                       </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 rounded-xl bg-sky-50 p-3 text-center dark:bg-sky-900/30">
+                      <div className="flex gap-2">
+                        <div className="flex-1 rounded-xl bg-sky-50 p-2 text-center dark:bg-sky-900/30">
                           <p className="text-lg font-black text-sky-700">{stats.visitas.vistas}</p>
-                          <p className="text-xs text-sky-600">Visitas</p>
+                          <p className="text-[10px] text-sky-600">Visitas</p>
                         </div>
-                        <div className="flex-1 rounded-xl bg-emerald-50 p-3 text-center dark:bg-emerald-900/30">
+                        <div className="flex-1 rounded-xl bg-emerald-50 p-2 text-center dark:bg-emerald-900/30">
                           <p className="text-lg font-black text-emerald-700">{stats.visitas.descargas}</p>
-                          <p className="text-xs text-emerald-600">Descargas</p>
+                          <p className="text-[10px] text-emerald-600">Descargas</p>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="mt-4 text-sm text-slate-400">Cargando...</p>
+                    <p className="mt-3 text-sm text-slate-400">Cargando...</p>
                   )}
                 </div>
-              </div>
 
-              <div className="mt-6">
-                <p className="text-sm font-semibold text-slate-500 mb-3">Trabajos subidos por mes</p>
-                {stats && stats.trabajosPorMes.length > 0 ? (
-                  <div className="flex items-end gap-2">
-                    {stats.trabajosPorMes.map((item) => {
-                      const max = Math.max(...stats.trabajosPorMes.map((m) => m.cantidad), 1)
-                      const h = Math.max((item.cantidad / max) * 120, 8)
-                      return (
-                        <div key={item.mes} className="flex flex-1 flex-col items-center gap-1">
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{item.cantidad}</span>
-                          <div
-                            className="w-full rounded-t-md bg-gradient-to-t from-unefa to-unefa/60 transition-all hover:to-unefa/80"
-                            style={{ height: `${h}px`, minHeight: '8px' }}
-                          />
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">{item.mes.slice(5)}</span>
-                        </div>
-                      )
-                    })}
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/50 dark:bg-slate-800">
+                  <p className="text-xs font-semibold text-slate-500">Exportar datos</p>
+                  <div className="mt-3 space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!stats) return
+                        exportCSV(
+                          stats.trabajosPorMes.map((m) => ({ Mes: m.mes, Cantidad: m.cantidad })),
+                          'trabajos-por-mes.csv'
+                        )
+                      }}
+                      className="w-full rounded-xl bg-unefa/10 px-3 py-2 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
+                    >
+                      Exportar trabajos por mes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!stats) return
+                        exportCSV(
+                          stats.publishedPorCategoria.map((c) => ({ Categoria: c.nombre, Publicados: c.cantidad })),
+                          'publicados-por-categoria.csv'
+                        )
+                      }}
+                      className="w-full rounded-xl bg-unefa/10 px-3 py-2 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
+                    >
+                      Exportar por categoría
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!stats) return
+                        exportCSV(
+                          stats.topTrabajos.map((t) => ({ Titulo: t.titulo, Visitas: t.vistas, Descargas: t.descargas, Total: t.total })),
+                          'top-trabajos.csv'
+                        )
+                      }}
+                      className="w-full rounded-xl bg-unefa/10 px-3 py-2 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
+                    >
+                      Exportar top trabajos
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-sm text-slate-400">No hay datos disponibles.</p>
-                )}
+                </div>
               </div>
             </Card>
           </div>
@@ -281,8 +373,68 @@ export default function Admin() {
             </Card>
 
             <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Usuarios y permisos</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Cuentas con acceso</h3>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Usuarios y permisos</p>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Cuentas con acceso</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateUser(!showCreateUser)}
+                  className="rounded-full bg-unefa px-4 py-2 text-xs font-semibold text-white hover:brightness-110"
+                >
+                  {showCreateUser ? 'Cancelar' : '+ Nuevo usuario'}
+                </button>
+              </div>
+
+              {showCreateUser ? (
+                <div className="mt-4 rounded-2xl border border-unefa/20 bg-unefa/5 p-4 space-y-3">
+                  <p className="text-sm font-bold text-unefa-dark">Crear nuevo usuario</p>
+                  <Input value={newUserName} onChange={(e) => setNewUserName(e.target.value)} placeholder="Nombre completo" />
+                  <Input value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} placeholder="Correo electrónico" type="email" />
+                  <PasswordInput value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} placeholder="Contraseña" />
+                  <select
+                    value={newUserRole}
+                    onChange={(e) => setNewUserRole(e.target.value as any)}
+                    className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                  >
+                    <option value="bibliotecario">Bibliotecario</option>
+                    <option value="repositor">Repositor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      disabled={creatingUser || !newUserName || !newUserEmail || !newUserPassword}
+                      onClick={async () => {
+                        setCreatingUser(true)
+                        try {
+                          await api.post('/usuarios', {
+                            nombre: newUserName,
+                            email: newUserEmail,
+                            password: newUserPassword,
+                            rol: newUserRole,
+                          })
+                          toast.success(`Usuario ${newUserName} creado`)
+                          setNewUserName('')
+                          setNewUserEmail('')
+                          setNewUserPassword('')
+                          setNewUserRole('bibliotecario')
+                          setShowCreateUser(false)
+                          const res = await authService.listarUsuarios()
+                          setUsuarios(res.data.data)
+                        } catch {
+                          toast.error('Error al crear usuario')
+                        } finally {
+                          setCreatingUser(false)
+                        }
+                      }}
+                    >
+                      {creatingUser ? 'Creando...' : 'Crear usuario'}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="mt-5 space-y-3">
                 {usuarios.length > 0 ? (
@@ -301,7 +453,8 @@ export default function Admin() {
                               try {
                                 await api.put(`/usuarios/${u.id}`, { rol: newRol })
                                 setUsuarios((prev) => prev.map((x) => x.id === u.id ? { ...x, rol: newRol } : x))
-                              } catch { /* silencio */ }
+                                toast.success(`Rol de ${u.nombre} actualizado a ${newRol}`)
+                              } catch { toast.error('Error al actualizar rol') }
                             }}
                             className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-unefa-dark appearance-none cursor-pointer hover:border-unefa/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-unefa/30"
                           >
@@ -310,6 +463,21 @@ export default function Admin() {
                             <option value="bibliotecario">bibliotecario</option>
                           </select>
                         </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm(`¿Desactivar usuario "${u.nombre}"?`)) return
+                            try {
+                              await api.patch(`/usuarios/${u.id}/estado`, { activo: false })
+                              toast.success(`Usuario ${u.nombre} desactivado`)
+                              const res = await authService.listarUsuarios()
+                              setUsuarios(res.data.data)
+                            } catch { toast.error('Error al desactivar usuario') }
+                          }}
+                          className="rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-200"
+                        >
+                          Desactivar
+                        </button>
                       </div>
                     </div>
                   ))
@@ -373,12 +541,14 @@ export default function Admin() {
                             slug: newCatSlug,
                             descripcion: newCatDesc || undefined,
                           })
+                          toast.success('Categoría actualizada')
                         } else {
                           await categoriaService.crear({
                             nombre: newCatNombre,
                             slug: newCatSlug,
                             descripcion: newCatDesc || undefined,
                           })
+                          toast.success('Categoría creada')
                         }
                         setNewCatNombre('')
                         setNewCatSlug('')
@@ -386,7 +556,7 @@ export default function Admin() {
                         setEditingCat(null)
                         loadCategorias()
                       } catch {
-                        // silencio
+                        toast.error('Error al guardar categoría')
                       } finally {
                         setCatLoading(false)
                       }
@@ -433,8 +603,9 @@ export default function Admin() {
                           try {
                             await categoriaService.eliminar(cat.id)
                             loadCategorias()
+                            toast.success(`Categoría "${cat.nombre}" eliminada`)
                           } catch {
-                            // silencio
+                            toast.error('Error al eliminar categoría')
                           }
                         }}
                         className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-200"

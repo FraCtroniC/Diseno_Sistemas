@@ -12,6 +12,7 @@ export default function Search() {
   const [yearFilter, setYearFilter] = useState('')
   const [categoriaFilter, setCategoriaFilter] = useState('')
   const [tipoDocFilter, setTipoDocFilter] = useState('')
+  const [sortFilter, setSortFilter] = useState('reciente')
   const [results, setResults] = useState<Trabajo[]>([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -27,7 +28,7 @@ export default function Search() {
       .catch(() => {})
   }, [])
 
-  async function doSearch(q: string, y: string, cat: string, tipoDoc: string, page: number = 1) {
+  async function doSearch(q: string, y: string, cat: string, tipoDoc: string, sort: string, page: number = 1) {
     setLoading(true)
     try {
       const params: Record<string, string | number> = { estado: 'publicado', pagina: page, limite: 10 }
@@ -35,6 +36,7 @@ export default function Search() {
       if (y) params.anio = y
       if (cat) params.categoria = cat
       if (tipoDoc) params.tipo_documento = tipoDoc
+      if (sort) params.sort = sort
       const res = await trabajoService.buscar(params as any)
       setResults(res.data.datos)
       setTotal(res.data.total)
@@ -54,13 +56,15 @@ export default function Search() {
     const y = params.get('year') ?? ''
     const cat = params.get('categoria') ?? ''
     const tipoDoc = params.get('tipo_documento') ?? ''
+    const sort = params.get('sort') ?? 'reciente'
     const page = parseInt(params.get('pagina') || '1', 10)
     setQuery(q)
     setYearFilter(y)
     setCategoriaFilter(cat)
     setTipoDocFilter(tipoDoc)
+    setSortFilter(sort)
 
-    doSearch(q, y, cat, tipoDoc, page)
+    doSearch(q, y, cat, tipoDoc, sort, page)
   }, [location.search, categorias])
 
   return (
@@ -106,10 +110,19 @@ export default function Search() {
               ))}
             </select>
           </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700">Ordenar por</span>
+            <select value={sortFilter} onChange={(e) => setSortFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+              <option value="reciente">Más recientes</option>
+              <option value="antiguo">Más antiguos</option>
+              <option value="titulo">Título A-Z</option>
+            </select>
+          </label>
         </div>
 
           <div className="mt-4 flex gap-3">
-            <Button type="button" onClick={() => { setQuery(''); setYearFilter(''); setCategoriaFilter(''); setTipoDocFilter(''); navigate('/search') }}>
+            <Button type="button" onClick={() => { setQuery(''); setYearFilter(''); setCategoriaFilter(''); setTipoDocFilter(''); setSortFilter('reciente'); navigate('/search') }}>
               Limpiar filtros
             </Button>
             <Button variant="secondary" type="button" onClick={() => {
@@ -118,6 +131,7 @@ export default function Search() {
               if (yearFilter) params.set('year', yearFilter)
               if (categoriaFilter) params.set('categoria', categoriaFilter)
               if (tipoDocFilter) params.set('tipo_documento', tipoDocFilter)
+              if (sortFilter !== 'reciente') params.set('sort', sortFilter)
               params.set('pagina', '1')
               navigate(`/search?${params.toString()}`)
             }}>

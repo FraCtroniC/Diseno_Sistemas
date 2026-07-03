@@ -63,7 +63,7 @@ export default function ResetPassword() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-white/70">Restablecer</p>
         <h2 className="mt-3 text-4xl font-black tracking-tight">Nueva contraseña</h2>
         <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
-          Ingresa tu nueva contraseña. Debe tener al menos 6 caracteres. La sesión expirará para que ingreses con tu nueva clave.
+          Ingresa tu nueva contraseña. Debe tener al menos 8 caracteres. La sesión expirará para que ingreses con tu nueva clave.
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export default function ResetPassword() {
 
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nueva contraseña</span>
-              <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+              <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 8 caracteres" />
             </label>
 
             <label className="space-y-2">

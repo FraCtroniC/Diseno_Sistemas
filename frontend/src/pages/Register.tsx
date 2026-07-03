@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { NavLink, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
@@ -12,7 +13,7 @@ import type { UserProfile } from '../types'
 const schema = z.object({
   name: z.string().min(2, 'Mínimo 2 caracteres'),
   email: z.string().email('Correo inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  password: z.string().min(8, 'Mínimo 8 caracteres'),
   cedula: z.string().optional(),
   telefono: z.string().optional(),
 })
@@ -31,7 +32,8 @@ export default function Register() {
       telefono: data.telefono,
     }
     try {
-      await registerFn({ name: data.name, email: data.email, password: data.password, profile })
+      const user = await registerFn({ name: data.name, email: data.email, password: data.password, profile })
+      toast.success(`¡Bienvenido, ${user.name}!`)
       navigate('/')
     } catch (err: any) {
       setRegisterError(err?.response?.data?.error || err?.response?.data?.message || 'Error al registrarse. Intente de nuevo.')

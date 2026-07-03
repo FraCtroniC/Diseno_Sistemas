@@ -5,12 +5,21 @@ jest.mock('../models', () => ({
   Categoria: {},
 }))
 
+const mockCrear = jest.fn()
+const mockContarNoLeidas = jest.fn()
+
 jest.mock('./notificacion.service', () => ({
-  crear: jest.fn(),
+  crear: mockCrear,
+  contarNoLeidas: mockContarNoLeidas,
+}))
+
+jest.mock('./sse.service', () => ({
+  notifyUser: jest.fn(),
+  addClient: jest.fn(),
 }))
 
 const { Trabajo, Revision, Usuario } = require('../models')
-const { crear } = require('./notificacion.service')
+const { notifyUser } = require('./sse.service')
 const revisionService = require('./revision.service')
 
 describe('RevisionService', () => {
@@ -48,10 +57,13 @@ describe('RevisionService', () => {
 
     it('creates notification on publish', async () => {
       const save = jest.fn()
+      mockContarNoLeidas.mockResolvedValue(1)
       Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'borrador', titulo: 'Test', anio: 2026, usuario_id: 'u1', identificador: 'X', save })
       Revision.create.mockResolvedValue({})
       await revisionService.cambiarEstado('t1', 'publicado', null, { rol: 'admin', id: 'u1' })
-      expect(crear).toHaveBeenCalledWith('u1', 'publicado', expect.any(String), 't1')
+      expect(mockCrear).toHaveBeenCalledWith('u1', 'publicado', expect.any(String), 't1')
+      expect(mockContarNoLeidas).toHaveBeenCalledWith('u1')
+      expect(notifyUser).toHaveBeenCalledWith('u1', { type: 'count', noLeidas: 1 })
     })
 
     it('notifies repositors on en_revision', async () => {
@@ -59,8 +71,11 @@ describe('RevisionService', () => {
       Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'borrador', titulo: 'Test', usuario_id: 'u1', save })
       Usuario.findAll.mockResolvedValue([{ id: 'r1' }, { id: 'r2' }])
       Revision.create.mockResolvedValue({})
+      mockCrear.mockResolvedValue({ usuario_id: 'r1' })
+      mockContarNoLeidas.mockResolvedValue(1)
       await revisionService.cambiarEstado('t1', 'en_revision', null, { rol: 'bibliotecario', id: 'u1' })
-      expect(crear).toHaveBeenCalledTimes(2)
+      expect(mockCrear).toHaveBeenCalledTimes(2)
+      expect(notifyUser).toHaveBeenCalled()
     })
   })
 

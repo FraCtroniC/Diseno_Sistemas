@@ -21,6 +21,8 @@ router.get('/:id/versiones', versionController.listar);
 
 router.use(authMiddleware);
 router.post('/:id/comentarios', comentarioController.crear);
+router.put('/:id/comentarios/:comentarioId', comentarioController.actualizar);
+router.delete('/:id/comentarios/:comentarioId', comentarioController.eliminar);
 router.post('/:id/versiones/:versionId/restaurar', roleMiddleware('admin', 'repositor'), versionController.restaurar);
 
 router.post('/', roleMiddleware('admin', 'repositor', 'bibliotecario'), upload.single('archivo'), createTrabajoRules, trabajoController.crear);

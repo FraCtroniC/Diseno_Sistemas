@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { trabajoService, type Trabajo } from '../services/trabajoService'
 import { revisionService, type Revision } from '../services/revisionService'
 import PDFViewer from '../components/ui/PDFViewer'
@@ -56,8 +57,9 @@ export default function TrabajoDetalle() {
       setRevisiones(revRes.data.data)
       setShowRejectForm(false)
       setRejectComment('')
+      toast.success(`Estado actualizado a ${estado === 'publicado' ? 'Publicado' : 'Borrador'}`)
     } catch {
-      alert('Error al cambiar el estado')
+      toast.error('Error al cambiar el estado')
     } finally {
       setActionLoading('')
     }
@@ -326,9 +328,10 @@ export default function TrabajoDetalle() {
                     if (!confirm('¿Eliminar este documento?')) return
                     try {
                       await trabajoService.eliminar(trabajo.id)
+                      toast.success('Documento eliminado')
                       navigate('/search')
                     } catch {
-                      alert('Error al eliminar')
+                      toast.error('Error al eliminar')
                     }
                   }}
                   className="flex-1 rounded-xl bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-200"

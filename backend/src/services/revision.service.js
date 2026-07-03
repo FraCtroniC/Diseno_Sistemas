@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Trabajo, Revision, Usuario, Categoria } = require('../models');
 const { crear: crearNotificacion } = require('./notificacion.service');
+const sseService = require('./sse.service');
 
 const TRANSICIONES_PERMITIDAS = {
   bibliotecario: {
@@ -84,21 +85,29 @@ class RevisionService {
         `Tu trabajo "${trabajo.titulo}" ha sido publicado.`,
         trabajoId
       );
+      const noLeidas = await require('./notificacion.service').contarNoLeidas(trabajo.usuario_id);
+      sseService.notifyUser(trabajo.usuario_id, { type: 'count', noLeidas });
     } else if (nuevoEstado === 'borrador' && estadoAnterior === 'en_revision') {
       await crearNotificacion(
         trabajo.usuario_id, 'rechazado',
         `Tu trabajo "${trabajo.titulo}" ha sido devuelto a borrador. Comentario: ${comentario || 'Sin comentarios'}`,
         trabajoId
       );
+      const noLeidas = await require('./notificacion.service').contarNoLeidas(trabajo.usuario_id);
+      sseService.notifyUser(trabajo.usuario_id, { type: 'count', noLeidas });
     } else if (nuevoEstado === 'en_revision') {
       const repositors = await Usuario.findAll({ where: { rol: 'repositor' } });
-      await Promise.all(repositors.map((r) =>
+      const results = await Promise.all(repositors.map((r) =>
         crearNotificacion(
           r.id, 'pendiente_revision',
           `El trabajo "${trabajo.titulo}" está esperando revisión.`,
           trabajoId
         )
       ));
+      for (const notif of results) {
+        const noLeidas = await require('./notificacion.service').contarNoLeidas(notif.usuario_id);
+        sseService.notifyUser(notif.usuario_id, { type: 'count', noLeidas });
+      }
     }
 
     return trabajo;
