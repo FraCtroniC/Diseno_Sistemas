@@ -50,9 +50,7 @@ export default function Layout({ children }: PropsWithChildren) {
       <header className="sticky top-0 z-30 border-b border-white/70 bg-white/75 backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
         <div className="mx-auto flex w-full max-w-[1680px] items-center justify-between gap-4 px-3 py-4 sm:px-4 lg:px-6">
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-unefa text-sm font-black text-white shadow-lg shadow-unefa/25">
-              RD
-            </div>
+            <img src="/logo_u.png" alt="UNEFA" className="h-11 w-11 rounded-2xl object-cover shadow-lg shadow-unefa/25" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-unefa">UNEFA</p>
               <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">Repositorio Digital Núcleo Táchira</h1>
