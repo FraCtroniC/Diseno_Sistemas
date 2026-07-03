@@ -29,10 +29,20 @@ class UsuarioService {
       throw err;
     }
 
+    if (data.username) {
+      const existeUsername = await Usuario.findOne({ where: { username: data.username } });
+      if (existeUsername) {
+        const err = new Error('El nombre de usuario ya está en uso');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+
     const hash = await bcrypt.hash(data.password, 10);
     return Usuario.create({
       nombre: data.nombre,
       email: data.email,
+      username: data.username || null,
       password_hash: hash,
       rol: data.rol || 'bibliotecario'
     });
@@ -55,6 +65,15 @@ class UsuarioService {
       const existe = await Usuario.findOne({ where: { email: data.email } });
       if (existe) {
         const err = new Error('El email ya está registrado');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+
+    if (data.username && data.username !== usuario.username) {
+      const existeUsername = await Usuario.findOne({ where: { username: data.username } });
+      if (existeUsername) {
+        const err = new Error('El nombre de usuario ya está en uso');
         err.statusCode = 400;
         throw err;
       }

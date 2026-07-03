@@ -54,6 +54,7 @@ describe('AuthService', () => {
         id: 'u1',
         nombre: 'Test',
         email: 'test@test.com',
+        username: 'testuser',
         rol: 'admin',
         cedula: '123',
         telefono: '555',
@@ -68,6 +69,31 @@ describe('AuthService', () => {
 
       expect(result.token).toBe('fake-token')
       expect(result.usuario.email).toBe('test@test.com')
+      expect(result.usuario.username).toBe('testuser')
+    })
+
+    it('logs in with username instead of email', async () => {
+      const mockUser = {
+        id: 'u1',
+        nombre: 'Test',
+        email: 'test@test.com',
+        username: 'testuser',
+        rol: 'admin',
+        cedula: null,
+        telefono: null,
+        password_hash: 'hash',
+        activo: true,
+      }
+      Usuario.findOne
+        .mockResolvedValueOnce(null)   // email lookup fails
+        .mockResolvedValueOnce(mockUser) // username lookup succeeds
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true)
+      jest.spyOn(jwt, 'sign').mockReturnValue('username-token')
+
+      const result = await authService.login('testuser', 'pass')
+
+      expect(result.token).toBe('username-token')
+      expect(result.usuario.username).toBe('testuser')
     })
   })
 
@@ -87,6 +113,7 @@ describe('AuthService', () => {
         id: 'new-id',
         nombre: 'New',
         email: 'new@test.com',
+        username: null,
         rol: 'bibliotecario',
         cedula: null,
         telefono: null,
@@ -97,6 +124,21 @@ describe('AuthService', () => {
 
       expect(result.token).toBe('new-token')
       expect(result.usuario.email).toBe('new@test.com')
+      expect(result.usuario.username).toBeNull()
+    })
+
+    it('throws 400 if username already exists', async () => {
+      Usuario.findOne
+        .mockResolvedValueOnce(null)    // email not taken
+        .mockResolvedValueOnce({ id: 'existing' }) // username taken
+      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-pass')
+
+      await expect(authService.register({
+        nombre: 'New',
+        email: 'new@test.com',
+        username: 'taken',
+        password: '12345678'
+      })).rejects.toThrow('El nombre de usuario ya está en uso')
     })
   })
 
@@ -184,6 +226,7 @@ describe('AuthService', () => {
         id: 'u1',
         nombre: 'Test',
         email: 'test@test.com',
+        username: 'testuser',
         rol: 'admin',
         cedula: '123',
         telefono: '555',
@@ -193,15 +236,17 @@ describe('AuthService', () => {
 
       expect(result.email).toBe('test@test.com')
       expect(result.nombre).toBe('Test')
+      expect(result.username).toBe('testuser')
     })
   })
 
   describe('actualizarPerfil', () => {
-    it('updates email, cedula and telefono', async () => {
+    it('updates email, username, cedula and telefono', async () => {
       const userData = {
         id: 'u1',
         nombre: 'Test',
         email: 'old@test.com',
+        username: 'olduser',
         rol: 'admin',
         cedula: null,
         telefono: null,
@@ -213,15 +258,18 @@ describe('AuthService', () => {
         }),
       }
       Usuario.findByPk.mockResolvedValue(mockUser)
+      Usuario.findOne.mockResolvedValue(null)
 
       const result = await authService.actualizarPerfil('u1', {
         email: 'new@test.com',
+        username: 'newuser',
         cedula: 'V-123',
         telefono: '555',
       })
 
       expect(mockUser.update).toHaveBeenCalled()
       expect(result.email).toBe('new@test.com')
+      expect(result.username).toBe('newuser')
     })
   })
 })

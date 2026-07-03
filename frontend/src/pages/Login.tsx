@@ -7,7 +7,7 @@ import PasswordInput from '../components/ui/PasswordInput'
 import { useAuthStore } from '../stores/useAuthStore'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -19,7 +19,7 @@ export default function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      const loggedInUser = await login(email, password)
+      const loggedInUser = await login(identifier, password)
       const dest = loggedInUser?.role === 'admin' ? '/admin' : from
       navigate(dest, { replace: true })
     } catch (err: any) {
@@ -33,21 +33,21 @@ export default function Login() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-white/70">Acceso</p>
         <h2 className="mt-3 text-4xl font-black tracking-tight">Iniciar sesión</h2>
         <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
-          El sistema detecta el rol autenticado y muestra la interfaz correspondiente. Los administradores saltan
-          directo a su panel, mientras docentes y estudiantes regresan al área de trabajo.
+          Repositorio academico para organizar, consultar y preservar trabajos de investigacion.
+          Accede para continuar con tus registros, revisiones y publicaciones.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-white/12 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Roles</p>
-            <p className="mt-2 text-sm font-semibold">Admin / docente / estudiante</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Repositorio</p>
+            <p className="mt-2 text-sm font-semibold">Trabajos de grado y tesis</p>
           </div>
           <div className="rounded-2xl bg-white/12 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Rutas</p>
-            <p className="mt-2 text-sm font-semibold">Según permisos y contexto</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Consulta</p>
+            <p className="mt-2 text-sm font-semibold">Busqueda por categoria y carrera</p>
           </div>
           <div className="rounded-2xl bg-white/12 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Estilo</p>
-            <p className="mt-2 text-sm font-semibold">Navegación lateral por módulos</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Gestion</p>
+            <p className="mt-2 text-sm font-semibold">Versiones, comentarios y revision</p>
           </div>
         </div>
       </div>
@@ -60,8 +60,8 @@ export default function Login() {
           </div>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Correo institucional</span>
-            <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@unefa.edu.ve" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Usuario o correo</span>
+            <Input type="text" autoComplete="username" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="usuario o usuario@dominio.com" />
           </label>
 
           <label className="space-y-2">
@@ -73,7 +73,7 @@ export default function Login() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit">Entrar</Button>
-            <Button type="button" variant="secondary" onClick={() => { setEmail('admin@unefa.edu.ve'); setPassword('admin123') }}>
+            <Button type="button" variant="secondary" onClick={() => { setIdentifier('admin@unefa.edu.ve'); setPassword('admin123') }}>
               Usar cuenta demo (admin)
             </Button>
           </div>

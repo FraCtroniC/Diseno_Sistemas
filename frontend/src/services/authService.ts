@@ -4,6 +4,7 @@ export interface AuthUser {
   id: string
   nombre: string
   email: string
+  username: string | null
   rol: string
   cedula: string | null
   telefono: string | null
@@ -15,8 +16,8 @@ export interface LoginResponse {
 }
 
 export const authService = {
-  login: (email: string, password: string) =>
-    api.post<{ success: boolean; data: LoginResponse }>('/auth/login', { email, password }),
+  login: (identificador: string, password: string) =>
+    api.post<{ success: boolean; data: LoginResponse }>('/auth/login', { identificador, password }),
 
   register: (data: { nombre: string; email: string; password: string; cedula?: string; telefono?: string; rol?: string }) =>
     api.post<{ success: boolean; data: LoginResponse }>('/auth/register', data),

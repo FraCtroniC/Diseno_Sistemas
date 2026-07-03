@@ -23,8 +23,8 @@ class AuthController {
       throw err;
     }
 
-    const { email, password } = req.body;
-    const resultado = await authService.login(email, password);
+    const { identificador, email, password } = req.body;
+    const resultado = await authService.login(identificador || email, password);
 
     setTokenCookie(res, resultado.token);
 

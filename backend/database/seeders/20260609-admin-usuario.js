@@ -16,6 +16,7 @@ module.exports = {
         id: '0becd959-117e-495d-8e46-cb5cecd89fab',
         nombre: 'Administrador',
         email: 'admin@unefa.edu.ve',
+        username: 'admin',
         password_hash: hash,
         rol: 'admin',
         activo: true,

@@ -6,7 +6,7 @@ import type { User, UserProfile } from '../types'
 interface AuthState {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<User | null>
+  login: (identificador: string, password: string) => Promise<User | null>
   logout: () => void
   register: (payload: Partial<User> & { password?: string; profile?: UserProfile }) => Promise<User>
   updateProfile: (payload: Partial<Pick<User, 'email'>> & UserProfile) => Promise<User | null>
@@ -19,6 +19,7 @@ function mapBackendUser(authUser: AuthUser): User {
     id: authUser.id,
     name: authUser.nombre,
     email: authUser.email,
+    username: authUser.username ?? undefined,
     role: authUser.rol as User['role'],
     profile: {
       cedula: authUser.cedula ?? undefined,
@@ -42,8 +43,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (email: string, password: string) => {
-    const res = await authService.login(email, password)
+  login: async (identificador: string, password: string) => {
+    const res = await authService.login(identificador, password)
     const { usuario } = res.data.data
     const user = mapBackendUser(usuario)
     set({ user })
