@@ -1,26 +1,45 @@
 
 import { useState } from 'react'
 import { useNavigate, useLocation, NavLink } from 'react-router-dom'
+import { useForm, type FieldErrors } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import toast from 'react-hot-toast'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
 import { useAuthStore } from '../stores/useAuthStore'
+import { toastFieldErrors } from '../utils/formToast'
+
+const schema = z.object({
+  identifier: z.string().trim().min(1, 'Ingresa tu usuario o correo'),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+})
+type FormData = z.infer<typeof schema>
 
 export default function Login() {
-  const [identifier, setIdentifier] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
   const login = useAuthStore((s) => s.login)
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    shouldFocusError: true,
+  })
 
   const from = (location.state as any)?.from?.pathname ?? '/'
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const onInvalid = (fieldErrors: FieldErrors<FormData>) => {
+    toastFieldErrors(fieldErrors, {
+      identifier: 'Usuario o correo',
+      password: 'Contraseña',
+    })
+  }
+
+  const onSubmit = async (data: FormData) => {
+    setError('')
     try {
-      const loggedInUser = await login(identifier, password)
+      const loggedInUser = await login(data.identifier, data.password)
       const dest = loggedInUser?.role === 'admin' ? '/admin' : from
       toast.success(`Bienvenido, ${loggedInUser?.name}`)
       navigate(dest, { replace: true })
@@ -55,7 +74,7 @@ export default function Login() {
       </div>
 
       <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Ingreso seguro</p>
             <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Validación de credenciales</h3>
@@ -63,19 +82,28 @@ export default function Login() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Usuario o correo</span>
-            <Input type="text" autoComplete="username" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="usuario o usuario@dominio.com" />
+            <Input type="text" autoComplete="username" {...register('identifier')} placeholder="usuario o usuario@dominio.com" />
+            {errors.identifier ? <p className="text-sm text-rose-600">{errors.identifier.message}</p> : null}
           </label>
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Contraseña</span>
-            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="*******" />
+            <PasswordInput {...register('password')} placeholder="*******" />
+            {errors.password ? <p className="text-sm text-rose-600">{errors.password.message}</p> : null}
           </label>
 
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit">Entrar</Button>
-            <Button type="button" variant="secondary" onClick={() => { setIdentifier('admin@unefa.edu.ve'); setPassword('admin123') }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setValue('identifier', 'admin@unefa.edu.ve', { shouldValidate: true })
+                setValue('password', 'admin123', { shouldValidate: true })
+              }}
+            >
               Usar cuenta demo (admin)
             </Button>
           </div>
@@ -89,4 +117,3 @@ export default function Login() {
     </section>
   )
 }
-

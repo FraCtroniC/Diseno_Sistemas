@@ -58,7 +58,16 @@ export default function ComentariosSection({ trabajoId }: Props) {
         calificacion: calif || null
       })
       if (r.data.success) {
-        setComentarios((prev) => [r.data.data, ...prev])
+        const nuevo = r.data.data
+        const lista = [nuevo, ...comentarios]
+        setComentarios(lista)
+        setTotal(lista.length)
+        const calificados = lista.filter((c) => c.calificacion)
+        setPromedio(
+          calificados.length > 0
+            ? Math.round((calificados.reduce((s, c) => s + (c.calificacion || 0), 0) / calificados.length) * 10) / 10
+            : 0
+        )
         setTexto('')
         setCalif(0)
         toast.success('Comentario publicado')
@@ -151,7 +160,7 @@ export default function ComentariosSection({ trabajoId }: Props) {
             <div key={c.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/50 dark:bg-slate-800/50">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{c.usuario.nombre}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{c.usuario?.nombre ?? 'Usuario'}</span>
                   {c.calificacion ? (
                     <span className="text-xs text-amber-500">{'★'.repeat(c.calificacion)}{'☆'.repeat(5 - c.calificacion)}</span>
                   ) : null}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { NavLink, useNavigate } from 'react-router-dom'
@@ -8,27 +8,45 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
 import { useAuthStore } from '../stores/useAuthStore'
+import { toastFieldErrors } from '../utils/formToast'
+import { TIPOS_CEDULA, composeCedula } from '../types'
 import type { UserProfile } from '../types'
 
 const schema = z.object({
   name: z.string().min(2, 'Mínimo 2 caracteres'),
   email: z.string().email('Correo inválido'),
   password: z.string().min(8, 'Mínimo 8 caracteres'),
-  cedula: z.string().optional(),
-  telefono: z.string().optional(),
+  cedulaTipo: z.string(),
+  cedula: z.string().optional().refine((v) => !v || /^\d{6,9}$/.test(v), 'Número de cédula inválido'),
+  telefono: z.string().optional().refine((v) => !v || /^[0-9-]{7,15}$/.test(v), 'Teléfono inválido'),
 })
 type FormData = z.infer<typeof schema>
 
 export default function Register() {
   const registerFn = useAuthStore((s) => s.register)
   const navigate = useNavigate()
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { cedulaTipo: 'V' },
+    shouldFocusError: true,
+  })
   const [registerError, setRegisterError] = useState('')
+
+  const onInvalid = (fieldErrors: FieldErrors<FormData>) => {
+    toastFieldErrors(fieldErrors, {
+      name: 'Nombre completo',
+      email: 'Correo electrónico',
+      password: 'Contraseña',
+      cedulaTipo: 'Tipo de cédula',
+      cedula: 'Cédula',
+      telefono: 'Teléfono',
+    })
+  }
 
   const onSubmit = async (data: FormData) => {
     setRegisterError('')
     const profile: UserProfile = {
-      cedula: data.cedula,
+      cedula: composeCedula(data.cedulaTipo, data.cedula || ''),
       telefono: data.telefono,
     }
     try {
@@ -66,7 +84,7 @@ export default function Register() {
       </div>
 
       <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/80">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-unefa">Nuevo usuario</p>
             <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Información personal</h3>
@@ -100,11 +118,24 @@ export default function Register() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Cédula</span>
-              <Input {...register('cedula')} placeholder="V-12345678" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
+              <div className="flex gap-2">
+                <select
+                  {...register('cedulaTipo')}
+                  aria-label="Tipo de cédula"
+                  className="w-20 shrink-0 rounded-xl border border-slate-300/90 bg-white/90 px-3 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600/80 dark:bg-slate-800/90 dark:text-slate-100"
+                >
+                  {TIPOS_CEDULA.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <Input {...register('cedula')} placeholder="12345678" inputMode="numeric" className="min-w-0 flex-1" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
+              </div>
+              {errors.cedula ? <p className="text-sm text-rose-600">{errors.cedula.message}</p> : null}
             </label>
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Teléfono</span>
-              <Input {...register('telefono')} placeholder="0412-1234567" inputMode="numeric" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
+              <Input {...register('telefono')} placeholder="0412-1234567" inputMode="tel" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/[^0-9-]/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
+              {errors.telefono ? <p className="text-sm text-rose-600">{errors.telefono.message}</p> : null}
             </label>
           </div>
 

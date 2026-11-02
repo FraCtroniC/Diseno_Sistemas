@@ -9,7 +9,7 @@ interface TrabajoState {
   total: number
   fetchTrabajos: (params?: { estado?: string; limite?: number; usuario_id?: string }) => Promise<void>
   fetchCategorias: () => Promise<void>
-  mapToDocumentItems: () => { id: string; title: string; authors: string[]; year: number; abstract: string; status: 'draft' | 'published' | 'archived'; category: string }[]
+  mapToDocumentItems: () => DocumentItem[]
 }
 
 export const useTrabajoStore = create<TrabajoState>((set, get) => ({

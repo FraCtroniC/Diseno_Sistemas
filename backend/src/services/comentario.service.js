@@ -7,8 +7,9 @@ class ComentarioService {
       include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] }],
       order: [['createdAt', 'DESC']]
     });
-    const promedio = rows.length > 0
-      ? rows.reduce((s, c) => s + (c.calificacion || 0), 0) / rows.filter(c => c.calificacion).length
+    const conCalificacion = rows.filter(c => c.calificacion).length;
+    const promedio = conCalificacion > 0
+      ? rows.reduce((s, c) => s + (c.calificacion || 0), 0) / conCalificacion
       : 0;
     return { total: count, promedio: Math.round(promedio * 10) / 10, datos: rows };
   }
@@ -19,7 +20,13 @@ class ComentarioService {
       err.statusCode = 400;
       throw err;
     }
-    return Comentario.create({ trabajo_id: trabajoId, usuario_id: usuarioId, comentario, calificacion });
+    const creado = await Comentario.create({ trabajo_id: trabajoId, usuario_id: usuarioId, comentario, calificacion });
+    // Devolvemos el comentario con el usuario incluido, igual que en listar,
+    // para que el frontend pueda renderizarlo sin necesidad de recargar.
+    const completo = await Comentario.findByPk(creado.id, {
+      include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] }]
+    });
+    return completo || creado;
   }
 
   async actualizar(comentarioId, usuarioId, comentario, calificacion) {

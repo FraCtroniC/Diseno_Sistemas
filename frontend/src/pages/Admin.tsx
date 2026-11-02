@@ -222,16 +222,13 @@ export default function Admin() {
                     <div className="mt-4 h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}>
+                          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent = 0 }) => `${(percent * 100).toFixed(0)}%`}>
                             {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                           </Pie>
                           <Tooltip />
+                          <Legend wrapperStyle={{ fontSize: '11px' }} />
                         </PieChart>
                       </ResponsiveContainer>
-                      <Legend
-                        payload={pieData.map((d, i) => ({ value: d.name, color: COLORS[i % COLORS.length], id: d.name }))}
-                        wrapperStyle={{ fontSize: '11px' }}
-                      />
                     </div>
                   ) : (
                     <p className="mt-4 text-sm text-slate-400">No hay datos disponibles.</p>

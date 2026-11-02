@@ -2,6 +2,7 @@ jest.mock('../models', () => ({
   Comentario: {
     findAndCountAll: jest.fn(),
     create: jest.fn(),
+    findByPk: jest.fn(),
   },
   Usuario: {},
 }))
@@ -41,12 +42,21 @@ describe('ComentarioService', () => {
 
     it('creates comment', async () => {
       Comentario.create.mockResolvedValue({ id: 'c1', comentario: 'Buen trabajo', calificacion: 4 })
+      Comentario.findByPk.mockResolvedValue({
+        id: 'c1', comentario: 'Buen trabajo', calificacion: 4,
+        usuario: { id: 'u1', nombre: 'Ana' }
+      })
       const result = await comentarioService.crear('t1', 'u1', 'Buen trabajo', 4)
       expect(result.comentario).toBe('Buen trabajo')
+      expect(result.usuario.nombre).toBe('Ana')
     })
 
     it('creates comment without rating', async () => {
       Comentario.create.mockResolvedValue({ id: 'c2', comentario: 'Ok', calificacion: null })
+      Comentario.findByPk.mockResolvedValue({
+        id: 'c2', comentario: 'Ok', calificacion: null,
+        usuario: { id: 'u1', nombre: 'Ana' }
+      })
       const result = await comentarioService.crear('t1', 'u1', 'Ok', null)
       expect(result.calificacion).toBeNull()
     })

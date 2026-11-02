@@ -36,7 +36,7 @@ export interface Trabajo {
   categoria?: { id: string; nombre: string; slug: string }
   archivo_url: string | null
   metadatos: Record<string, unknown>
-  estado: 'borrador' | 'publicado' | 'archivado'
+  estado: 'borrador' | 'en_revision' | 'publicado' | 'archivado'
   usuario_id: string
   usuario?: { id: string; nombre: string }
   createdAt: string
@@ -71,7 +71,7 @@ export const trabajoService = {
     api.delete<{ success: boolean; message: string }>(`/trabajos/${id}`),
 
   buscar: (params: { q?: string; categoria?: string; anio?: number; estado?: string; usuario_id?: string; pagina?: number; limite?: number }) =>
-    api.get<{ success: boolean; total: number; datos: Trabajo[] }>('/trabajos/buscar', { params }),
+    api.get<{ success: boolean; total: number; datos: Trabajo[]; pagina: number; limite: number; totalPaginas: number }>('/trabajos/buscar', { params }),
 }
 
 export const categoriaService = {
