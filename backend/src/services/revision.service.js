@@ -5,11 +5,11 @@ const sseService = require('./sse.service');
 
 const TRANSICIONES_PERMITIDAS = {
   bibliotecario: {
-    borrador: ['en_revision']
+    borrador: ['en_revision'],
+    en_revision: ['publicado', 'borrador']
   },
   repositor: {
-    borrador: ['publicado'],
-    en_revision: ['publicado', 'borrador']
+    borrador: ['en_revision']
   },
   admin: {
     borrador: ['publicado', 'en_revision', 'archivado'],
@@ -96,10 +96,13 @@ class RevisionService {
       const noLeidas = await require('./notificacion.service').contarNoLeidas(trabajo.usuario_id);
       sseService.notifyUser(trabajo.usuario_id, { type: 'count', noLeidas });
     } else if (nuevoEstado === 'en_revision') {
-      const repositors = await Usuario.findAll({ where: { rol: 'repositor' } });
-      const results = await Promise.all(repositors.map((r) =>
+      const revisores = await Usuario.findAll({
+        where: { rol: ['admin', 'bibliotecario'], activo: true }
+      });
+      const destinatarios = revisores.filter((revisor) => revisor.id !== trabajo.usuario_id);
+      const results = await Promise.all(destinatarios.map((revisor) =>
         crearNotificacion(
-          r.id, 'pendiente_revision',
+          revisor.id, 'pendiente_revision',
           `El trabajo "${trabajo.titulo}" está esperando revisión.`,
           trabajoId
         )
@@ -123,9 +126,16 @@ class RevisionService {
     });
   }
 
-  async listarPendientes() {
+  async listarPendientes(estado = 'en_revision') {
+    const estadosPermitidos = ['en_revision', 'borrador'];
+    if (!estadosPermitidos.includes(estado)) {
+      const err = new Error('Estado de cola no válido');
+      err.statusCode = 400;
+      throw err;
+    }
+
     const { count, rows } = await Trabajo.findAndCountAll({
-      where: { estado: 'en_revision' },
+      where: { estado },
       include: [
         { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
         { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] }

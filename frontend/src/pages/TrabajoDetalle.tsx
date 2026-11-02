@@ -10,10 +10,21 @@ import { useAuthStore } from '../stores/useAuthStore'
 import ComentariosSection from '../components/ComentariosSection'
 import HistorialVersiones from '../components/HistorialVersiones'
 
+const ESTADO_LABELS: Record<string, string> = {
+  publicado: 'Publicado',
+  en_revision: 'En revisión',
+  borrador: 'Borrador',
+  archivado: 'Archivado',
+}
+
 export default function TrabajoDetalle() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const canEdit = user?.role === 'admin' || user?.role === 'repositor' || user?.role === 'bibliotecario'
+  const canDelete = user?.role === 'admin' || user?.role === 'repositor'
+  const canReview = user?.role === 'admin' || user?.role === 'bibliotecario'
+  const canSubmitForReview = user?.role === 'bibliotecario' || user?.role === 'repositor'
   const [trabajo, setTrabajo] = useState<Trabajo | null>(null)
   const [revisiones, setRevisiones] = useState<Revision[]>([])
   const [loading, setLoading] = useState(true)
@@ -57,7 +68,7 @@ export default function TrabajoDetalle() {
       setRevisiones(revRes.data.data)
       setShowRejectForm(false)
       setRejectComment('')
-      toast.success(`Estado actualizado a ${estado === 'publicado' ? 'Publicado' : 'Borrador'}`)
+      toast.success(`Estado actualizado a ${ESTADO_LABELS[estado] ?? estado}`)
     } catch {
       toast.error('Error al cambiar el estado')
     } finally {
@@ -313,15 +324,15 @@ export default function TrabajoDetalle() {
             ) : null}
           </Card>
 
-          {(user?.role === 'admin' || user?.role === 'repositor') ? (
-            <>
-              <div className="flex gap-3">
-                <Link
-                  to={`/submission?edit=${trabajo.id}`}
-                  className="flex-1 rounded-xl bg-unefa/10 px-4 py-2 text-center text-sm font-semibold text-unefa-dark transition hover:bg-unefa/20 dark:text-unefa-accent"
-                >
-                  Editar
-                </Link>
+          {canEdit ? (
+            <div className="flex gap-3">
+              <Link
+                to={`/submission?edit=${trabajo.id}`}
+                className="flex-1 rounded-xl bg-unefa/10 px-4 py-2 text-center text-sm font-semibold text-unefa-dark transition hover:bg-unefa/20 dark:text-unefa-accent"
+              >
+                Editar
+              </Link>
+              {canDelete ? (
                 <button
                   type="button"
                   onClick={async () => {
@@ -338,62 +349,62 @@ export default function TrabajoDetalle() {
                 >
                   Eliminar
                 </button>
-              </div>
-
-              {trabajo.estado === 'en_revision' ? (
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-unefa">Revisión pendiente</p>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      disabled={actionLoading === 'publicado'}
-                      onClick={() => handleCambioEstado('publicado')}
-                      className="flex-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50"
-                    >
-                      {actionLoading === 'publicado' ? '...' : 'Aprobar'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowRejectForm(true)}
-                      className="flex-1 rounded-xl bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-200"
-                    >
-                      Rechazar
-                    </button>
-                  </div>
-                  {showRejectForm ? (
-                    <div className="space-y-2 rounded-xl border border-rose-200 bg-rose-50 p-3">
-                      <textarea
-                        value={rejectComment}
-                        onChange={(e) => setRejectComment(e.target.value)}
-                        placeholder="Indica el motivo del rechazo..."
-                        className="w-full rounded-lg border border-rose-200 p-2 text-sm dark:border-rose-800 dark:bg-slate-800 dark:text-slate-100"
-                        rows={3}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          disabled={actionLoading === 'borrador' || !rejectComment.trim()}
-                          onClick={() => handleCambioEstado('borrador', rejectComment.trim())}
-                          className="rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
-                        >
-                          {actionLoading === 'borrador' ? '...' : 'Confirmar rechazo'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setShowRejectForm(false); setRejectComment('') }}
-                          className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:text-slate-300"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
               ) : null}
-            </>
+            </div>
           ) : null}
 
-          {user?.role === 'bibliotecario' && trabajo.estado === 'borrador' ? (
+          {canReview && trabajo.estado === 'en_revision' ? (
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-unefa">Revisión pendiente</p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  disabled={actionLoading === 'publicado'}
+                  onClick={() => handleCambioEstado('publicado')}
+                  className="flex-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                >
+                  {actionLoading === 'publicado' ? '...' : 'Aprobar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRejectForm(true)}
+                  className="flex-1 rounded-xl bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-200"
+                >
+                  Rechazar
+                </button>
+              </div>
+              {showRejectForm ? (
+                <div className="space-y-2 rounded-xl border border-rose-200 bg-rose-50 p-3">
+                  <textarea
+                    value={rejectComment}
+                    onChange={(e) => setRejectComment(e.target.value)}
+                    placeholder="Indica el motivo del rechazo..."
+                    className="w-full rounded-lg border border-rose-200 p-2 text-sm dark:border-rose-800 dark:bg-slate-800 dark:text-slate-100"
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={actionLoading === 'borrador' || !rejectComment.trim()}
+                      onClick={() => handleCambioEstado('borrador', rejectComment.trim())}
+                      className="rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      {actionLoading === 'borrador' ? '...' : 'Confirmar rechazo'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowRejectForm(false); setRejectComment('') }}
+                      className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:text-slate-300"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {canSubmitForReview && trabajo.estado === 'borrador' ? (
             <button
               type="button"
               disabled={actionLoading === 'en_revision'}

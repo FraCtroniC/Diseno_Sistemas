@@ -14,7 +14,9 @@ module.exports = {
       max: 10,
       min: 2,
       acquire: 30000,
-      idle: 10000
+      // Neon cobra un coste alto por abrir una conexión nueva (TLS + handshake).
+      // Mantener las conexiones 60s evita pagar ese coste en cada carga del panel.
+      idle: 60000
     },
     logging: console.log
   },
@@ -31,7 +33,7 @@ module.exports = {
       max: 20,
       min: 5,
       acquire: 30000,
-      idle: 10000
+      idle: 60000
     },
     logging: false
   }

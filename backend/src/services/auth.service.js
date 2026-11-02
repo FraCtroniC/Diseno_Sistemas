@@ -95,8 +95,7 @@ class AuthService {
       username: data.username || null,
       password_hash: hash,
       cedula: data.cedula || null,
-      telefono: data.telefono || null,
-      rol: 'bibliotecario'
+      telefono: data.telefono || null
     });
 
     const token = jwt.sign(

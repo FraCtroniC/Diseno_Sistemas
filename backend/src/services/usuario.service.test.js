@@ -55,6 +55,20 @@ describe('UsuarioService', () => {
       ).rejects.toThrow('El email ya está registrado')
     })
 
+    it('omits rol when not provided so the model default applies', async () => {
+      Usuario.findOne.mockResolvedValue(null)
+      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed')
+      Usuario.create.mockResolvedValue({ id: 'new', nombre: 'New', email: 'new@test.com' })
+
+      await usuarioService.crear({
+        nombre: 'New',
+        email: 'new@test.com',
+        password: '123456',
+      })
+
+      expect(Usuario.create.mock.calls[0][0]).not.toHaveProperty('rol')
+    })
+
     it('creates usuario with hashed password', async () => {
       Usuario.findOne.mockResolvedValue(null)
       jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed')

@@ -9,6 +9,7 @@ import Catalog from './pages/Catalog'
 import TrabajoDetalle from './pages/TrabajoDetalle'
 import Submission from './pages/Submission'
 import Admin from './pages/Admin'
+import Revisiones from './pages/Revisiones'
 import Login from './pages/Login'
 import Student from './pages/Student'
 import Register from './pages/Register'
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/trabajos/:id" element={<TrabajoDetalle />} />
             <Route path="/submission" element={<Submission />} />
             <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><Admin /></ProtectedRoute>} />
+            <Route path="/revisiones" element={<ProtectedRoute roles={["admin", "bibliotecario"]}><Revisiones /></ProtectedRoute>} />
             <Route path="/student" element={<ProtectedRoute roles={["bibliotecario", "repositor"]}><Student /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

@@ -1,63 +1,99 @@
 const { Op, fn, col, literal } = require('sequelize');
 const { Trabajo, Usuario, Categoria, Visita } = require('../models');
 
+function aNumero(valor) {
+  const numero = parseInt(valor, 10);
+  return Number.isNaN(numero) ? 0 : numero;
+}
+
 class AdminService {
   async getStats() {
-    const totalDocumentos = await Trabajo.count();
-    const publicados = await Trabajo.count({ where: { estado: 'publicado' } });
-    const borradores = await Trabajo.count({ where: { estado: 'borrador' } });
-    const enRevision = await Trabajo.count({ where: { estado: 'en_revision' } });
-    const archivados = await Trabajo.count({ where: { estado: 'archivado' } });
-
-    const totalUsuarios = await Usuario.count();
-    const usuariosActivos = await Usuario.count({ where: { activo: true } });
-    const totalCategorias = await Categoria.count();
-
-    const publishedPorCategoria = await Trabajo.findAll({
-      attributes: [
-        'categoria_id',
-        [fn('COUNT', col('Trabajo.id')), 'count']
-      ],
-      where: { estado: 'publicado' },
-      include: [{ model: Categoria, as: 'categoria', attributes: ['nombre', 'slug'] }],
-      group: ['categoria_id', 'categoria.id']
-    });
-
-    const normativasVigentes = await Trabajo.count({
-      where: {
-        estado: 'publicado',
-        metadatos: {
-          [Op.contains]: { tipo_documento: 'normativas' }
+    // Todas las consultas son independientes: se lanzan en paralelo para no
+    // encadenar idas y vueltas de red contra la base de datos (Neon).
+    const [
+      trabajosPorEstado,
+      usuariosPorActivo,
+      visitasPorTipo,
+      totalCategorias,
+      publishedPorCategoria,
+      normativasVigentes,
+      trabajosPorMes,
+      topTrabajos
+    ] = await Promise.all([
+      Trabajo.count({ group: ['estado'] }),
+      Usuario.count({ group: ['activo'] }),
+      Visita.count({ group: ['tipo'] }),
+      Categoria.count(),
+      Trabajo.findAll({
+        attributes: [
+          'categoria_id',
+          [fn('COUNT', col('Trabajo.id')), 'count']
+        ],
+        where: { estado: 'publicado' },
+        include: [{ model: Categoria, as: 'categoria', attributes: ['nombre', 'slug'] }],
+        group: ['categoria_id', 'categoria.id']
+      }),
+      Trabajo.count({
+        where: {
+          estado: 'publicado',
+          metadatos: {
+            [Op.contains]: { tipo_documento: 'normativas' }
+          }
         }
-      }
-    });
+      }),
+      Trabajo.findAll({
+        attributes: [
+          [fn('to_char', col('createdAt'), 'YYYY-MM'), 'mes'],
+          [fn('COUNT', col('Trabajo.id')), 'cantidad']
+        ],
+        group: [fn('to_char', col('createdAt'), 'YYYY-MM')],
+        order: [[literal('"mes"'), 'ASC']],
+        limit: 12
+      }),
+      Visita.findAll({
+        attributes: [
+          'trabajo_id',
+          [fn('COUNT', col('Visita.id')), 'total'],
+          [fn('SUM', literal("CASE WHEN tipo = 'vista' THEN 1 ELSE 0 END")), 'vistas'],
+          [fn('SUM', literal("CASE WHEN tipo = 'descarga' THEN 1 ELSE 0 END")), 'descargas']
+        ],
+        include: [{ model: Trabajo, as: 'trabajo', attributes: ['id', 'titulo', 'identificador'] }],
+        group: ['trabajo_id', 'trabajo.id', 'trabajo.titulo', 'trabajo.identificador'],
+        order: [[literal('"total"'), 'DESC']],
+        limit: 5
+      })
+    ]);
 
-    const trabajosPorMes = await Trabajo.findAll({
-      attributes: [
-        [fn('to_char', col('createdAt'), 'YYYY-MM'), 'mes'],
-        [fn('COUNT', col('Trabajo.id')), 'cantidad']
-      ],
-      group: [fn('to_char', col('createdAt'), 'YYYY-MM')],
-      order: [[literal('"mes"'), 'ASC']],
-      limit: 12
-    });
+    const conteoTrabajos = {};
+    let totalDocumentos = 0;
+    for (const fila of trabajosPorEstado) {
+      const cantidad = aNumero(fila.count);
+      totalDocumentos += cantidad;
+      if (fila.estado) conteoTrabajos[fila.estado] = cantidad;
+    }
 
-    const totalVisitas = await Visita.count();
-    const totalVistas = await Visita.count({ where: { tipo: 'vista' } });
-    const totalDescargas = await Visita.count({ where: { tipo: 'descarga' } });
+    const publicados = conteoTrabajos.publicado || 0;
+    const borradores = conteoTrabajos.borrador || 0;
+    const enRevision = conteoTrabajos.en_revision || 0;
+    const archivados = conteoTrabajos.archivado || 0;
 
-    const topTrabajos = await Visita.findAll({
-      attributes: [
-        'trabajo_id',
-        [fn('COUNT', col('Visita.id')), 'total'],
-        [fn('SUM', literal("CASE WHEN tipo = 'vista' THEN 1 ELSE 0 END")), 'vistas'],
-        [fn('SUM', literal("CASE WHEN tipo = 'descarga' THEN 1 ELSE 0 END")), 'descargas']
-      ],
-      include: [{ model: Trabajo, as: 'trabajo', attributes: ['id', 'titulo', 'identificador'] }],
-      group: ['trabajo_id', 'trabajo.id', 'trabajo.titulo', 'trabajo.identificador'],
-      order: [[literal('"total"'), 'DESC']],
-      limit: 5
-    });
+    let totalUsuarios = 0;
+    let usuariosActivos = 0;
+    for (const fila of usuariosPorActivo) {
+      const cantidad = aNumero(fila.count);
+      totalUsuarios += cantidad;
+      if (String(fila.activo) === 'true') usuariosActivos = cantidad;
+    }
+
+    let totalVisitas = 0;
+    let totalVistas = 0;
+    let totalDescargas = 0;
+    for (const fila of visitasPorTipo) {
+      const cantidad = aNumero(fila.count);
+      totalVisitas += cantidad;
+      if (fila.tipo === 'vista') totalVistas = cantidad;
+      if (fila.tipo === 'descarga') totalDescargas = cantidad;
+    }
 
     return {
       totalDocumentos,
@@ -69,25 +105,25 @@ class AdminService {
       totalUsuarios,
       usuariosActivos,
       totalCategorias,
-      normativasVigentes,
+      normativasVigentes: aNumero(normativasVigentes),
       publishedPorCategoria: publishedPorCategoria.map((r) => ({
         categoriaId: r.categoria_id,
         nombre: r.categoria?.nombre ?? 'Sin categoría',
         slug: r.categoria?.slug ?? '',
-        cantidad: parseInt(r.get('count'), 10)
+        cantidad: aNumero(r.get('count'))
       })),
       trabajosPorMes: trabajosPorMes.map((r) => ({
         mes: r.get('mes'),
-        cantidad: parseInt(r.get('cantidad'), 10)
+        cantidad: aNumero(r.get('cantidad'))
       })),
       visitas: { total: totalVisitas, vistas: totalVistas, descargas: totalDescargas },
       topTrabajos: topTrabajos.map((r) => ({
         id: r.trabajo_id,
         titulo: r.trabajo?.titulo ?? 'Sin título',
         identificador: r.trabajo?.identificador ?? '',
-        total: parseInt(r.get('total'), 10),
-        vistas: parseInt(r.get('vistas'), 10),
-        descargas: parseInt(r.get('descargas'), 10)
+        total: aNumero(r.get('total')),
+        vistas: aNumero(r.get('vistas')),
+        descargas: aNumero(r.get('descargas'))
       }))
     };
   }

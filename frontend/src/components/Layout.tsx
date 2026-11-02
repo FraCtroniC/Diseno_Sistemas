@@ -1,11 +1,26 @@
-import { useState, type PropsWithChildren } from 'react'
+import { useEffect, useState, type PropsWithChildren } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import SearchBar from './ui/SearchBar'
 import NotificationBell from './NotificationBell'
 import ThemeToggle from './ThemeToggle'
 import { useAuthStore } from '../stores/useAuthStore'
+import { revisionService } from '../services/revisionService'
 
-const navSections = [
+type NavItem = {
+  to: string
+  label: string
+  description: string
+  roles?: string[]
+}
+
+type NavSection = {
+  title: string
+  description: string
+  roles?: string[]
+  items: NavItem[]
+}
+
+const navSections: NavSection[] = [
   {
     title: 'Producción académica',
     description: 'Pregrado y postgrado',
@@ -14,6 +29,25 @@ const navSections = [
       { to: '/submission', label: 'Subir documento', description: 'Carga de metadatos y archivo' },
       { to: '/catalogo/pregrado', label: 'Pregrado', description: 'Trabajos, tesis y proyectos' },
       { to: '/catalogo/postgrado', label: 'Postgrado', description: 'Maestría y doctorado' },
+    ],
+  },
+  {
+    title: 'Gestión editorial',
+    description: 'Revisión y seguimiento de envíos',
+    roles: ['admin', 'bibliotecario', 'repositor'],
+    items: [
+      {
+        to: '/revisiones',
+        label: 'Revisión de envíos',
+        description: 'Aprueba o devuelve trabajos en revisión',
+        roles: ['admin', 'bibliotecario'],
+      },
+      {
+        to: '/student',
+        label: 'Mis envíos',
+        description: 'Consulta tus borradores y trabajos enviados',
+        roles: ['bibliotecario', 'repositor'],
+      },
     ],
   },
   {
@@ -40,6 +74,36 @@ export default function Layout({ children }: PropsWithChildren) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
+  const canReview = user?.role === 'admin' || user?.role === 'bibliotecario'
+
+  useEffect(() => {
+    if (!canReview) return undefined
+
+    let active = true
+    const loadPendingCount = () => {
+      revisionService.listarPendientes('en_revision')
+        .then((res) => { if (active) setPendingCount(res.data.total) })
+        .catch(() => { if (active) setPendingCount(0) })
+    }
+
+    loadPendingCount()
+    window.addEventListener('revisiones:actualizadas', loadPendingCount)
+    return () => {
+      active = false
+      window.removeEventListener('revisiones:actualizadas', loadPendingCount)
+    }
+  }, [canReview, user?.id])
+
+  const visibleSections = navSections
+    .filter((section) => !section.roles || (user && section.roles.includes(user.role)))
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.roles || (user && item.roles.includes(user.role))),
+    }))
+    .filter((section) => section.items.length > 0)
+
+  const pendingBadgeCount = canReview ? pendingCount : 0
 
   function closeMobileMenu() {
     setMobileMenuOpen(false)
@@ -68,7 +132,7 @@ export default function Layout({ children }: PropsWithChildren) {
             </div>
             {user ? (
               <NavLink
-                    to={user.role === 'admin' ? '/admin' : '/profile'}
+                to={user.role === 'admin' ? '/admin' : '/student'}
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-sm font-semibold transition ${
                     isActive ? 'bg-unefa text-white shadow-sm' : 'bg-slate-900 text-white hover:bg-slate-700'
@@ -149,7 +213,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 </div>
                 {user ? (
                   <NavLink
-                to={user.role === 'admin' ? '/admin' : '/profile'}
+                    to={user.role === 'admin' ? '/admin' : '/student'}
                     onClick={closeMobileMenu}
                     className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
                   >
@@ -200,7 +264,7 @@ export default function Layout({ children }: PropsWithChildren) {
           </div>
 
           <nav className="space-y-4">
-            {navSections.map((section) => (
+            {visibleSections.map((section) => (
               <section key={section.title} className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-slate-700/50 dark:bg-slate-800/70">
                 <div className="mb-4">
                   <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{section.title}</p>
@@ -225,7 +289,14 @@ export default function Layout({ children }: PropsWithChildren) {
                         <>
                           <span className={`mt-1 h-2.5 w-2.5 rounded-full ${isActive ? 'bg-unefa-accent' : 'bg-unefa/40'}`} />
                           <span className="min-w-0">
-                            <span className="block text-sm font-semibold">{item.label}</span>
+                            <span className="flex items-center gap-2 text-sm font-semibold">
+                              {item.label}
+                              {item.to === '/revisiones' && pendingBadgeCount > 0 ? (
+                                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                                  {pendingBadgeCount > 99 ? '99+' : pendingBadgeCount}
+                                </span>
+                              ) : null}
+                            </span>
                             <span className={`block text-xs leading-5 ${isActive ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
                               {item.description}
                             </span>

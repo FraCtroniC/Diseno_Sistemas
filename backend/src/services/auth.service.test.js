@@ -114,17 +114,23 @@ describe('AuthService', () => {
         nombre: 'New',
         email: 'new@test.com',
         username: null,
-        rol: 'bibliotecario',
+        rol: 'repositor',
         cedula: null,
         telefono: null,
       })
       jest.spyOn(jwt, 'sign').mockReturnValue('new-token')
 
-      const result = await authService.register({ nombre: 'New', email: 'new@test.com', password: '12345678' })
+      const result = await authService.register({
+        nombre: 'New',
+        email: 'new@test.com',
+        password: '12345678',
+        rol: 'admin',
+      })
 
       expect(result.token).toBe('new-token')
       expect(result.usuario.email).toBe('new@test.com')
       expect(result.usuario.username).toBeNull()
+      expect(Usuario.create.mock.calls[0][0]).not.toHaveProperty('rol')
     })
 
     it('throws 400 if username already exists', async () => {

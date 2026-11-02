@@ -42,7 +42,7 @@ module.exports = (sequelize) => {
     rol: {
       type: DataTypes.ENUM('admin', 'repositor', 'bibliotecario'),
       allowNull: false,
-      defaultValue: 'bibliotecario'
+      defaultValue: 'repositor'
     },
     activo: {
       type: DataTypes.BOOLEAN,

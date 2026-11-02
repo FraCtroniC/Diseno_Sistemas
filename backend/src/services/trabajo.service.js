@@ -81,12 +81,12 @@ class TrabajoService {
       throw err;
     }
 
-    if (rol === 'bibliotecario' && data.estado && data.estado !== 'borrador') {
-      const err = new Error('Los bibliotecarios solo pueden crear trabajos en estado "borrador"');
+    if (rol !== 'admin' && data.estado && data.estado !== 'borrador') {
+      const err = new Error('Solo los administradores pueden crear trabajos publicados directamente');
       err.statusCode = 403;
       throw err;
     }
-    if (rol === 'bibliotecario' || !data.estado) {
+    if (rol !== 'admin' || !data.estado) {
       data.estado = 'borrador';
     }
 
@@ -127,8 +127,8 @@ class TrabajoService {
       }
     }
 
-    if (rol === 'bibliotecario' && data.estado) {
-      const err = new Error('Los bibliotecarios no pueden cambiar el estado directamente. Usa la opción "Solicitar revisión"');
+    if (rol !== 'admin' && data.estado) {
+      const err = new Error('No puedes cambiar el estado directamente. Usa la opción "Solicitar revisión"');
       err.statusCode = 403;
       throw err;
     }

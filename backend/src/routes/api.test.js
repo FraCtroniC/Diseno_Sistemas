@@ -122,7 +122,7 @@ describe('API Integration', () => {
         id: 'new-u',
         nombre: 'New',
         email: 'new@test.com',
-        rol: 'bibliotecario',
+        rol: 'repositor',
         cedula: null,
         telefono: null,
       })

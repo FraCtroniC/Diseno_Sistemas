@@ -530,7 +530,7 @@ export default function Submission() {
                 ) : null}
               </label>
 
-              {isEdit ? null : (
+              {isEdit ? null : user?.role === 'admin' ? (
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Estado inicial de publicación</span>
                   <select
@@ -543,6 +543,10 @@ export default function Submission() {
                     <option value="archived">Archivado</option>
                   </select>
                 </label>
+              ) : (
+                <div className="rounded-xl border border-sky-100 bg-sky-50/70 p-3 text-sm text-sky-800 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-200">
+                  El trabajo se guardará como borrador. Después podrás solicitar revisión desde su detalle.
+                </div>
               )}
 
               <div className="flex items-center justify-between gap-3">

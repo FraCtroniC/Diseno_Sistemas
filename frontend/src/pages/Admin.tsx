@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import { useAuthStore } from '../stores/useAuthStore'
-import { useTrabajoStore } from '../stores/useTrabajoStore'
 import { adminService, type AdminStats } from '../services/adminService'
 import { authService, type AuthUser } from '../services/authService'
 import { categoriaService, type Categoria } from '../services/trabajoService'
@@ -24,7 +23,7 @@ const quickActions = [
   {
     title: 'Revisar envíos',
     description: 'Validar metadatos, formato y estado de los documentos en cola.',
-    to: '/catalogo/postgrado',
+    to: '/revisiones',
   },
   {
     title: 'Gestionar normativas',
@@ -66,20 +65,16 @@ export default function Admin() {
   const [newUserName, setNewUserName] = useState('')
   const [newUserEmail, setNewUserEmail] = useState('')
   const [newUserPassword, setNewUserPassword] = useState('')
-  const [newUserRole, setNewUserRole] = useState<'admin' | 'repositor' | 'bibliotecario'>('bibliotecario')
+  const [newUserRole, setNewUserRole] = useState<'admin' | 'repositor' | 'bibliotecario'>('repositor')
   const [creatingUser, setCreatingUser] = useState(false)
 
-  const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
-
-  function loadCategorias() {
+  const loadCategorias = useCallback(() => {
     categoriaService.listar()
       .then((res) => setCategorias(res.data.data))
       .catch(() => toast.error('Error al cargar categorías'))
-  }
+  }, [])
 
   useEffect(() => {
-    fetchCategorias()
-    fetchTrabajos()
     adminService.getStats()
       .then((res) => setStats(res.data.data))
       .catch(() => toast.error('Error al cargar estadísticas'))
@@ -87,12 +82,7 @@ export default function Admin() {
       .then((res) => { setUsuarios(res.data.data); setUsuariosError('') })
       .catch(() => setUsuariosError('No se pudieron cargar los usuarios'))
     loadCategorias()
-  }, [fetchCategorias, fetchTrabajos])
-
-  const all = mapToDocumentItems()
-  const publishedDocuments = all.filter((document) => document.status === 'published')
-  const draftDocuments = all.filter((document) => document.status === 'draft')
-  const archivedDocuments = all.filter((document) => document.status === 'archived')
+  }, [loadCategorias])
 
   function handleLogout() {
     logout()
@@ -120,9 +110,10 @@ export default function Admin() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 text-sm font-medium text-white/80">
-                <span className="rounded-full bg-white/12 px-4 py-2">{publishedDocuments.length} documentos publicados</span>
-                <span className="rounded-full bg-white/12 px-4 py-2">{draftDocuments.length} en borrador</span>
-                <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.totalUsuarios : '...'} administradores</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.publicados : '...'} documentos publicados</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.enRevision : '...'} en revisión</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.borradores : '...'} en borrador</span>
+                <span className="rounded-full bg-white/12 px-4 py-2">{stats ? stats.totalUsuarios : '...'} usuarios registrados</span>
                 {stats ? <span className="rounded-full bg-white/12 px-4 py-2">{stats.visitas.total} visitas totales</span> : null}
               </div>
             </div>
@@ -140,26 +131,37 @@ export default function Admin() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <Card className="border-unefa/10 bg-white/95 dark:border-slate-700/50 dark:bg-slate-800/90">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Documentos totales</p>
-            <p className="mt-3 text-4xl font-black text-slate-900 dark:text-slate-100">{loading ? '...' : all.length}</p>
+            <p className="mt-3 text-4xl font-black text-slate-900 dark:text-slate-100">{stats ? stats.totalDocumentos : '...'}</p>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Contenido académico y editorial disponible en el repositorio.</p>
           </Card>
           <Card className="border-emerald-100 bg-emerald-50/70 dark:border-emerald-800/30 dark:bg-emerald-900/20">
             <p className="text-sm font-medium text-emerald-700">Publicados</p>
-            <p className="mt-3 text-4xl font-black text-emerald-700">{publishedDocuments.length}</p>
+            <p className="mt-3 text-4xl font-black text-emerald-700">{stats ? stats.publicados : '...'}</p>
             <p className="mt-2 text-sm text-emerald-900/70">Listos para consulta pública o institucional.</p>
           </Card>
-          <Card className="border-amber-100 bg-amber-50/70 dark:border-amber-800/30 dark:bg-amber-900/20">
-            <p className="text-sm font-medium text-amber-700">Borradores</p>
-            <p className="mt-3 text-4xl font-black text-amber-700">{draftDocuments.length}</p>
-            <p className="mt-2 text-sm text-amber-900/70">Pendientes de validación antes de su difusión.</p>
+          <Card
+            onClick={() => navigate('/revisiones')}
+            className="cursor-pointer border-amber-100 bg-amber-50/70 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-lg dark:border-amber-800/30 dark:bg-amber-900/20"
+          >
+            <p className="text-sm font-medium text-amber-700">En revisión</p>
+            <p className="mt-3 text-4xl font-black text-amber-700">{stats ? stats.enRevision : '...'}</p>
+            <p className="mt-2 text-sm text-amber-900/70">Pendientes de aprobación. Haz clic para abrir la bandeja de revisión.</p>
           </Card>
-          <Card className="border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/50">
-            <p className="text-sm font-medium text-slate-600">Usuarios activos</p>
-            <p className="mt-3 text-4xl font-black text-slate-900">{stats ? stats.usuariosActivos : (user ? '1' : '0')}</p>
-            <p className="mt-2 text-sm text-slate-600">Administración, docencia y futuras cuentas del sistema.</p>
+          <Card
+            onClick={() => navigate('/revisiones?tab=borradores')}
+            className="cursor-pointer border-slate-200 bg-slate-50/70 transition hover:-translate-y-0.5 hover:border-unefa/30 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800/50"
+          >
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Borradores</p>
+            <p className="mt-3 text-4xl font-black text-slate-900 dark:text-slate-100">{stats ? stats.borradores : '...'}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Trabajos guardados sin enviar a revisión.</p>
+          </Card>
+          <Card className="border-sky-100 bg-sky-50/70 dark:border-sky-900/30 dark:bg-sky-900/20">
+            <p className="text-sm font-medium text-sky-700">Usuarios activos</p>
+            <p className="mt-3 text-4xl font-black text-sky-700">{stats ? stats.usuariosActivos : '...'}</p>
+            <p className="mt-2 text-sm text-sky-900/70">Cuentas habilitadas para acceder al sistema.</p>
           </Card>
         </div>
 
@@ -241,19 +243,36 @@ export default function Admin() {
                   <p className="text-xs font-semibold text-slate-500">Estado de documentos</p>
                   <div className="mt-3 space-y-2">
                     {[
-                      { label: 'Publicados', value: stats?.publicados ?? 0, color: 'bg-emerald-500' },
-                      { label: 'En revisión', value: stats?.enRevision ?? 0, color: 'bg-amber-400' },
-                      { label: 'Borradores', value: stats?.borradores ?? 0, color: 'bg-slate-400' },
-                      { label: 'Archivados', value: stats?.archivados ?? 0, color: 'bg-rose-400' },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                          <span className={`inline-block h-2.5 w-2.5 rounded-full ${item.color}`} />
-                          {item.label}
-                        </span>
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
-                      </div>
-                    ))}
+                      { label: 'Publicados', value: stats?.publicados ?? 0, color: 'bg-emerald-500', to: '/search' },
+                      { label: 'En revisión', value: stats?.enRevision ?? 0, color: 'bg-amber-400', to: '/revisiones' },
+                      { label: 'Borradores', value: stats?.borradores ?? 0, color: 'bg-slate-400', to: '/revisiones?tab=borradores' },
+                      { label: 'Archivados', value: stats?.archivados ?? 0, color: 'bg-rose-400', to: '' },
+                    ].map((item) => {
+                      const content = (
+                        <>
+                          <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                            <span className={`inline-block h-2.5 w-2.5 rounded-full ${item.color}`} />
+                            {item.label}
+                          </span>
+                          <span className="font-bold text-slate-900 dark:text-slate-100">{item.value}</span>
+                        </>
+                      )
+
+                      return item.to ? (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => navigate(item.to)}
+                          className="flex w-full items-center justify-between rounded-lg px-1 py-0.5 text-sm transition hover:bg-unefa/5 hover:text-unefa dark:hover:bg-unefa/10 dark:hover:text-unefa-accent"
+                        >
+                          {content}
+                        </button>
+                      ) : (
+                        <div key={item.label} className="flex items-center justify-between px-1 py-0.5 text-sm">
+                          {content}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -395,8 +414,8 @@ export default function Admin() {
                     onChange={(e) => setNewUserRole(e.target.value as any)}
                     className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                   >
-                    <option value="bibliotecario">Bibliotecario</option>
                     <option value="repositor">Repositor</option>
+                    <option value="bibliotecario">Bibliotecario</option>
                     <option value="admin">Admin</option>
                   </select>
                   <div className="flex gap-2">
@@ -416,7 +435,7 @@ export default function Admin() {
                           setNewUserName('')
                           setNewUserEmail('')
                           setNewUserPassword('')
-                          setNewUserRole('bibliotecario')
+                          setNewUserRole('repositor')
                           setShowCreateUser(false)
                           const res = await authService.listarUsuarios()
                           setUsuarios(res.data.data)
@@ -490,7 +509,7 @@ export default function Admin() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Notas del sistema</p>
               <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Acciones sugeridas</h3>
               <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                <li className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/50">Revisar los documentos en borrador antes de liberar nuevas publicaciones.</li>
+                <li className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/50">Revisar los envíos pendientes desde la bandeja de revisión antes de liberar nuevas publicaciones.</li>
                 <li className="rounded-2xl bg-slate-50 px-4 py-3">Mantener la normativa vigente visible desde el panel principal.</li>
                 <li className="rounded-2xl bg-slate-50 px-4 py-3">Centralizar el seguimiento de envíos y publicaciones desde este espacio.</li>
               </ul>

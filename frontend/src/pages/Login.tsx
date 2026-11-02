@@ -40,7 +40,14 @@ export default function Login() {
     setError('')
     try {
       const loggedInUser = await login(data.identifier, data.password)
-      const dest = loggedInUser?.role === 'admin' ? '/admin' : from
+      const isStaff = loggedInUser?.role === 'bibliotecario' || loggedInUser?.role === 'repositor'
+      const dest = loggedInUser?.role === 'admin'
+        ? '/admin'
+        : from !== '/'
+          ? from
+          : isStaff
+            ? '/student'
+            : from
       toast.success(`Bienvenido, ${loggedInUser?.name}`)
       navigate(dest, { replace: true })
     } catch (err: any) {

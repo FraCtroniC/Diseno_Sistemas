@@ -14,7 +14,8 @@ class RevisionController {
   }
 
   async listarPendientes(req, res) {
-    const resultado = await revisionService.listarPendientes();
+    const estado = typeof req.query.estado === 'string' ? req.query.estado : undefined;
+    const resultado = await revisionService.listarPendientes(estado);
     res.status(200).json({ success: true, ...resultado });
   }
 }

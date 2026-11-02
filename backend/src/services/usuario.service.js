@@ -39,13 +39,18 @@ class UsuarioService {
     }
 
     const hash = await bcrypt.hash(data.password, 10);
-    return Usuario.create({
+    const nuevoUsuario = {
       nombre: data.nombre,
       email: data.email,
       username: data.username || null,
-      password_hash: hash,
-      rol: data.rol || 'bibliotecario'
-    });
+      password_hash: hash
+    };
+
+    if (data.rol) {
+      nuevoUsuario.rol = data.rol;
+    }
+
+    return Usuario.create(nuevoUsuario);
   }
 
   async actualizar(id, data) {

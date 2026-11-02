@@ -85,6 +85,17 @@ describe('TrabajoService', () => {
         expect.objectContaining({ usuario_id: 'u1', titulo: 'Test' })
       )
     })
+
+    it('blocks non-admin roles from creating published works', async () => {
+      Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+
+      await expect(
+        trabajoService.crear(
+          { titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024, estado: 'publicado' },
+          'u1', null, null, 'repositor'
+        )
+      ).rejects.toThrow('Solo los administradores')
+    })
   })
 
   describe('actualizar', () => {
@@ -101,6 +112,14 @@ describe('TrabajoService', () => {
       await expect(
         trabajoService.actualizar('t1', { categoria_id: 'bad-cat' })
       ).rejects.toThrow('Categoría no encontrada')
+    })
+
+    it('blocks non-admin roles from changing estado directly', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', update: jest.fn() })
+
+      await expect(
+        trabajoService.actualizar('t1', { estado: 'publicado' }, 'u1', null, null, 'repositor')
+      ).rejects.toThrow('No puedes cambiar el estado')
     })
   })
 

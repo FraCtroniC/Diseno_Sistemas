@@ -7,7 +7,7 @@ const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/pendientes', roleMiddleware('admin', 'repositor'), revisionController.listarPendientes);
+router.get('/pendientes', roleMiddleware('admin', 'bibliotecario'), revisionController.listarPendientes);
 router.get('/:id', revisionController.listarRevisiones);
 router.patch('/:id/estado', revisionController.cambiarEstado);
 

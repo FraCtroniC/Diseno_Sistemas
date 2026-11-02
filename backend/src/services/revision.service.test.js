@@ -43,7 +43,20 @@ describe('RevisionService', () => {
 
     it('requires comment when rejecting', async () => {
       Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'en_revision', titulo: 'Test', usuario_id: 'u1', save: jest.fn() })
-      await expect(revisionService.cambiarEstado('t1', 'borrador', null, { rol: 'repositor', id: 'u1' })).rejects.toThrow('comentario')
+      await expect(revisionService.cambiarEstado('t1', 'borrador', null, { rol: 'bibliotecario', id: 'u1' })).rejects.toThrow('comentario')
+    })
+
+    it('allows a bibliotecario to publish a work in review', async () => {
+      const save = jest.fn()
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'en_revision', titulo: 'Test', anio: 2026, usuario_id: 'u1', identificador: 'X', save })
+      Revision.create.mockResolvedValue({})
+      await revisionService.cambiarEstado('t1', 'publicado', null, { rol: 'bibliotecario', id: 'u2' })
+      expect(save).toHaveBeenCalled()
+    })
+
+    it('does not allow a repositor to publish a work in review', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'en_revision', titulo: 'Test', usuario_id: 'u1', save: jest.fn() })
+      await expect(revisionService.cambiarEstado('t1', 'publicado', null, { rol: 'repositor', id: 'u2' })).rejects.toThrow('No puedes cambiar')
     })
 
     it('generates identifier on publish', async () => {
@@ -66,7 +79,7 @@ describe('RevisionService', () => {
       expect(notifyUser).toHaveBeenCalledWith('u1', { type: 'count', noLeidas: 1 })
     })
 
-    it('notifies repositors on en_revision', async () => {
+    it('notifies admins and bibliotecarios on en_revision', async () => {
       const save = jest.fn()
       Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'borrador', titulo: 'Test', usuario_id: 'u1', save })
       Usuario.findAll.mockResolvedValue([{ id: 'r1' }, { id: 'r2' }])
@@ -74,6 +87,9 @@ describe('RevisionService', () => {
       mockCrear.mockResolvedValue({ usuario_id: 'r1' })
       mockContarNoLeidas.mockResolvedValue(1)
       await revisionService.cambiarEstado('t1', 'en_revision', null, { rol: 'bibliotecario', id: 'u1' })
+      expect(Usuario.findAll).toHaveBeenCalledWith({
+        where: { rol: ['admin', 'bibliotecario'], activo: true }
+      })
       expect(mockCrear).toHaveBeenCalledTimes(2)
       expect(notifyUser).toHaveBeenCalled()
     })
@@ -92,6 +108,22 @@ describe('RevisionService', () => {
       Trabajo.findAndCountAll.mockResolvedValue({ count: 2, rows: [{ id: 't1' }, { id: 't2' }] })
       const result = await revisionService.listarPendientes()
       expect(result.total).toBe(2)
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(expect.objectContaining({
+        where: { estado: 'en_revision' }
+      }))
+    })
+
+    it('returns borradores when requested', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 1, rows: [{ id: 't1' }] })
+      const result = await revisionService.listarPendientes('borrador')
+      expect(result.total).toBe(1)
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(expect.objectContaining({
+        where: { estado: 'borrador' }
+      }))
+    })
+
+    it('rejects an invalid estado', async () => {
+      await expect(revisionService.listarPendientes('publicado')).rejects.toThrow('Estado de cola no válido')
     })
   })
 })

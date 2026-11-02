@@ -64,8 +64,8 @@ export default function Register() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-white/70">Registro</p>
         <h2 className="mt-3 text-4xl font-black tracking-tight">Crear cuenta</h2>
         <p className="mt-4 max-w-md text-sm leading-6 text-white/80">
-          Regístrate para acceder a todas las funcionalidades del repositorio digital. Los administradores
-          activarán tu rol después de la validación.
+          Regístrate para acceder a todas las funcionalidades del repositorio digital. Tu cuenta se crea
+          con rol de repositor y un administrador podrá ajustarlo según corresponda.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-white/12 p-4">
