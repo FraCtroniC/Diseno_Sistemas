@@ -30,6 +30,12 @@ jest.mock('../models', () => ({
     create: jest.fn(),
     count: jest.fn(),
   },
+  Version: {
+    max: jest.fn(),
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findByPk: jest.fn(),
+  },
 }))
 
 jest.mock('../../config/environment', () => ({
@@ -175,6 +181,114 @@ describe('API Integration', () => {
 
       expect(res.status).toBe(200)
       expect(res.body.total).toBe(1)
+    })
+  })
+
+  describe('PUT /api/v1/trabajos/:id (edición)', () => {
+    let trabajoActual
+
+    const trabajoConUpdate = () => {
+      const trabajo = {
+        id: 't1',
+        titulo: 'Título original',
+        autor: 'Autor original',
+        tutor: null,
+        anio: 2024,
+        resumen: 'Resumen original',
+        palabras_clave: ['antiguo'],
+        categoria_id: 'cat-1',
+        estado: 'publicado',
+        metadatos: { tipo_documento: 'pregrado', idioma: 'es', paginas: 120 },
+        archivo_url: 'https://cloudinary.com/archivo.pdf',
+        identificador: 'UNEFAD-2024-001',
+      }
+      trabajo.update = jest.fn().mockResolvedValue(trabajo)
+      return trabajo
+    }
+
+    beforeEach(() => {
+      const { Trabajo, Categoria, Version } = require('../models')
+      trabajoActual = trabajoConUpdate()
+      Trabajo.findByPk.mockResolvedValue(trabajoActual)
+      Categoria.findByPk.mockResolvedValue({ id: '123e4567-e89b-12d3-a456-426614174000', nombre: 'Ingeniería' })
+      Version.max.mockResolvedValue(null)
+      Version.create.mockResolvedValue({})
+    })
+
+    it('actualiza los campos enviados y crea una versión previa', async () => {
+      const { Version } = require('../models')
+
+      const res = await request(app)
+        .put('/api/v1/trabajos/t1')
+        .field('titulo', 'Título editado')
+        .field('autor', 'Autor editado')
+        .field('anio', '2025')
+        .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+
+      expect(res.status).toBe(200)
+      expect(res.body.success).toBe(true)
+
+      expect(trabajoActual.update).toHaveBeenCalledWith(
+        expect.objectContaining({ titulo: 'Título editado', autor: 'Autor editado', anio: '2025' }),
+      )
+      expect(Version.create).toHaveBeenCalledTimes(1)
+    })
+
+    it('acepta palabras clave enviadas como string JSON (FormData)', async () => {
+      const res = await request(app)
+        .put('/api/v1/trabajos/t1')
+        .field('titulo', 'Título editado')
+        .field('palabras_clave', '["educación virtual", " aprendizaje ", ""]')
+
+      expect(res.status).toBe(200)
+      expect(trabajoActual.update).toHaveBeenCalledWith(
+        expect.objectContaining({ palabras_clave: ['educación virtual', 'aprendizaje'] }),
+      )
+    })
+
+    it('conserva el estado actual cuando no se envía el campo estado', async () => {
+      const res = await request(app)
+        .put('/api/v1/trabajos/t1')
+        .field('titulo', 'Solo cambio el título')
+
+      expect(res.status).toBe(200)
+
+      const updateData = trabajoActual.update.mock.calls[0][0]
+      expect(updateData).not.toHaveProperty('estado')
+    })
+
+    it('rechaza un año inválido sin modificar el trabajo', async () => {
+      const { Trabajo } = require('../models')
+
+      const res = await request(app)
+        .put('/api/v1/trabajos/t1')
+        .field('anio', '1800')
+
+      expect(res.status).toBe(400)
+      expect(Trabajo.findByPk).not.toHaveBeenCalled()
+      expect(trabajoActual.update).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('POST /api/v1/trabajos (creación)', () => {
+    it('acepta palabras clave enviadas como string JSON y las guarda como arreglo', async () => {
+      const { Trabajo, Categoria } = require('../models')
+      Categoria.findByPk.mockResolvedValue({ id: '123e4567-e89b-12d3-a456-426614174000' })
+      Trabajo.create.mockImplementation((data) => Promise.resolve({ id: 'nuevo', ...data }))
+
+      const res = await request(app)
+        .post('/api/v1/trabajos')
+        .field('titulo', 'Nuevo trabajo')
+        .field('autor', 'Autora')
+        .field('anio', '2025')
+        .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+        .field('palabras_clave', '["uno", "dos"]')
+        .field('metadatos', JSON.stringify({ tipo_documento: 'pregrado', carrera: 'Educación' }))
+
+      expect(res.status).toBe(201)
+      expect(Trabajo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ palabras_clave: ['uno', 'dos'] }),
+      )
     })
   })
 })

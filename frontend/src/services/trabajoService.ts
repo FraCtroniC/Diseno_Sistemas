@@ -67,6 +67,9 @@ export const trabajoService = {
   actualizar: (id: string, data: Partial<Trabajo>) =>
     api.put<{ success: boolean; data: Trabajo }>(`/trabajos/${id}`, data),
 
+  actualizarConArchivo: (id: string, formData: FormData) =>
+    api.put<{ success: boolean; data: Trabajo }>(`/trabajos/${id}`, formData),
+
   eliminar: (id: string) =>
     api.delete<{ success: boolean; message: string }>(`/trabajos/${id}`),
 

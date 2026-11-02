@@ -1,5 +1,24 @@
 const { body, param, query } = require('express-validator');
 
+/**
+ * Convierte las palabras clave enviadas como string JSON (FormData) en un arreglo.
+ * Ej: '["educación", "virtual"]' -> ['educación', 'virtual']
+ */
+function parsePalabrasClave(value) {
+  let parsed = value;
+  if (typeof value === 'string') {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+  if (Array.isArray(parsed)) {
+    return parsed.map((item) => String(item).trim()).filter(Boolean);
+  }
+  return parsed;
+}
+
 const createTrabajoRules = [
   body('titulo')
     .notEmpty().withMessage('El título es requerido')
@@ -18,6 +37,7 @@ const createTrabajoRules = [
     .isString().withMessage('El resumen debe ser texto'),
   body('palabras_clave')
     .optional()
+    .customSanitizer(parsePalabrasClave)
     .isArray().withMessage('palabras_clave debe ser un arreglo'),
   body('categoria_id')
     .notEmpty().withMessage('La categoría es requerida')
@@ -51,6 +71,7 @@ const updateTrabajoRules = [
     .isString().withMessage('El resumen debe ser texto'),
   body('palabras_clave')
     .optional()
+    .customSanitizer(parsePalabrasClave)
     .isArray().withMessage('palabras_clave debe ser un arreglo'),
   body('categoria_id')
     .optional()
