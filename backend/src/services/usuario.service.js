@@ -1,5 +1,8 @@
 const bcrypt = require('bcryptjs');
 const { Usuario } = require('../models');
+const { normalizeCedula, esCedulaDuplicada } = require('../utils/cedula');
+
+const CAMPOS_ACTUALIZAR = ['nombre', 'username', 'email', 'rol', 'activo', 'cedula', 'telefono'];
 
 class UsuarioService {
   async listar() {
@@ -61,9 +64,30 @@ class UsuarioService {
       throw err;
     }
 
+    const updateData = {};
+    for (const campo of CAMPOS_ACTUALIZAR) {
+      if (Object.prototype.hasOwnProperty.call(data, campo)) {
+        updateData[campo] = data[campo];
+      }
+    }
+
+    if (updateData.username === '') updateData.username = null;
+
+    if (Object.prototype.hasOwnProperty.call(updateData, 'cedula')) {
+      const cedula = normalizeCedula(updateData.cedula);
+      if (cedula) {
+        const existeCedula = await Usuario.findOne({ where: { cedula } });
+        if (existeCedula && existeCedula.id !== id) {
+          const err = new Error('La cédula ya está registrada');
+          err.statusCode = 400;
+          throw err;
+        }
+      }
+      updateData.cedula = cedula;
+    }
+
     if (data.password) {
-      data.password_hash = await bcrypt.hash(data.password, 10);
-      delete data.password;
+      updateData.password_hash = await bcrypt.hash(data.password, 10);
     }
 
     if (data.email && data.email !== usuario.email) {
@@ -84,7 +108,17 @@ class UsuarioService {
       }
     }
 
-    await usuario.update(data);
+    try {
+      await usuario.update(updateData);
+    } catch (error) {
+      if (esCedulaDuplicada(error)) {
+        const err = new Error('La cédula ya está registrada');
+        err.statusCode = 400;
+        throw err;
+      }
+      throw error;
+    }
+
     const { password_hash, ...usuarioSinPassword } = usuario.toJSON();
     return usuarioSinPassword;
   }

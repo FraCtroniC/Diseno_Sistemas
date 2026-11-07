@@ -158,6 +158,64 @@ describe('API Integration', () => {
     })
   })
 
+  describe('PUT /api/v1/auth/perfil (protected)', () => {
+    it('rejects changing an existing cedula', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        nombre: 'Test',
+        email: 'test@test.com',
+        username: null,
+        rol: 'admin',
+        cedula: 'V-12345678',
+        telefono: null,
+        update: jest.fn(),
+      }
+      Usuario.findByPk.mockResolvedValue(mockUser)
+
+      const res = await request(app)
+        .put('/api/v1/auth/perfil')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ cedula: 'V-87654321' })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toContain('no puede modificarse')
+    })
+
+    it('allows setting the cedula when the user has none', async () => {
+      const mockUser = {
+        id: 'test-user-id',
+        nombre: 'Test',
+        email: 'test@test.com',
+        username: null,
+        rol: 'admin',
+        cedula: null,
+        telefono: null,
+        update: jest.fn(function (data) {
+          Object.assign(this, data)
+        }),
+      }
+      Usuario.findByPk.mockResolvedValue(mockUser)
+      Usuario.findOne.mockResolvedValue(null)
+
+      const res = await request(app)
+        .put('/api/v1/auth/perfil')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ cedula: 'v 12.345.678' })
+
+      expect(res.status).toBe(200)
+      expect(res.body.data.cedula).toBe('V-12345678')
+    })
+
+    it('rejects an invalid cedula format', async () => {
+      const res = await request(app)
+        .put('/api/v1/auth/perfil')
+        .set('Authorization', 'Bearer valid-token')
+        .send({ cedula: '123' })
+
+      expect(res.status).toBe(400)
+    })
+  })
+
   describe('GET /api/v1/categorias (public)', () => {
     it('returns list of categorias', async () => {
       const { Categoria } = require('../models')

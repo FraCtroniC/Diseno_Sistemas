@@ -1,4 +1,5 @@
 const { body } = require('express-validator');
+const { CEDULA_REGEX, normalizeCedula } = require('../utils/cedula');
 
 const createUsuarioRules = [
   body('nombre')
@@ -36,7 +37,15 @@ const updateUsuarioRules = [
     .isIn(['admin', 'repositor', 'bibliotecario']).withMessage('Rol inválido'),
   body('activo')
     .optional()
-    .isBoolean().withMessage('activo debe ser booleano')
+    .isBoolean().withMessage('activo debe ser booleano'),
+  body('cedula')
+    .optional({ values: 'falsy' })
+    .customSanitizer(normalizeCedula)
+    .matches(CEDULA_REGEX).withMessage('La cédula debe tener el formato V-12345678'),
+  body('telefono')
+    .optional({ values: 'falsy' })
+    .isString().withMessage('El teléfono debe ser texto')
+    .isLength({ max: 20 }).withMessage('El teléfono no puede exceder 20 caracteres')
 ];
 
 module.exports = { createUsuarioRules, updateUsuarioRules };

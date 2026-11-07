@@ -1,4 +1,5 @@
 const { Model, DataTypes } = require('sequelize');
+const { normalizeCedula } = require('../utils/cedula');
 
 module.exports = (sequelize) => {
   class Usuario extends Model {
@@ -33,7 +34,11 @@ module.exports = (sequelize) => {
     },
     cedula: {
       type: DataTypes.STRING(20),
-      allowNull: true
+      allowNull: true,
+      unique: true,
+      set(value) {
+        this.setDataValue('cedula', normalizeCedula(value));
+      }
     },
     telefono: {
       type: DataTypes.STRING(20),

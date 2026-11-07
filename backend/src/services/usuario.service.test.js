@@ -106,6 +106,38 @@ describe('UsuarioService', () => {
         expect.objectContaining({ password_hash: 'new-hash' })
       )
     })
+
+    it('normalizes and updates cedula', async () => {
+      const mockUser = { id: 'u1', email: 'test@test.com', cedula: null, update: jest.fn(), toJSON: () => ({ id: 'u1' }) }
+      Usuario.findByPk.mockResolvedValue(mockUser)
+      Usuario.findOne.mockResolvedValue(null)
+
+      await usuarioService.actualizar('u1', { cedula: 'v 12.345.678' })
+
+      expect(mockUser.update).toHaveBeenCalledWith(
+        expect.objectContaining({ cedula: 'V-12345678' })
+      )
+    })
+
+    it('throws 400 if cedula belongs to another user', async () => {
+      const mockUser = { id: 'u1', email: 'test@test.com', cedula: null, update: jest.fn(), toJSON: () => ({ id: 'u1' }) }
+      Usuario.findByPk.mockResolvedValue(mockUser)
+      Usuario.findOne.mockResolvedValue({ id: 'u2' })
+
+      await expect(
+        usuarioService.actualizar('u1', { cedula: 'V-12345678' })
+      ).rejects.toThrow('La cédula ya está registrada')
+      expect(mockUser.update).not.toHaveBeenCalled()
+    })
+
+    it('ignores fields outside the allowed list', async () => {
+      const mockUser = { id: 'u1', email: 'test@test.com', update: jest.fn(), toJSON: () => ({ id: 'u1' }) }
+      Usuario.findByPk.mockResolvedValue(mockUser)
+
+      await usuarioService.actualizar('u1', { nombre: 'Nuevo', password_hash: 'hack', id: 'otro' })
+
+      expect(mockUser.update).toHaveBeenCalledWith({ nombre: 'Nuevo' })
+    })
   })
 
   describe('eliminar', () => {

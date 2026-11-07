@@ -11,6 +11,7 @@ import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
+import { TIPOS_CEDULA, composeCedula, parseCedula } from '../types'
 
 const COLORS = ['#0b57a4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
 
@@ -68,6 +69,11 @@ export default function Admin() {
   const [newUserRole, setNewUserRole] = useState<'admin' | 'repositor' | 'bibliotecario'>('repositor')
   const [creatingUser, setCreatingUser] = useState(false)
 
+  const [editingCedulaId, setEditingCedulaId] = useState<string | null>(null)
+  const [editCedulaTipo, setEditCedulaTipo] = useState('V')
+  const [editCedulaNumero, setEditCedulaNumero] = useState('')
+  const [savingCedula, setSavingCedula] = useState(false)
+
   const loadCategorias = useCallback(() => {
     categoriaService.listar()
       .then((res) => setCategorias(res.data.data))
@@ -88,6 +94,39 @@ export default function Admin() {
     logout()
     navigate('/')
     toast.success('Sesión cerrada')
+  }
+
+  function startEditCedula(u: AuthUser) {
+    const parsed = parseCedula(u.cedula ?? undefined)
+    setEditingCedulaId(u.id)
+    setEditCedulaTipo(parsed.cedulaTipo)
+    setEditCedulaNumero(parsed.cedula)
+  }
+
+  function cancelEditCedula() {
+    setEditingCedulaId(null)
+    setEditCedulaNumero('')
+  }
+
+  async function saveCedula(u: AuthUser) {
+    if (!/^\d{6,9}$/.test(editCedulaNumero)) {
+      toast.error('El número de cédula debe tener entre 6 y 9 dígitos')
+      return
+    }
+
+    const cedula = composeCedula(editCedulaTipo, editCedulaNumero)
+    setSavingCedula(true)
+    try {
+      await api.put(`/usuarios/${u.id}`, { cedula })
+      setUsuarios((prev) => prev.map((x) => x.id === u.id ? { ...x, cedula } : x))
+      toast.success(`Cédula de ${u.nombre} actualizada`)
+      cancelEditCedula()
+    } catch (err) {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      toast.error(message || 'Error al actualizar la cédula')
+    } finally {
+      setSavingCedula(false)
+    }
   }
 
   const chartData = stats?.trabajosPorMes.map((m) => ({ mes: m.mes.slice(5) + '/' + m.mes.slice(0, 4), cantidad: m.cantidad })) ?? []
@@ -455,46 +494,92 @@ export default function Admin() {
               <div className="mt-5 space-y-3">
                 {usuarios.length > 0 ? (
                   usuarios.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 dark:border-slate-700/50 dark:bg-slate-800">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900 dark:text-slate-100">{u.nombre}</p>
-                        <p className="text-sm text-slate-500 truncate dark:text-slate-400">{u.email}</p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="relative">
-                          <select
-                            value={u.rol}
-                            onChange={async (e) => {
-                              const newRol = e.target.value
-                              try {
-                                await api.put(`/usuarios/${u.id}`, { rol: newRol })
-                                setUsuarios((prev) => prev.map((x) => x.id === u.id ? { ...x, rol: newRol } : x))
-                                toast.success(`Rol de ${u.nombre} actualizado a ${newRol}`)
-                              } catch { toast.error('Error al actualizar rol') }
-                            }}
-                            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-unefa-dark appearance-none cursor-pointer hover:border-unefa/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-unefa/30"
-                          >
-                            <option value="admin">admin</option>
-                            <option value="repositor">repositor</option>
-                            <option value="bibliotecario">bibliotecario</option>
-                          </select>
+                    <div key={u.id} className="rounded-2xl border border-slate-200/80 bg-white dark:border-slate-700/50 dark:bg-slate-800">
+                      <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-slate-900 dark:text-slate-100">{u.nombre}</p>
+                          <p className="text-sm text-slate-500 truncate dark:text-slate-400">{u.email}</p>
+                          <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            C.I.: {u.cedula || 'Sin cédula'}
+                          </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (!confirm(`¿Desactivar usuario "${u.nombre}"?`)) return
-                            try {
-                              await api.patch(`/usuarios/${u.id}/estado`, { activo: false })
-                              toast.success(`Usuario ${u.nombre} desactivado`)
-                              const res = await authService.listarUsuarios()
-                              setUsuarios(res.data.data)
-                            } catch { toast.error('Error al desactivar usuario') }
-                          }}
-                          className="rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-200"
-                        >
-                          Desactivar
-                        </button>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => startEditCedula(u)}
+                            className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                          >
+                            Editar cédula
+                          </button>
+                          <div className="relative">
+                            <select
+                              value={u.rol}
+                              onChange={async (e) => {
+                                const newRol = e.target.value
+                                try {
+                                  await api.put(`/usuarios/${u.id}`, { rol: newRol })
+                                  setUsuarios((prev) => prev.map((x) => x.id === u.id ? { ...x, rol: newRol } : x))
+                                  toast.success(`Rol de ${u.nombre} actualizado a ${newRol}`)
+                                } catch { toast.error('Error al actualizar rol') }
+                              }}
+                              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-unefa-dark appearance-none cursor-pointer hover:border-unefa/30 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-unefa/30"
+                            >
+                              <option value="admin">admin</option>
+                              <option value="repositor">repositor</option>
+                              <option value="bibliotecario">bibliotecario</option>
+                            </select>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!confirm(`¿Desactivar usuario "${u.nombre}"?`)) return
+                              try {
+                                await api.patch(`/usuarios/${u.id}/estado`, { activo: false })
+                                toast.success(`Usuario ${u.nombre} desactivado`)
+                                const res = await authService.listarUsuarios()
+                                setUsuarios(res.data.data)
+                              } catch { toast.error('Error al desactivar usuario') }
+                            }}
+                            className="rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-200"
+                          >
+                            Desactivar
+                          </button>
+                        </div>
                       </div>
+                      {editingCedulaId === u.id ? (
+                        <div className="border-t border-slate-200/80 px-4 py-3 dark:border-slate-700/50">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-unefa">Corregir cédula</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <select
+                              value={editCedulaTipo}
+                              onChange={(e) => setEditCedulaTipo(e.target.value)}
+                              aria-label="Tipo de cédula"
+                              className="w-20 rounded-xl border border-slate-300/90 bg-white/90 px-3 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600/80 dark:bg-slate-800/90 dark:text-slate-100"
+                            >
+                              {TIPOS_CEDULA.map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                              ))}
+                            </select>
+                            <div className="w-40">
+                              <Input
+                                value={editCedulaNumero}
+                                onChange={(e) => setEditCedulaNumero(e.target.value.replace(/\D/g, ''))}
+                                placeholder="12345678"
+                                inputMode="numeric"
+                              />
+                            </div>
+                            <Button type="button" disabled={savingCedula} onClick={() => saveCedula(u)}>
+                              {savingCedula ? 'Guardando...' : 'Guardar'}
+                            </Button>
+                            <Button variant="secondary" type="button" onClick={cancelEditCedula}>
+                              Cancelar
+                            </Button>
+                          </div>
+                          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                            Solo un administrador puede corregir este dato. El usuario no podrá cambiarlo después.
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
                   ))
                 ) : usuariosError ? (

@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const res = await authService.actualizarPerfil({
       email: payload.email,
-      cedula: payload.cedula,
+      ...(payload.cedula !== undefined ? { cedula: payload.cedula } : {}),
       telefono: payload.telefono,
     })
 

@@ -104,7 +104,7 @@ export default function Register() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Contraseña</span>
-            <PasswordInput {...register('password')} placeholder="Mínimo 6 caracteres" />
+            <PasswordInput {...register('password')} placeholder="Mínimo 8 caracteres" />
             {errors.password ? <p className="text-sm text-rose-600">{errors.password.message}</p> : null}
           </label>
 

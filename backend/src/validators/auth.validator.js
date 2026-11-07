@@ -1,4 +1,5 @@
 const { body } = require('express-validator');
+const { CEDULA_REGEX, normalizeCedula } = require('../utils/cedula');
 
 const loginRules = [
   body('identificador')
@@ -35,8 +36,9 @@ const registerRules = [
     .notEmpty().withMessage('La contraseña es requerida')
     .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
   body('cedula')
-    .optional({ values: 'null' })
-    .isString().withMessage('La cédula debe ser texto'),
+    .optional({ values: 'falsy' })
+    .customSanitizer(normalizeCedula)
+    .matches(CEDULA_REGEX).withMessage('La cédula debe tener el formato V-12345678'),
   body('telefono')
     .optional({ values: 'null' })
     .isString().withMessage('El teléfono debe ser texto'),
@@ -77,8 +79,9 @@ const updateProfileRules = [
     .isEmail().withMessage('Debe ser un email válido')
     .normalizeEmail(),
   body('cedula')
-    .optional({ values: 'null' })
-    .isString().withMessage('La cédula debe ser texto'),
+    .optional({ values: 'falsy' })
+    .customSanitizer(normalizeCedula)
+    .matches(CEDULA_REGEX).withMessage('La cédula debe tener el formato V-12345678'),
   body('telefono')
     .optional({ values: 'null' })
     .isString().withMessage('El teléfono debe ser texto'),

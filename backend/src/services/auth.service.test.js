@@ -146,6 +146,43 @@ describe('AuthService', () => {
         password: '12345678'
       })).rejects.toThrow('El nombre de usuario ya está en uso')
     })
+
+    it('throws 400 if cedula already exists', async () => {
+      Usuario.findOne
+        .mockResolvedValueOnce(null)    // email not taken
+        .mockResolvedValueOnce({ id: 'existing' }) // cedula taken
+
+      await expect(authService.register({
+        nombre: 'New',
+        email: 'new@test.com',
+        password: '12345678',
+        cedula: 'V-12345678'
+      })).rejects.toThrow('La cédula ya está registrada')
+    })
+
+    it('normalizes cedula before creating the user', async () => {
+      Usuario.findOne.mockResolvedValue(null)
+      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-pass')
+      Usuario.create.mockResolvedValue({
+        id: 'new-id',
+        nombre: 'New',
+        email: 'new@test.com',
+        username: null,
+        rol: 'repositor',
+        cedula: 'V-12345678',
+        telefono: null,
+      })
+      jest.spyOn(jwt, 'sign').mockReturnValue('new-token')
+
+      await authService.register({
+        nombre: 'New',
+        email: 'new@test.com',
+        password: '12345678',
+        cedula: 'v 12.345.678',
+      })
+
+      expect(Usuario.create.mock.calls[0][0].cedula).toBe('V-12345678')
+    })
   })
 
   describe('forgotPassword', () => {
@@ -247,8 +284,8 @@ describe('AuthService', () => {
   })
 
   describe('actualizarPerfil', () => {
-    it('updates email, username, cedula and telefono', async () => {
-      const userData = {
+    function buildUser(overrides = {}) {
+      return {
         id: 'u1',
         nombre: 'Test',
         email: 'old@test.com',
@@ -256,26 +293,69 @@ describe('AuthService', () => {
         rol: 'admin',
         cedula: null,
         telefono: null,
-      }
-      const mockUser = {
-        ...userData,
+        ...overrides,
         update: jest.fn(function (data) {
           Object.assign(this, data)
         }),
       }
+    }
+
+    it('updates email, username and telefono', async () => {
+      const mockUser = buildUser()
       Usuario.findByPk.mockResolvedValue(mockUser)
       Usuario.findOne.mockResolvedValue(null)
 
       const result = await authService.actualizarPerfil('u1', {
         email: 'new@test.com',
         username: 'newuser',
-        cedula: 'V-123',
         telefono: '555',
       })
 
       expect(mockUser.update).toHaveBeenCalled()
       expect(result.email).toBe('new@test.com')
       expect(result.username).toBe('newuser')
+      expect(mockUser.update.mock.calls[0][0]).not.toHaveProperty('cedula')
+    })
+
+    it('allows setting the cedula once when the user has none', async () => {
+      const mockUser = buildUser()
+      Usuario.findByPk.mockResolvedValue(mockUser)
+      Usuario.findOne.mockResolvedValue(null)
+
+      const result = await authService.actualizarPerfil('u1', { cedula: 'v 12.345.678' })
+
+      expect(mockUser.update).toHaveBeenCalledWith(expect.objectContaining({ cedula: 'V-12345678' }))
+      expect(result.cedula).toBe('V-12345678')
+    })
+
+    it('rejects changing an existing cedula', async () => {
+      const mockUser = buildUser({ cedula: 'V-12345678' })
+      Usuario.findByPk.mockResolvedValue(mockUser)
+
+      await expect(
+        authService.actualizarPerfil('u1', { cedula: 'V-87654321' })
+      ).rejects.toThrow('La cédula no puede modificarse')
+      expect(mockUser.update).not.toHaveBeenCalled()
+    })
+
+    it('rejects removing an existing cedula', async () => {
+      const mockUser = buildUser({ cedula: 'V-12345678' })
+      Usuario.findByPk.mockResolvedValue(mockUser)
+
+      await expect(
+        authService.actualizarPerfil('u1', { cedula: '' })
+      ).rejects.toThrow('La cédula no puede eliminarse')
+      expect(mockUser.update).not.toHaveBeenCalled()
+    })
+
+    it('does not update the cedula when the value is unchanged', async () => {
+      const mockUser = buildUser({ cedula: 'V-12345678' })
+      Usuario.findByPk.mockResolvedValue(mockUser)
+      Usuario.findOne.mockResolvedValue(null)
+
+      await authService.actualizarPerfil('u1', { cedula: 'V-12345678', telefono: '555' })
+
+      expect(mockUser.update).toHaveBeenCalledWith({ telefono: '555' })
     })
   })
 })

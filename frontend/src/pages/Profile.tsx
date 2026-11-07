@@ -30,6 +30,7 @@ export default function Profile() {
     shouldFocusError: true,
   })
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const onInvalid = (fieldErrors: FieldErrors<FormData>) => {
     toastFieldErrors(fieldErrors, {
@@ -61,9 +62,12 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
+      const cedulaForm = user.profile?.cedula
+        ? { cedulaTipo: 'V', cedula: '' }
+        : parseCedula(user.profile?.cedula)
       reset({
         email: user.email,
-        ...parseCedula(user.profile?.cedula),
+        ...cedulaForm,
         telefono: user.profile?.telefono,
       })
     }
@@ -75,14 +79,22 @@ export default function Profile() {
     </section>
   )
 
+  const tieneCedula = Boolean(user.profile?.cedula)
+
   const onSubmit = async (data: FormData) => {
-    await updateProfile({
-      email: data.email,
-      cedula: composeCedula(data.cedulaTipo, data.cedula || ''),
-      telefono: data.telefono,
-    })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setSaveError('')
+    try {
+      await updateProfile({
+        email: data.email,
+        telefono: data.telefono,
+        ...(tieneCedula ? {} : { cedula: composeCedula(data.cedulaTipo, data.cedula || '') }),
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setSaveError(message || 'No se pudo actualizar el perfil')
+    }
   }
 
   async function handleChangePassword(e: React.FormEvent) {
@@ -157,22 +169,37 @@ export default function Profile() {
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Cédula</span>
-                  <div className="flex gap-2">
-                    <select
-                      {...register('cedulaTipo')}
-                      aria-label="Tipo de cédula"
-                      className="w-20 shrink-0 rounded-xl border border-slate-300/90 bg-white/90 px-3 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600/80 dark:bg-slate-800/90 dark:text-slate-100"
-                    >
-                      {TIPOS_CEDULA.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                    <Input {...register('cedula')} placeholder="12345678" inputMode="numeric" className="min-w-0 flex-1" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
+                {tieneCedula ? (
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Cédula</span>
+                    <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200">
+                      {user.profile?.cedula}
+                    </div>
+                    <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      La cédula no se puede modificar. Si necesitas corregirla, contacta a un administrador.
+                    </p>
                   </div>
-                  {errors.cedula ? <p className="text-sm text-rose-600">{errors.cedula.message}</p> : null}
-                </label>
+                ) : (
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Cédula</span>
+                    <div className="flex gap-2">
+                      <select
+                        {...register('cedulaTipo')}
+                        aria-label="Tipo de cédula"
+                        className="w-20 shrink-0 rounded-xl border border-slate-300/90 bg-white/90 px-3 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600/80 dark:bg-slate-800/90 dark:text-slate-100"
+                      >
+                        {TIPOS_CEDULA.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                      <Input {...register('cedula')} placeholder="12345678" inputMode="numeric" className="min-w-0 flex-1" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/\D/g, ''); setValue('cedula', t.value, { shouldValidate: true }) }} />
+                    </div>
+                    <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      Puedes registrarla una sola vez. Después solo un administrador podrá cambiarla.
+                    </p>
+                    {errors.cedula ? <p className="text-sm text-rose-600">{errors.cedula.message}</p> : null}
+                  </label>
+                )}
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Teléfono</span>
                   <Input {...register('telefono')} placeholder="0412-1234567" inputMode="tel" onInput={(e) => { const t = e.currentTarget; t.value = t.value.replace(/[^0-9-]/g, ''); setValue('telefono', t.value, { shouldValidate: true }) }} />
@@ -180,9 +207,10 @@ export default function Profile() {
                 </label>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <Button type="submit">Guardar cambios</Button>
                 {saved ? <span className="text-sm font-semibold text-emerald-600">¡Perfil actualizado!</span> : null}
+                {saveError ? <span className="text-sm font-semibold text-rose-600">{saveError}</span> : null}
               </div>
             </form>
           </div>
@@ -202,7 +230,7 @@ export default function Profile() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Nueva contraseña</span>
-                  <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+                  <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 8 caracteres" />
                 </label>
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirmar contraseña</span>

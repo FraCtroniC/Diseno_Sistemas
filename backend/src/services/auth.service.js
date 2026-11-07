@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { Usuario } = require('../models');
 const environment = require('../../config/environment');
 const emailService = require('./email.service');
+const { normalizeCedula, esCedulaDuplicada } = require('../utils/cedula');
 
 class AuthService {
   async login(identificador, password) {
@@ -88,15 +89,35 @@ class AuthService {
       }
     }
 
+    const cedula = normalizeCedula(data.cedula);
+    if (cedula) {
+      const existeCedula = await Usuario.findOne({ where: { cedula } });
+      if (existeCedula) {
+        const err = new Error('La cédula ya está registrada');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+
     const hash = await bcrypt.hash(data.password, 10);
-    const usuario = await Usuario.create({
-      nombre: data.nombre,
-      email: data.email,
-      username: data.username || null,
-      password_hash: hash,
-      cedula: data.cedula || null,
-      telefono: data.telefono || null
-    });
+    let usuario;
+    try {
+      usuario = await Usuario.create({
+        nombre: data.nombre,
+        email: data.email,
+        username: data.username || null,
+        password_hash: hash,
+        cedula,
+        telefono: data.telefono || null
+      });
+    } catch (error) {
+      if (esCedulaDuplicada(error)) {
+        const err = new Error('La cédula ya está registrada');
+        err.statusCode = 400;
+        throw err;
+      }
+      throw error;
+    }
 
     const token = jwt.sign(
       { id: usuario.id, nombre: usuario.nombre, email: usuario.email, username: usuario.username, rol: usuario.rol },
@@ -237,10 +258,45 @@ class AuthService {
     const updateData = {};
     if (data.email !== undefined) updateData.email = data.email;
     if (data.username !== undefined) updateData.username = data.username || null;
-    if (data.cedula !== undefined) updateData.cedula = data.cedula || null;
     if (data.telefono !== undefined) updateData.telefono = data.telefono || null;
 
-    await usuario.update(updateData);
+    if (data.cedula !== undefined) {
+      const cedulaActual = normalizeCedula(usuario.cedula);
+      const cedulaNueva = normalizeCedula(data.cedula);
+
+      if (!cedulaNueva && cedulaActual) {
+        const err = new Error('La cédula no puede eliminarse. Contacta a un administrador.');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (cedulaNueva && cedulaActual && cedulaNueva !== cedulaActual) {
+        const err = new Error('La cédula no puede modificarse. Contacta a un administrador.');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      if (cedulaNueva && !cedulaActual) {
+        const existeCedula = await Usuario.findOne({ where: { cedula: cedulaNueva } });
+        if (existeCedula) {
+          const err = new Error('La cédula ya está registrada');
+          err.statusCode = 400;
+          throw err;
+        }
+        updateData.cedula = cedulaNueva;
+      }
+    }
+
+    try {
+      await usuario.update(updateData);
+    } catch (error) {
+      if (esCedulaDuplicada(error)) {
+        const err = new Error('La cédula ya está registrada');
+        err.statusCode = 400;
+        throw err;
+      }
+      throw error;
+    }
 
     return {
       id: usuario.id,
