@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const { Trabajo, Revision, Usuario, Categoria } = require('../models');
-const { crearYNotificar } = require('./notificacion.service');
+const notificacionService = require('./notificacion.service');
 
 const TRANSICIONES_PERMITIDAS = {
   bibliotecario: {
@@ -77,38 +77,44 @@ class RevisionService {
 
     await trabajo.save();
 
-    await Revision.create({
-      trabajo_id: trabajoId,
-      revisor_id: usuario.id,
-      estado_anterior: estadoAnterior,
-      estado_nuevo: nuevoEstado,
-      comentario: comentario || null
-    });
-
-    if (nuevoEstado === 'publicado') {
-      await crearYNotificar(
-        trabajo.usuario_id, 'publicado',
-        `Tu trabajo "${trabajo.titulo}" ha sido publicado.`,
-        trabajoId
-      );
-    } else if (nuevoEstado === 'borrador' && estadoAnterior === 'en_revision') {
-      await crearYNotificar(
-        trabajo.usuario_id, 'rechazado',
-        `Tu trabajo "${trabajo.titulo}" ha sido devuelto a borrador. Comentario: ${comentario || 'Sin comentarios'}`,
-        trabajoId
-      );
-    } else if (nuevoEstado === 'en_revision') {
-      const revisores = await Usuario.findAll({
-        where: { rol: ['admin', 'bibliotecario'], activo: true }
+    // El cambio de estado ya quedó persistido; si la creación del registro de
+    // revisión o las notificaciones fallan, no debe responderse con error.
+    try {
+      await Revision.create({
+        trabajo_id: trabajoId,
+        revisor_id: usuario.id,
+        estado_anterior: estadoAnterior,
+        estado_nuevo: nuevoEstado,
+        comentario: comentario || null
       });
-      const destinatarios = revisores.filter((revisor) => revisor.id !== trabajo.usuario_id);
-      await Promise.all(destinatarios.map((revisor) =>
-        crearYNotificar(
-          revisor.id, 'pendiente_revision',
-          `El trabajo "${trabajo.titulo}" está esperando revisión.`,
+
+      if (nuevoEstado === 'publicado') {
+        await notificacionService.crearYNotificar(
+          trabajo.usuario_id, 'publicado',
+          `Tu trabajo "${trabajo.titulo}" ha sido publicado.`,
           trabajoId
-        )
-      ));
+        );
+      } else if (nuevoEstado === 'borrador' && estadoAnterior === 'en_revision') {
+        await notificacionService.crearYNotificar(
+          trabajo.usuario_id, 'rechazado',
+          `Tu trabajo "${trabajo.titulo}" ha sido devuelto a borrador. Comentario: ${comentario || 'Sin comentarios'}`,
+          trabajoId
+        );
+      } else if (nuevoEstado === 'en_revision') {
+        const revisores = await Usuario.findAll({
+          where: { rol: ['admin', 'bibliotecario'], activo: true }
+        });
+        const destinatarios = revisores.filter((revisor) => revisor.id !== trabajo.usuario_id);
+        await Promise.all(destinatarios.map((revisor) =>
+          notificacionService.crearYNotificar(
+            revisor.id, 'pendiente_revision',
+            `El trabajo "${trabajo.titulo}" está esperando revisión.`,
+            trabajoId
+          )
+        ));
+      }
+    } catch (err) {
+      console.error('Cambio de estado persistido, pero falló el registro/notificación:', err);
     }
 
     return trabajo;

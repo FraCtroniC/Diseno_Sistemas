@@ -62,15 +62,22 @@ export default function TrabajoDetalle() {
     setActionLoading(estado)
     try {
       await revisionService.cambiarEstado(trabajo.id, estado, comentario)
+    } catch {
+      toast.error('Error al cambiar el estado')
+      setActionLoading('')
+      return
+    }
+    toast.success(`Estado actualizado a ${ESTADO_LABELS[estado] ?? estado}`)
+    setShowRejectForm(false)
+    setRejectComment('')
+    // La recarga es independiente: si falla, el cambio ya se aplicó.
+    try {
       const res = await trabajoService.obtenerPorId(trabajo.id)
       setTrabajo(res.data.data)
       const revRes = await revisionService.listarRevisiones(trabajo.id)
       setRevisiones(revRes.data.data)
-      setShowRejectForm(false)
-      setRejectComment('')
-      toast.success(`Estado actualizado a ${ESTADO_LABELS[estado] ?? estado}`)
     } catch {
-      toast.error('Error al cambiar el estado')
+      // Se ignora: el estado ya cambió correctamente.
     } finally {
       setActionLoading('')
     }
