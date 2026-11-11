@@ -14,7 +14,7 @@ export interface TutorEntity {
 export interface EstudianteEntity {
   id: string
   nombre: string
-  cedula: string | null
+  cedula?: string | null
 }
 
 export interface Trabajo {

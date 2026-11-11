@@ -1,17 +1,30 @@
 const { Op } = require('sequelize');
 const { Tutor } = require('../models');
 
+const ATRIBUTOS_PUBLICOS = ['id', 'nombre'];
+
 class TutorService {
-  async listar({ q } = {}) {
+  async listar({ q, limite = 100 } = {}) {
     const where = {};
     if (q) {
       where.nombre = { [Op.iLike]: `%${q}%` };
     }
-    return Tutor.findAll({ where, order: [['nombre', 'ASC']] });
+
+    const limiteNum = Number.parseInt(limite, 10);
+    const limiteSeguro = Number.isInteger(limiteNum) && limiteNum > 0
+      ? Math.min(limiteNum, 200)
+      : 100;
+
+    return Tutor.findAll({
+      where,
+      attributes: ATRIBUTOS_PUBLICOS,
+      order: [['nombre', 'ASC']],
+      limit: limiteSeguro
+    });
   }
 
   async obtenerPorId(id) {
-    const tutor = await Tutor.findByPk(id);
+    const tutor = await Tutor.findByPk(id, { attributes: ATRIBUTOS_PUBLICOS });
     if (!tutor) {
       const err = new Error('Tutor no encontrado');
       err.statusCode = 404;

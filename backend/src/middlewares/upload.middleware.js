@@ -18,7 +18,13 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: MAX_PDF_SIZE_BYTES }
+  limits: {
+    fileSize: MAX_PDF_SIZE_BYTES,
+    files: 1,
+    fields: 20,
+    parts: 30,
+    fieldSize: 100 * 1024
+  }
 });
 
 module.exports = upload;

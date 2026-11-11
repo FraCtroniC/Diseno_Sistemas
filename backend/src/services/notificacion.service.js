@@ -22,8 +22,15 @@ class NotificacionService {
     return noLeidas;
   }
 
-  async listarPorUsuario(usuarioId, pagina = 1, limite = 20) {
-    const offset = (pagina - 1) * limite;
+  async listarPorUsuario(usuarioId, pagina, limite) {
+    const paginaNum = Number.parseInt(pagina, 10);
+    const limiteNum = Number.parseInt(limite, 10);
+    const paginaSegura = Number.isInteger(paginaNum) && paginaNum > 0 ? paginaNum : 1;
+    const limiteSeguro = Number.isInteger(limiteNum) && limiteNum > 0
+      ? Math.min(limiteNum, 100)
+      : 20;
+    const offset = (paginaSegura - 1) * limiteSeguro;
+
     const { count, rows } = await Notificacion.findAndCountAll({
       where: { usuario_id: usuarioId },
       include: [
@@ -31,10 +38,16 @@ class NotificacionService {
       ],
       order: [['createdAt', 'DESC']],
       offset,
-      limit: limite
+      limit: limiteSeguro
     });
 
-    return { total: count, datos: rows };
+    return {
+      total: count,
+      pagina: paginaSegura,
+      limite: limiteSeguro,
+      totalPaginas: Math.ceil(count / limiteSeguro),
+      datos: rows
+    };
   }
 
   async marcarLeida(notificacionId, usuarioId) {

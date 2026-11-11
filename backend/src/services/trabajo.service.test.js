@@ -8,6 +8,9 @@ jest.mock('../models', () => ({
     findByPk: jest.fn(),
   },
   Usuario: {},
+  sequelize: {
+    escape: jest.fn((value) => `'${String(value).replace(/'/g, "''")}'`),
+  },
 }))
 
 jest.mock('../validators/metadatos.schema', () => ({
@@ -50,6 +53,64 @@ describe('TrabajoService', () => {
         })
       )
     })
+
+    it('forces published state for anonymous requests', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      await trabajoService.listar({})
+
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ estado: 'publicado' }),
+        })
+      )
+    })
+
+    it('rejects anonymous requests for non-published states', async () => {
+      await expect(trabajoService.listar({ estado: 'borrador' })).rejects.toThrow('No tienes permiso')
+    })
+
+    it('limits repositor results to their own drafts', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      await trabajoService.listar({
+        estado: 'borrador',
+        solicitante: { id: 'u1', rol: 'repositor' }
+      })
+
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ estado: 'borrador', usuario_id: 'u1' }),
+        })
+      )
+    })
+
+    it('allows admin to filter by any state and user', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      await trabajoService.listar({
+        estado: 'borrador',
+        usuario_id: 'u2',
+        solicitante: { id: 'admin1', rol: 'admin' }
+      })
+
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ estado: 'borrador', usuario_id: 'u2' }),
+        })
+      )
+    })
+
+    it('caps the page size at 100', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      const result = await trabajoService.listar({ limite: 999 })
+
+      expect(result.limite).toBe(100)
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({ limit: 100 })
+      )
+    })
   })
 
   describe('obtenerPorId', () => {
@@ -59,10 +120,40 @@ describe('TrabajoService', () => {
       await expect(trabajoService.obtenerPorId('nonexistent')).rejects.toThrow('Trabajo no encontrado')
     })
 
-    it('returns trabajo when found', async () => {
-      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Test' })
+    it('returns trabajo when found and published', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Test', estado: 'publicado' })
 
       const result = await trabajoService.obtenerPorId('t1')
+
+      expect(result.id).toBe('t1')
+    })
+
+    it('hides drafts from anonymous users', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Test', estado: 'borrador', usuario_id: 'u1' })
+
+      await expect(trabajoService.obtenerPorId('t1')).rejects.toThrow('Trabajo no encontrado')
+    })
+
+    it('allows the owner to see their own draft', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Test', estado: 'borrador', usuario_id: 'u1' })
+
+      const result = await trabajoService.obtenerPorId('t1', { id: 'u1', rol: 'repositor' })
+
+      expect(result.id).toBe('t1')
+    })
+
+    it('hides another author draft from a repositor', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Test', estado: 'borrador', usuario_id: 'u1' })
+
+      await expect(
+        trabajoService.obtenerPorId('t1', { id: 'u2', rol: 'repositor' })
+      ).rejects.toThrow('Trabajo no encontrado')
+    })
+
+    it('allows admin to see any draft', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Test', estado: 'borrador', usuario_id: 'u1' })
+
+      const result = await trabajoService.obtenerPorId('t1', { id: 'admin1', rol: 'admin' })
 
       expect(result.id).toBe('t1')
     })
@@ -134,11 +225,19 @@ describe('TrabajoService', () => {
     })
 
     it('blocks non-admin roles from changing estado directly', async () => {
-      Trabajo.findByPk.mockResolvedValue({ id: 't1', update: jest.fn() })
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', usuario_id: 'u1', update: jest.fn() })
 
       await expect(
         trabajoService.actualizar('t1', { estado: 'publicado' }, 'u1', null, null, 'repositor')
       ).rejects.toThrow('No puedes cambiar el estado')
+    })
+
+    it('blocks a repositor from editing another author work', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', usuario_id: 'u1', update: jest.fn() })
+
+      await expect(
+        trabajoService.actualizar('t1', { titulo: 'Cambiado' }, 'u2', null, null, 'repositor')
+      ).rejects.toThrow('No tienes permiso para modificar este trabajo')
     })
 
     it('notifies the author when an admin publishes via update', async () => {
@@ -165,11 +264,30 @@ describe('TrabajoService', () => {
       await expect(trabajoService.eliminar('nonexistent')).rejects.toThrow('Trabajo no encontrado')
     })
 
-    it('destroys trabajo', async () => {
-      const mockTrabajo = { id: 't1', destroy: jest.fn() }
+    it('destroys trabajo when the owner requests it', async () => {
+      const mockTrabajo = { id: 't1', usuario_id: 'u1', destroy: jest.fn() }
       Trabajo.findByPk.mockResolvedValue(mockTrabajo)
 
-      await trabajoService.eliminar('t1')
+      await trabajoService.eliminar('t1', 'u1', 'repositor')
+
+      expect(mockTrabajo.destroy).toHaveBeenCalled()
+    })
+
+    it('blocks a repositor from deleting another author work', async () => {
+      const mockTrabajo = { id: 't1', usuario_id: 'u1', destroy: jest.fn() }
+      Trabajo.findByPk.mockResolvedValue(mockTrabajo)
+
+      await expect(
+        trabajoService.eliminar('t1', 'u2', 'repositor')
+      ).rejects.toThrow('No tienes permiso para eliminar este trabajo')
+      expect(mockTrabajo.destroy).not.toHaveBeenCalled()
+    })
+
+    it('allows admin to delete any work', async () => {
+      const mockTrabajo = { id: 't1', usuario_id: 'u1', destroy: jest.fn() }
+      Trabajo.findByPk.mockResolvedValue(mockTrabajo)
+
+      await trabajoService.eliminar('t1', 'admin1', 'admin')
 
       expect(mockTrabajo.destroy).toHaveBeenCalled()
     })
@@ -210,6 +328,44 @@ describe('TrabajoService', () => {
             estado: 'publicado',
           }),
         })
+      )
+    })
+
+    it('forces published state for anonymous searches', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      await trabajoService.buscar({ q: 'sistema' })
+
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ estado: 'publicado' }),
+        })
+      )
+    })
+
+    it('rejects anonymous searches for drafts', async () => {
+      await expect(
+        trabajoService.buscar({ estado: 'borrador' })
+      ).rejects.toThrow('No tienes permiso')
+    })
+
+    it('escapes the search term instead of interpolating it', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+      const { sequelize } = require('../models')
+
+      await trabajoService.buscar({ q: "' OR 1=1 --" })
+
+      expect(sequelize.escape).toHaveBeenCalledWith("' OR 1=1 --")
+    })
+
+    it('caps search results at 100', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      const result = await trabajoService.buscar({ limite: 999 })
+
+      expect(result.limite).toBe(100)
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({ limit: 100 })
       )
     })
   })

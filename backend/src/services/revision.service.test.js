@@ -48,7 +48,21 @@ describe('RevisionService', () => {
 
     it('does not allow a repositor to publish a work in review', async () => {
       Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'en_revision', titulo: 'Test', usuario_id: 'u1', save: jest.fn() })
-      await expect(revisionService.cambiarEstado('t1', 'publicado', null, { rol: 'repositor', id: 'u2' })).rejects.toThrow('No puedes cambiar')
+      await expect(revisionService.cambiarEstado('t1', 'publicado', null, { rol: 'repositor', id: 'u1' })).rejects.toThrow('No puedes cambiar')
+    })
+
+    it('does not allow a repositor to change another author work', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'borrador', titulo: 'Test', usuario_id: 'u1', save: jest.fn() })
+      await expect(revisionService.cambiarEstado('t1', 'en_revision', null, { rol: 'repositor', id: 'u2' })).rejects.toThrow('No tienes permiso para cambiar el estado de este trabajo')
+    })
+
+    it('allows the owner repositor to submit their work to review', async () => {
+      const save = jest.fn()
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', estado: 'borrador', titulo: 'Test', usuario_id: 'u1', save })
+      Usuario.findAll.mockResolvedValue([])
+      Revision.create.mockResolvedValue({})
+      await revisionService.cambiarEstado('t1', 'en_revision', null, { rol: 'repositor', id: 'u1' })
+      expect(save).toHaveBeenCalled()
     })
 
     it('generates identifier on publish', async () => {

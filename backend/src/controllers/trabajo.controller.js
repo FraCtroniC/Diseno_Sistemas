@@ -5,15 +5,31 @@ const versionService = require('../services/version.service');
 const cloudinaryService = require('../services/cloudinary.service');
 const { validationResult } = require('express-validator');
 
+function assertPdf(file) {
+  const buffer = file && file.buffer;
+  const header = Buffer.isBuffer(buffer) ? buffer.subarray(0, 5).toString('latin1') : '';
+  if (header !== '%PDF-') {
+    const err = new Error('El archivo no es un PDF válido');
+    err.statusCode = 400;
+    throw err;
+  }
+}
+
 class TrabajoController {
   async listar(req, res) {
     const { pagina, limite, estado, usuario_id } = req.query;
-    const resultado = await trabajoService.listar({ pagina, limite, estado, usuario_id });
+    const resultado = await trabajoService.listar({
+      pagina,
+      limite,
+      estado,
+      usuario_id,
+      solicitante: req.user
+    });
     res.status(200).json({ success: true, ...resultado });
   }
 
   async obtenerPorId(req, res) {
-    const trabajo = await trabajoService.obtenerPorId(req.params.id);
+    const trabajo = await trabajoService.obtenerPorId(req.params.id, req.user);
     estadisticaService.registrar(req.params.id, 'vista').catch(() => {});
     res.status(200).json({ success: true, data: trabajo });
   }
@@ -31,6 +47,7 @@ class TrabajoController {
     let archivoBuffer = null;
     let archivoPublicId = null;
     if (req.file) {
+      assertPdf(req.file);
       archivoBuffer = req.file.buffer;
       const result = await cloudinaryService.subirArchivo(req.file.buffer, req.file.originalname);
       archivoUrl = result.url;
@@ -58,12 +75,13 @@ class TrabajoController {
       throw err;
     }
 
-    const trabajoActual = await trabajoService.obtenerPorId(req.params.id);
+    const trabajoActual = await trabajoService.obtenerPorId(req.params.id, req.user);
 
     let archivoUrl = null;
     let archivoBuffer = null;
     let archivoPublicId = null;
     if (req.file) {
+      assertPdf(req.file);
       archivoBuffer = req.file.buffer;
       const result = await cloudinaryService.subirArchivo(req.file.buffer, req.file.originalname);
       archivoUrl = result.url;
@@ -84,10 +102,10 @@ class TrabajoController {
   }
 
   async eliminar(req, res) {
-    const trabajo = await trabajoService.obtenerPorId(req.params.id);
+    const trabajo = await trabajoService.obtenerPorId(req.params.id, req.user);
     const versiones = await versionService.listar(req.params.id);
 
-    await trabajoService.eliminar(req.params.id);
+    await trabajoService.eliminar(req.params.id, req.user.id, req.user.rol);
 
     // Se eliminan de Cloudinary el archivo actual y los de versiones anteriores.
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -125,12 +143,14 @@ class TrabajoController {
   }
 
   async estadisticas(req, res) {
+    await trabajoService.obtenerPorId(req.params.id, req.user);
     const stats = await estadisticaService.obtenerPorTrabajo(req.params.id);
     res.status(200).json({ success: true, data: stats });
   }
 
   async citar(req, res) {
     const formato = req.query.formato || 'apa';
+    await trabajoService.obtenerPorId(req.params.id, req.user);
     const result = await citaService.generar(req.params.id, formato);
     res.setHeader('Content-Type', result.mime);
     res.setHeader('Content-Disposition', `attachment; filename="cita-${req.params.id.slice(0, 8)}.${result.extension}"`);
@@ -138,7 +158,7 @@ class TrabajoController {
   }
 
   async descargarArchivo(req, res) {
-    const trabajo = await trabajoService.obtenerPorId(req.params.id);
+    const trabajo = await trabajoService.obtenerPorId(req.params.id, req.user);
     if (!trabajo.archivo_url) {
       const err = new Error('El trabajo no tiene un archivo asociado');
       err.statusCode = 404;
@@ -157,7 +177,10 @@ class TrabajoController {
       throw err;
     }
 
-    const resultado = await trabajoService.buscar(req.query);
+    const resultado = await trabajoService.buscar({
+      ...req.query,
+      solicitante: req.user
+    });
     res.status(200).json({ success: true, ...resultado });
   }
 }

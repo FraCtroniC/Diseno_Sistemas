@@ -2,7 +2,7 @@ const tutorService = require('../services/tutor.service');
 
 class TutorController {
   async listar(req, res) {
-    const tutores = await tutorService.listar({ q: req.query.q });
+    const tutores = await tutorService.listar({ q: req.query.q, limite: req.query.limite });
     res.status(200).json({ success: true, data: tutores });
   }
 

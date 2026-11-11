@@ -4,15 +4,22 @@ const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 const { loginRules, registerRules, forgotPasswordRules, changePasswordRules, resetPasswordRules, updateProfileRules } = require('../validators/auth.validator');
 
+const authMax = Number.parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 5;
+const generalAuthMax = Number.parseInt(process.env.AUTH_GENERAL_RATE_LIMIT_MAX, 10) || 20;
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: generalAuthMax,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
   message: { success: false, error: 'Demasiadas solicitudes. Intenta de nuevo en 15 minutos.' }
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: authMax,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
   message: { success: false, error: 'Demasiados intentos. Intenta de nuevo en 15 minutos.' }
 });
 

@@ -34,6 +34,13 @@ class RevisionService {
       throw err;
     }
 
+    // Un repositor solo puede enviar a revisión sus propios trabajos.
+    if (usuario.rol === 'repositor' && trabajo.usuario_id !== usuario.id) {
+      const err = new Error('No tienes permiso para cambiar el estado de este trabajo');
+      err.statusCode = 403;
+      throw err;
+    }
+
     const transiciones = TRANSICIONES_PERMITIDAS[usuario.rol];
     if (!transiciones) {
       const err = new Error('No tienes permiso para cambiar estados');

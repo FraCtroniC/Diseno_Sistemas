@@ -8,8 +8,14 @@
     "dev": "nodemon src/server.js",
     "db:migrate": "sequelize db:migrate",
     "db:seed": "sequelize db:seed:all",
+    "seed:test": "node scripts/seed-test-data.js",
+    "start:test": "node scripts/start-test-server.js",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:security": "node scripts/security-smoke.js",
+    "test:load:k6": "k6 run --summary-export=../.local/k6-summary.json ../tests/load/k6/carga.js",
+    "test:load:artillery": "node ../tests/load/artillery/run.js",
+    "test:load:autocannon": "node ../tests/load/autocannon/run.js"
   },
   "keywords": [],
   "author": "",

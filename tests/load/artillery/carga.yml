@@ -1,0 +1,83 @@
+config:
+  target: "http://localhost:5001"
+  http:
+    timeout: 15
+  phases:
+    - name: "Calentamiento"
+      duration: 10
+      arrivalRate: 3
+    - name: "Carga sostenida"
+      duration: 25
+      arrivalRate: 15
+    - name: "Pico"
+      duration: 10
+      arrivalRate: 30
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Catálogo y búsqueda pública"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/v1/trabajos?limite=10&pagina=1"
+      - get:
+          url: "/api/v1/trabajos/buscar?q=sistema&limite=10"
+      - get:
+          url: "/api/v1/categorias"
+      - get:
+          url: "/api/v1/trabajos/a0000000-0000-4000-8000-000000000001"
+
+  - name: "Autor autenticado"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/v1/trabajos?estado=borrador&usuario_id=44444444-4444-4444-8444-444444444444&limite=10"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.AUTOR_TOKEN }}"
+      - get:
+          url: "/api/v1/notificaciones?limite=10"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.AUTOR_TOKEN }}"
+      - get:
+          url: "/api/v1/auth/perfil"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.AUTOR_TOKEN }}"
+
+  - name: "Panel administrativo"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/v1/trabajos?estado=borrador&limite=10"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.ADMIN_TOKEN }}"
+      - get:
+          url: "/api/v1/estudiantes?limite=10"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.ADMIN_TOKEN }}"
+      - get:
+          url: "/api/v1/tutores?limite=10"
+      - get:
+          url: "/api/v1/revisiones/pendientes"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.ADMIN_TOKEN }}"
+
+  - name: "Detalle, comentarios y citas"
+    weight: 8
+    flow:
+      - get:
+          url: "/api/v1/trabajos/a0000000-0000-4000-8000-000000000001/comentarios"
+      - get:
+          url: "/api/v1/trabajos/a0000000-0000-4000-8000-000000000001/cita?formato=apa"
+      - get:
+          url: "/api/v1/trabajos/a0000000-0000-4000-8000-000000000001/estadisticas"
+
+  - name: "Login (bcrypt)"
+    weight: 2
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "autor1@test.local"
+            password: "Autor123!"

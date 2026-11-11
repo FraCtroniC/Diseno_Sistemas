@@ -32,7 +32,7 @@ class VersionService {
     });
   }
 
-  async restaurar(versionId, usuarioId) {
+  async restaurar(versionId, usuarioId, rol) {
     const version = await Version.findByPk(versionId);
     if (!version) {
       const err = new Error('Versión no encontrada');
@@ -44,6 +44,13 @@ class VersionService {
     if (!trabajo) {
       const err = new Error('Trabajo no encontrado');
       err.statusCode = 404;
+      throw err;
+    }
+
+    const puedeGestionar = rol === 'admin' || rol === 'bibliotecario' || trabajo.usuario_id === usuarioId;
+    if (!puedeGestionar) {
+      const err = new Error('No tienes permiso para restaurar versiones de este trabajo');
+      err.statusCode = 403;
       throw err;
     }
 

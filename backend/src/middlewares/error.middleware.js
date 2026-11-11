@@ -15,6 +15,12 @@ module.exports = (err, req, res, next) => {
       statusCode = 400;
       message = `Error al procesar el archivo: ${err.message}`;
     }
+  } else if (err.type === 'entity.too.large') {
+    statusCode = 413;
+    message = 'El cuerpo de la solicitud es demasiado grande';
+  } else if (err.type === 'entity.parse.failed' || (err instanceof SyntaxError && err.status === 400)) {
+    statusCode = 400;
+    message = 'JSON inválido en el cuerpo de la solicitud';
   }
 
   const details = err.details || null;

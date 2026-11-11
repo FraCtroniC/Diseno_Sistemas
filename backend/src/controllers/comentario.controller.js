@@ -1,7 +1,10 @@
 const comentarioService = require('../services/comentario.service');
+const trabajoService = require('../services/trabajo.service');
 
 class ComentarioController {
   async listar(req, res) {
+    // Solo se pueden leer comentarios de trabajos visibles para el solicitante.
+    await trabajoService.obtenerPorId(req.params.id, req.user);
     const resultado = await comentarioService.listar(req.params.id);
     res.status(200).json({ success: true, ...resultado });
   }
@@ -13,6 +16,7 @@ class ComentarioController {
       err.statusCode = 400;
       throw err;
     }
+    await trabajoService.obtenerPorId(req.params.id, req.user);
     const result = await comentarioService.crear(req.params.id, req.user.id, comentario, calificacion);
     res.status(201).json({ success: true, data: result });
   }

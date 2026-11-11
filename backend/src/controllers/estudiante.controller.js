@@ -4,7 +4,8 @@ class EstudianteController {
   async listar(req, res) {
     const estudiantes = await estudianteService.listar({
       q: req.query.q,
-      carrera_id: req.query.carrera_id
+      carrera_id: req.query.carrera_id,
+      limite: req.query.limite
     });
     res.status(200).json({ success: true, data: estudiantes });
   }

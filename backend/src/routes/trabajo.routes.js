@@ -4,20 +4,22 @@ const revisionController = require('../controllers/revision.controller');
 const comentarioController = require('../controllers/comentario.controller');
 const versionController = require('../controllers/version.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
+const optionalAuthMiddleware = require('../middlewares/optional-auth.middleware');
 const roleMiddleware = require('../middlewares/role.middleware');
 const upload = require('../middlewares/upload.middleware');
-const { createTrabajoRules, updateTrabajoRules, cambioEstadoRules, buscarRules } = require('../validators/trabajo.validator');
+const validate = require('../middlewares/validation.middleware');
+const { createTrabajoRules, updateTrabajoRules, cambioEstadoRules, buscarRules, listarRules } = require('../validators/trabajo.validator');
 
 const router = Router();
 
-router.get('/buscar', buscarRules, trabajoController.buscar);
-router.get('/', trabajoController.listar);
-router.get('/:id', trabajoController.obtenerPorId);
-router.get('/:id/archivo', trabajoController.descargarArchivo);
-router.get('/:id/cita', trabajoController.citar);
-router.get('/:id/estadisticas', trabajoController.estadisticas);
-router.get('/:id/comentarios', comentarioController.listar);
-router.get('/:id/versiones', versionController.listar);
+router.get('/buscar', optionalAuthMiddleware, buscarRules, validate, trabajoController.buscar);
+router.get('/', optionalAuthMiddleware, listarRules, validate, trabajoController.listar);
+router.get('/:id', optionalAuthMiddleware, trabajoController.obtenerPorId);
+router.get('/:id/archivo', optionalAuthMiddleware, trabajoController.descargarArchivo);
+router.get('/:id/cita', optionalAuthMiddleware, trabajoController.citar);
+router.get('/:id/estadisticas', optionalAuthMiddleware, trabajoController.estadisticas);
+router.get('/:id/comentarios', optionalAuthMiddleware, comentarioController.listar);
+router.get('/:id/versiones', optionalAuthMiddleware, versionController.listar);
 
 router.use(authMiddleware);
 router.post('/:id/comentarios', comentarioController.crear);

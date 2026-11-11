@@ -121,7 +121,12 @@ async function identify() {
 async function listMetadataFormats(identifier) {
   let xml;
   if (identifier) {
-    const t = await Trabajo.findOne({ where: { [Op.or]: [{ identificador: identifier }, { id: identifier.replace(identifierPrefix, '') }] } });
+    const t = await Trabajo.findOne({
+      where: {
+        estado: 'publicado',
+        [Op.or]: [{ identificador: identifier }, { id: identifier.replace(identifierPrefix, '') }]
+      }
+    });
     if (!t) return errorXml('idDoesNotExist', 'El identificador no existe en el repositorio.');
     xml = baseXml('ListMetadataFormats', ` identifier="${escXml(identifier)}"`);
   } else {

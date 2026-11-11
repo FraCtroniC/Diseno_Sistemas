@@ -1,5 +1,11 @@
+const fs = require('fs/promises');
+const path = require('path');
+const crypto = require('crypto');
 const cloudinary = require('cloudinary').v2;
 const { Readable } = require('stream');
+const environment = require('../../config/environment');
+
+const LOCAL_MODE = environment.cloudinaryMode === 'local';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -12,6 +18,13 @@ function bufferToStream(buffer) {
   readable.push(buffer);
   readable.push(null);
   return readable;
+}
+
+function localFileName(originalName) {
+  const base = path.basename(originalName || 'documento.pdf');
+  const withoutExt = base.replace(/\.[^/.]+$/, '');
+  const safe = withoutExt.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80) || 'documento';
+  return `${Date.now()}-${crypto.randomUUID()}-${safe}.pdf`;
 }
 
 /**
@@ -41,7 +54,21 @@ function extraerPublicId(url) {
 }
 
 class CloudinaryService {
+  /**
+   * En modo local (pruebas) guarda el PDF en .local/uploads y devuelve una URL
+   * servida por el propio backend. En modo normal usa Cloudinary.
+   */
   async subirArchivo(buffer, originalName) {
+    if (LOCAL_MODE) {
+      await fs.mkdir(environment.localUploadDir, { recursive: true });
+      const filename = localFileName(originalName);
+      await fs.writeFile(path.join(environment.localUploadDir, filename), buffer);
+      return {
+        url: `${environment.backendUrl}/local-files/${encodeURIComponent(filename)}`,
+        publicId: `local:${filename}`
+      };
+    }
+
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -63,9 +90,20 @@ class CloudinaryService {
   }
 
   async eliminarArchivo(publicId) {
+    if (LOCAL_MODE && typeof publicId === 'string' && publicId.startsWith('local:')) {
+      const filename = publicId.slice('local:'.length);
+      try {
+        await fs.unlink(path.join(environment.localUploadDir, filename));
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+      return { result: 'ok' };
+    }
+
     return cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
   }
 }
 
 module.exports = new CloudinaryService();
 module.exports.extraerPublicId = extraerPublicId;
+module.exports.LOCAL_MODE = LOCAL_MODE;

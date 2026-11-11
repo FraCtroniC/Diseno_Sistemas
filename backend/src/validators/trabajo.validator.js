@@ -96,10 +96,23 @@ const cambioEstadoRules = [
     .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido')
 ];
 
+const paginacionRules = [
+  query('pagina')
+    .optional()
+    .isInt({ min: 1 }).withMessage('pagina debe ser un entero positivo')
+    .toInt(),
+  query('limite')
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage('limite debe ser entre 1 y 100')
+    .toInt()
+];
+
 const buscarRules = [
   query('q')
     .optional()
-    .isString().withMessage('El término de búsqueda debe ser texto'),
+    .isString().withMessage('El término de búsqueda debe ser texto')
+    .trim()
+    .isLength({ max: 200 }).withMessage('El término de búsqueda no puede exceder 200 caracteres'),
   query('categoria')
     .optional()
     .isUUID().withMessage('categoria debe ser un UUID válido'),
@@ -108,16 +121,25 @@ const buscarRules = [
     .isString().withMessage('tipo_documento debe ser texto'),
   query('anio')
     .optional()
-    .isInt({ min: 1900, max: 2100 }).withMessage('Año inválido'),
+    .isInt({ min: 1900, max: 2100 }).withMessage('Año inválido')
+    .toInt(),
   query('estado')
     .optional()
-    .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-  query('pagina')
+    .isIn(['borrador', 'en_revision', 'publicado', 'archivado']).withMessage('Estado inválido'),
+  query('usuario_id')
     .optional()
-    .isInt({ min: 1 }).withMessage('pagina debe ser un entero positivo'),
-  query('limite')
-    .optional()
-    .isInt({ min: 1, max: 100 }).withMessage('limite debe ser entre 1 y 100')
+    .isUUID().withMessage('usuario_id debe ser un UUID válido'),
+  ...paginacionRules
 ];
 
-module.exports = { createTrabajoRules, updateTrabajoRules, cambioEstadoRules, buscarRules };
+const listarRules = [
+  query('estado')
+    .optional()
+    .isIn(['borrador', 'en_revision', 'publicado', 'archivado']).withMessage('Estado inválido'),
+  query('usuario_id')
+    .optional()
+    .isUUID().withMessage('usuario_id debe ser un UUID válido'),
+  ...paginacionRules
+];
+
+module.exports = { createTrabajoRules, updateTrabajoRules, cambioEstadoRules, buscarRules, listarRules };

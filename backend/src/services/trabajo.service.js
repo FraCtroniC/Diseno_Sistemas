@@ -17,19 +17,88 @@ function pick(obj, keys) {
   return result;
 }
 
-class TrabajoService {
-  async listar({ pagina = 1, limite = 10, estado, usuario_id } = {}) {
-    const offset = (pagina - 1) * limite;
-    const where = {};
+const ROLES_CON_VISIBILIDAD_TOTAL = ['admin', 'bibliotecario'];
+
+function normalizarPaginacion(pagina, limite, limitePorDefecto = 10) {
+  const paginaNum = Number.parseInt(pagina, 10);
+  const limiteNum = Number.parseInt(limite, 10);
+  return {
+    pagina: Number.isInteger(paginaNum) && paginaNum > 0 ? paginaNum : 1,
+    limite: Number.isInteger(limiteNum) && limiteNum > 0 ? Math.min(limiteNum, 100) : limitePorDefecto
+  };
+}
+
+function puedeVerTodo(usuario) {
+  return Boolean(usuario && ROLES_CON_VISIBILIDAD_TOTAL.includes(usuario.rol));
+}
+
+function puedeVerTrabajo(trabajo, usuario) {
+  if (trabajo.estado === 'publicado') return true;
+  if (!usuario) return false;
+  return puedeVerTodo(usuario) || trabajo.usuario_id === usuario.id;
+}
+
+function puedeGestionarTrabajo(trabajo, usuarioId, rol) {
+  return rol === 'admin' || rol === 'bibliotecario' || trabajo.usuario_id === usuarioId;
+}
+
+function aplicarVisibilidad(where, { estado, usuario_id, solicitante }) {
+  if (!solicitante) {
+    if (estado && estado !== 'publicado') {
+      const err = new Error('No tienes permiso para consultar trabajos en ese estado');
+      err.statusCode = 403;
+      throw err;
+    }
+    if (usuario_id) {
+      const err = new Error('No tienes permiso para filtrar por usuario');
+      err.statusCode = 403;
+      throw err;
+    }
+    where.estado = 'publicado';
+    return;
+  }
+
+  if (puedeVerTodo(solicitante)) {
     if (estado) where.estado = estado;
     if (usuario_id) where.usuario_id = usuario_id;
+    return;
+  }
+
+  // Autor/repositor: solo puede consultar sus propios trabajos no publicados.
+  if (usuario_id && usuario_id !== solicitante.id) {
+    const err = new Error('No tienes permiso para consultar trabajos de otro usuario');
+    err.statusCode = 403;
+    throw err;
+  }
+
+  if (estado && estado !== 'publicado') {
+    where.estado = estado;
+    where.usuario_id = solicitante.id;
+    return;
+  }
+
+  if (usuario_id === solicitante.id) {
+    where.usuario_id = solicitante.id;
+    if (estado) where.estado = estado;
+    return;
+  }
+
+  where.estado = 'publicado';
+}
+
+class TrabajoService {
+  async listar({ pagina, limite, estado, usuario_id, solicitante } = {}) {
+    const paginacion = normalizarPaginacion(pagina, limite);
+    const offset = (paginacion.pagina - 1) * paginacion.limite;
+    const where = {};
+    aplicarVisibilidad(where, { estado, usuario_id, solicitante });
 
     const includes = [
       { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       { model: Carrera, as: 'carrera', attributes: ['id', 'nombre', 'slug'] },
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
-      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre', 'cedula'] }
+      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
     ];
 
     const { count, rows } = await Trabajo.findAndCountAll({
@@ -37,29 +106,29 @@ class TrabajoService {
       include: includes,
       order: [['createdAt', 'DESC']],
       offset,
-      limit: limite
+      limit: paginacion.limite
     });
 
     return {
       total: count,
-      pagina,
-      limite,
-      totalPaginas: Math.ceil(count / limite),
+      pagina: paginacion.pagina,
+      limite: paginacion.limite,
+      totalPaginas: Math.ceil(count / paginacion.limite),
       datos: rows
     };
   }
 
-  async obtenerPorId(id) {
+  async obtenerPorId(id, solicitante) {
     const includes = [
       { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       { model: Carrera, as: 'carrera', attributes: ['id', 'nombre', 'slug'] },
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
-      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre', 'cedula'] }
+      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
     ];
 
     const trabajo = await Trabajo.findByPk(id, { include: includes });
-    if (!trabajo) {
+    if (!trabajo || !puedeVerTrabajo(trabajo, solicitante)) {
       const err = new Error('Trabajo no encontrado');
       err.statusCode = 404;
       throw err;
@@ -136,6 +205,12 @@ class TrabajoService {
       throw err;
     }
 
+    if (!puedeGestionarTrabajo(trabajo, usuarioId, rol)) {
+      const err = new Error('No tienes permiso para modificar este trabajo');
+      err.statusCode = 403;
+      throw err;
+    }
+
     if (data.metadatos && typeof data.metadatos === 'string') {
       data.metadatos = JSON.parse(data.metadatos);
     }
@@ -176,13 +251,20 @@ class TrabajoService {
     return trabajo;
   }
 
-  async eliminar(id) {
+  async eliminar(id, usuarioId, rol) {
     const trabajo = await Trabajo.findByPk(id);
     if (!trabajo) {
       const err = new Error('Trabajo no encontrado');
       err.statusCode = 404;
       throw err;
     }
+
+    if (!puedeGestionarTrabajo(trabajo, usuarioId, rol)) {
+      const err = new Error('No tienes permiso para eliminar este trabajo');
+      err.statusCode = 403;
+      throw err;
+    }
+
     await trabajo.destroy();
   }
 
@@ -198,8 +280,9 @@ class TrabajoService {
     return trabajo;
   }
 
-  async buscar({ q, categoria, tipo_documento, anio, estado, usuario_id, pagina = 1, limite = 10 }) {
-    const offset = (pagina - 1) * limite;
+  async buscar({ q, categoria, tipo_documento, anio, estado, usuario_id, pagina, limite, solicitante } = {}) {
+    const paginacion = normalizarPaginacion(pagina, limite);
+    const offset = (paginacion.pagina - 1) * paginacion.limite;
     const where = {};
     const attributes = [
       'id', 'titulo', 'autor', 'tutor', 'anio', 'resumen',
@@ -207,17 +290,20 @@ class TrabajoService {
       'estado', 'usuario_id', 'identificador', 'createdAt', 'updatedAt'
     ];
 
+    aplicarVisibilidad(where, { estado, usuario_id, solicitante });
+
     if (q) {
-      const sq = q.replace(/'/g, "''");
+      // sequelize.escape genera un literal SQL seguro; nunca se interpola q directamente.
+      const qEscapado = sequelize.escape(q);
       where[Op.or] = [
         { titulo: { [Op.iLike]: `%${q}%` } },
         { autor: { [Op.iLike]: `%${q}%` } },
         { tutor: { [Op.iLike]: `%${q}%` } },
         { palabras_clave: { [Op.overlap]: [q] } },
-        literal(`to_tsvector('spanish', coalesce("texto_completo", '')) @@ plainto_tsquery('spanish', '${sq}')`)
+        literal(`"search_vector" @@ plainto_tsquery('spanish', ${qEscapado})`)
       ];
       attributes.push([
-        literal(`ts_headline('spanish', "texto_completo", plainto_tsquery('spanish', '${sq}'), 'MaxWords=35,MinWords=15,MaxFragments=2')`),
+        literal(`ts_headline('spanish', "texto_completo", plainto_tsquery('spanish', ${qEscapado}), 'MaxWords=35,MinWords=15,MaxFragments=2')`),
         'snippet'
       ]);
     }
@@ -229,14 +315,12 @@ class TrabajoService {
       };
     }
     if (anio) where.anio = anio;
-    if (estado) where.estado = estado;
-    if (usuario_id) where.usuario_id = usuario_id;
 
     let order;
     if (q) {
-      const sq = q.replace(/'/g, "''");
+      const qEscapado = sequelize.escape(q);
       order = [
-        [literal(`ts_rank(to_tsvector('spanish', coalesce("texto_completo", '')), plainto_tsquery('spanish', '${sq}'))`), 'DESC'],
+        [literal(`ts_rank("search_vector", plainto_tsquery('spanish', ${qEscapado}))`), 'DESC'],
         ['createdAt', 'DESC']
       ];
     } else {
@@ -248,7 +332,7 @@ class TrabajoService {
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       { model: Carrera, as: 'carrera', attributes: ['id', 'nombre', 'slug'] },
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
-      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre', 'cedula'] }
+      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
     ];
 
     const { count, rows } = await Trabajo.findAndCountAll({
@@ -257,14 +341,14 @@ class TrabajoService {
       include: includes,
       order,
       offset,
-      limit: limite
+      limit: paginacion.limite
     });
 
     return {
       total: count,
-      pagina,
-      limite,
-      totalPaginas: Math.ceil(count / limite),
+      pagina: paginacion.pagina,
+      limite: paginacion.limite,
+      totalPaginas: Math.ceil(count / paginacion.limite),
       datos: rows
     };
   }
