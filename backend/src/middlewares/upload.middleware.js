@@ -1,5 +1,8 @@
 const multer = require('multer');
 
+const MAX_PDF_SIZE_MB = 10;
+const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1024 * 1024;
+
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -15,7 +18,9 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 }
+  limits: { fileSize: MAX_PDF_SIZE_BYTES }
 });
 
 module.exports = upload;
+module.exports.MAX_PDF_SIZE_MB = MAX_PDF_SIZE_MB;
+module.exports.MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_BYTES;

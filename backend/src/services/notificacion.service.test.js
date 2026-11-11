@@ -9,7 +9,12 @@ jest.mock('../models', () => ({
   Trabajo: {},
 }))
 
+jest.mock('./sse.service', () => ({
+  notifyUser: jest.fn(),
+}))
+
 const { Notificacion } = require('../models')
+const { notifyUser } = require('./sse.service')
 const notificacionService = require('./notificacion.service')
 
 describe('NotificacionService', () => {
@@ -21,6 +26,22 @@ describe('NotificacionService', () => {
       const result = await notificacionService.crear('u1', 'publicado', 'Test', 't1')
       expect(result.id).toBe('n1')
       expect(Notificacion.create).toHaveBeenCalledWith({ usuario_id: 'u1', tipo: 'publicado', mensaje: 'Test', trabajo_id: 't1' })
+    })
+  })
+
+  describe('crearYNotificar', () => {
+    it('creates the notification, counts unread and pushes over SSE', async () => {
+      Notificacion.create.mockResolvedValue({ id: 'n1' })
+      Notificacion.count.mockResolvedValue(3)
+
+      const result = await notificacionService.crearYNotificar('u1', 'comentario', 'Test', 't1')
+
+      expect(Notificacion.create).toHaveBeenCalledWith({
+        usuario_id: 'u1', tipo: 'comentario', mensaje: 'Test', trabajo_id: 't1'
+      })
+      expect(Notificacion.count).toHaveBeenCalledWith({ where: { usuario_id: 'u1', leida: false } })
+      expect(notifyUser).toHaveBeenCalledWith('u1', { type: 'count', noLeidas: 3 })
+      expect(result).toBe(3)
     })
   })
 

@@ -1,4 +1,5 @@
 const { Notificacion, Trabajo } = require('../models');
+const sseService = require('./sse.service');
 
 class NotificacionService {
   async crear(usuarioId, tipo, mensaje, trabajoId = null) {
@@ -8,6 +9,17 @@ class NotificacionService {
       mensaje,
       trabajo_id: trabajoId
     });
+  }
+
+  /**
+   * Crea la notificación, recalcula el contador de no leídas del usuario
+   * y lo envía por SSE para que la campana se actualice en tiempo real.
+   */
+  async crearYNotificar(usuarioId, tipo, mensaje, trabajoId = null) {
+    await this.crear(usuarioId, tipo, mensaje, trabajoId);
+    const noLeidas = await this.contarNoLeidas(usuarioId);
+    sseService.notifyUser(usuarioId, { type: 'count', noLeidas });
+    return noLeidas;
   }
 
   async listarPorUsuario(usuarioId, pagina = 1, limite = 20) {

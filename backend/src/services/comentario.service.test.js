@@ -5,9 +5,18 @@ jest.mock('../models', () => ({
     findByPk: jest.fn(),
   },
   Usuario: {},
+  Trabajo: {
+    findByPk: jest.fn(),
+  },
 }))
 
-const { Comentario } = require('../models')
+const mockCrearYNotificar = jest.fn()
+
+jest.mock('./notificacion.service', () => ({
+  crearYNotificar: mockCrearYNotificar,
+}))
+
+const { Comentario, Trabajo } = require('../models')
 const comentarioService = require('./comentario.service')
 
 describe('ComentarioService', () => {
@@ -59,6 +68,35 @@ describe('ComentarioService', () => {
       })
       const result = await comentarioService.crear('t1', 'u1', 'Ok', null)
       expect(result.calificacion).toBeNull()
+    })
+
+    it('notifies the work owner when someone else comments', async () => {
+      Comentario.create.mockResolvedValue({ id: 'c3' })
+      Comentario.findByPk.mockResolvedValue({
+        id: 'c3', comentario: 'Bueno',
+        usuario: { id: 'u2', nombre: 'Pedro' }
+      })
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Tesis', usuario_id: 'u1' })
+      mockCrearYNotificar.mockResolvedValue(1)
+
+      await comentarioService.crear('t1', 'u2', 'Bueno', null)
+
+      expect(mockCrearYNotificar).toHaveBeenCalledWith(
+        'u1', 'comentario', 'Nuevo comentario de Pedro en "Tesis".', 't1'
+      )
+    })
+
+    it('does not notify when the owner comments on their own work', async () => {
+      Comentario.create.mockResolvedValue({ id: 'c4' })
+      Comentario.findByPk.mockResolvedValue({
+        id: 'c4', comentario: 'Ok',
+        usuario: { id: 'u1', nombre: 'Ana' }
+      })
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', titulo: 'Tesis', usuario_id: 'u1' })
+
+      await comentarioService.crear('t1', 'u1', 'Ok', null)
+
+      expect(mockCrearYNotificar).not.toHaveBeenCalled()
     })
   })
 })

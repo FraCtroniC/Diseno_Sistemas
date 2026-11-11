@@ -14,6 +14,32 @@ function bufferToStream(buffer) {
   return readable;
 }
 
+/**
+ * Extrae el public_id de una URL de entrega de Cloudinary.
+ * Ej: https://res.cloudinary.com/demo/raw/upload/v123/trabajos/mi-archivo.pdf
+ *     -> trabajos/mi-archivo.pdf
+ */
+function extraerPublicId(url) {
+  if (!url || typeof url !== 'string') return null;
+
+  try {
+    const parsed = new URL(url);
+    if (!/(^|\.)res\.cloudinary\.com$/i.test(parsed.hostname)) return null;
+
+    const partes = parsed.pathname.split('/').filter(Boolean);
+    const uploadIndex = partes.indexOf('upload');
+    if (uploadIndex === -1) return null;
+
+    const resto = partes.slice(uploadIndex + 1);
+    if (resto.length > 0 && /^v\d+$/.test(resto[0])) resto.shift();
+
+    const publicId = decodeURIComponent(resto.join('/'));
+    return publicId || null;
+  } catch {
+    return null;
+  }
+}
+
 class CloudinaryService {
   async subirArchivo(buffer, originalName) {
     return new Promise((resolve, reject) => {
@@ -42,3 +68,4 @@ class CloudinaryService {
 }
 
 module.exports = new CloudinaryService();
+module.exports.extraerPublicId = extraerPublicId;

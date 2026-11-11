@@ -3,26 +3,64 @@ import { useNavigate } from 'react-router-dom'
 import { useNotificationStore } from '../stores/useNotificationStore'
 
 export default function NotificationBell() {
-  const { notificaciones, noLeidas, fetch, setNoLeidas, marcarLeida, marcarTodasLeidas } = useNotificationStore()
+  const { notificaciones, noLeidas, fetch, contar, setNoLeidas, marcarLeida, marcarTodasLeidas } = useNotificationStore()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetch()
-    const es = new EventSource('/api/v1/notificaciones/stream')
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        if (data.type === 'count' && typeof data.noLeidas === 'number') {
-          setNoLeidas(data.noLeidas)
+
+    // El SSE es el canal en tiempo real, pero no es confiable en todos los
+    // entornos (proxies, reinicios del servidor, cortes de red), por lo que
+    // conviene dejar que el navegador reintente y respaldarlo con polling.
+    const conexion: { es: EventSource | null } = { es: null }
+    let fallos = 0
+
+    function conectar() {
+      if (conexion.es) return
+      const source = new EventSource('/api/v1/notificaciones/stream')
+      conexion.es = source
+
+      source.onopen = () => { fallos = 0 }
+
+      source.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          if (data.type === 'count' && typeof data.noLeidas === 'number') {
+            setNoLeidas(data.noLeidas)
+            // Mantenemos la lista del panel sincronizada con el contador.
+            fetch()
+          }
+        } catch { /* ignore parse errors */ }
+      }
+
+      source.onerror = () => {
+        // EventSource reintenta por sí solo; tras varios fallos seguidos
+        // lo cerramos y dejamos que el polling mantenga vivo el contador.
+        fallos += 1
+        if (fallos >= 5) {
+          source.close()
+          conexion.es = null
         }
-      } catch { /* ignore parse errors */ }
+      }
     }
-    es.onerror = () => {
-      es.close()
+
+    function alCambiarVisibilidad() {
+      if (document.visibilityState !== 'visible') return
+      if (!conexion.es) conectar()
+      fetch()
     }
-    return () => es.close()
+
+    conectar()
+    const polling = window.setInterval(() => contar(), 30000)
+    document.addEventListener('visibilitychange', alCambiarVisibilidad)
+
+    return () => {
+      document.removeEventListener('visibilitychange', alCambiarVisibilidad)
+      window.clearInterval(polling)
+      conexion.es?.close()
+    }
   }, [])
 
   useEffect(() => {

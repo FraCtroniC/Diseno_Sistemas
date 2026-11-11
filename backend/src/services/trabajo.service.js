@@ -2,6 +2,7 @@ const { Op, literal } = require('sequelize');
 const { Trabajo, Categoria, Usuario, Carrera, Tutor, Estudiante, sequelize } = require('../models');
 const { validarMetadatos } = require('../validators/metadatos.schema');
 const { extractTextFromPdf } = require('./pdf.service');
+const notificacionService = require('./notificacion.service');
 
 const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'metadatos', 'estado'];
 const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'metadatos', 'estado'];
@@ -95,12 +96,36 @@ class TrabajoService {
       textoCompleto = await extractTextFromPdf(archivoBuffer);
     }
 
-    return Trabajo.create({
+    const trabajo = await Trabajo.create({
       ...pick(data, CAMPOS_CREAR),
       archivo_url: archivoUrl,
       texto_completo: textoCompleto,
       usuario_id: usuarioId
     });
+
+    // Publicación directa (solo admin): avisamos al autor, igual que en el flujo de revisión.
+    if (trabajo.estado === 'publicado') {
+      await this.notificarPublicacion(trabajo);
+    }
+
+    return trabajo;
+  }
+
+  /**
+   * Avisa al autor de un trabajo cuando este queda publicado. Si la
+   * notificación falla no debe impedir que la publicación se complete.
+   */
+  async notificarPublicacion(trabajo) {
+    try {
+      await notificacionService.crearYNotificar(
+        trabajo.usuario_id,
+        'publicado',
+        `Tu trabajo "${trabajo.titulo}" ha sido publicado.`,
+        trabajo.id
+      );
+    } catch (err) {
+      console.error('No se pudo crear la notificación de publicación:', err);
+    }
   }
 
   async actualizar(id, data, usuarioId, archivoUrl = null, archivoBuffer = null, rol = 'bibliotecario') {
@@ -140,7 +165,14 @@ class TrabajoService {
     if (archivoBuffer) {
       updateData.texto_completo = await extractTextFromPdf(archivoBuffer);
     }
+    const estadoAnterior = trabajo.estado;
     await trabajo.update(updateData);
+
+    // Publicación directa al editar (solo admin): avisamos al autor.
+    if (trabajo.estado === 'publicado' && estadoAnterior !== 'publicado') {
+      await this.notificarPublicacion(trabajo);
+    }
+
     return trabajo;
   }
 

@@ -14,6 +14,12 @@ jest.mock('../validators/metadatos.schema', () => ({
   validarMetadatos: jest.fn((m) => m),
 }))
 
+const mockCrearYNotificar = jest.fn()
+
+jest.mock('./notificacion.service', () => ({
+  crearYNotificar: mockCrearYNotificar,
+}))
+
 const { Trabajo, Categoria } = require('../models')
 const trabajoService = require('./trabajo.service')
 
@@ -96,6 +102,19 @@ describe('TrabajoService', () => {
         )
       ).rejects.toThrow('Solo los administradores')
     })
+
+    it('notifies the author when created as published', async () => {
+      Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+      Trabajo.create.mockResolvedValue({ id: 't1', titulo: 'Test', usuario_id: 'u1', estado: 'publicado' })
+      mockCrearYNotificar.mockResolvedValue(1)
+
+      await trabajoService.crear(
+        { titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024, estado: 'publicado' },
+        'u1', null, null, 'admin'
+      )
+
+      expect(mockCrearYNotificar).toHaveBeenCalledWith('u1', 'publicado', expect.any(String), 't1')
+    })
   })
 
   describe('actualizar', () => {
@@ -120,6 +139,22 @@ describe('TrabajoService', () => {
       await expect(
         trabajoService.actualizar('t1', { estado: 'publicado' }, 'u1', null, null, 'repositor')
       ).rejects.toThrow('No puedes cambiar el estado')
+    })
+
+    it('notifies the author when an admin publishes via update', async () => {
+      const mockTrabajo = {
+        id: 't1',
+        titulo: 'Test',
+        usuario_id: 'autor1',
+        estado: 'borrador',
+        update: jest.fn(function (data) { Object.assign(this, data) }),
+      }
+      Trabajo.findByPk.mockResolvedValue(mockTrabajo)
+      mockCrearYNotificar.mockResolvedValue(1)
+
+      await trabajoService.actualizar('t1', { estado: 'publicado' }, 'u1', null, null, 'admin')
+
+      expect(mockCrearYNotificar).toHaveBeenCalledWith('autor1', 'publicado', expect.any(String), 't1')
     })
   })
 

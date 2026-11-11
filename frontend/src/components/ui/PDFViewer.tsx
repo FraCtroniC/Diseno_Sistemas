@@ -3,29 +3,16 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
 interface PDFViewerProps {
   url: string
-  filename?: string
 }
 
-export default function PDFViewer({ url, filename }: PDFViewerProps) {
+export default function PDFViewer({ url }: PDFViewerProps) {
   const [numPages, setNumPages] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
   const [scale, setScale] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  function onLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages)
-    setLoading(false)
-  }
-
-  function onLoadError() {
-    setLoading(false)
-    setError(true)
-  }
 
   return (
     <div className="space-y-4">
@@ -40,7 +27,7 @@ export default function PDFViewer({ url, filename }: PDFViewerProps) {
             ← Anterior
           </button>
           <span className="text-sm font-medium text-slate-600">
-            Pág. {pageNumber} de {numPages}
+            {numPages > 0 ? `Pág. ${pageNumber} de ${numPages}` : 'Pág. —'}
           </span>
           <button
             type="button"
@@ -84,28 +71,32 @@ export default function PDFViewer({ url, filename }: PDFViewerProps) {
       </div>
 
       <div className="flex justify-center rounded-xl border border-slate-200 bg-slate-50 p-4">
-        {loading ? (
-          <div className="flex h-96 items-center justify-center text-sm text-slate-500">
-            Cargando PDF...
-          </div>
-        ) : error ? (
-          <div className="flex h-96 items-center justify-center text-sm text-rose-600">
-            No se pudo cargar el PDF.{' '}
-            <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 font-semibold underline">
-              Descargar directamente
-            </a>
-          </div>
-        ) : (
-          <Document file={url} onLoadSuccess={onLoadSuccess} onLoadError={onLoadError}>
-            <Page
-              pageNumber={pageNumber}
-              scale={scale}
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-              className="shadow-xl"
-            />
-          </Document>
-        )}
+        {/* El Document siempre está montado: loading/error los maneja react-pdf. */}
+        <Document
+          file={url}
+          loading={
+            <div className="flex h-96 items-center justify-center text-sm text-slate-500">
+              Cargando PDF...
+            </div>
+          }
+          error={
+            <div className="flex h-96 items-center justify-center text-sm text-rose-600">
+              No se pudo cargar el PDF.{' '}
+              <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1 font-semibold underline">
+                Descargar directamente
+              </a>
+            </div>
+          }
+          onLoadSuccess={({ numPages: total }) => setNumPages(total)}
+        >
+          <Page
+            pageNumber={pageNumber}
+            scale={scale}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+            className="shadow-xl"
+          />
+        </Document>
       </div>
     </div>
   )

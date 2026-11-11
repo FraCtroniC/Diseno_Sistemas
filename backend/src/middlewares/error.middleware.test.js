@@ -1,3 +1,4 @@
+const multer = require('multer')
 const errorMiddleware = require('./error.middleware')
 
 describe('error.middleware', () => {
@@ -48,6 +49,36 @@ describe('error.middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         errors: [{ field: 'email', message: 'Invalid email' }],
+      })
+    )
+  })
+
+  it('maps LIMIT_FILE_SIZE to 413 with a clear message', () => {
+    const err = new multer.MulterError('LIMIT_FILE_SIZE')
+
+    errorMiddleware(err, req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(413)
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('10 MB'),
+        statusCode: 413,
+      })
+    )
+  })
+
+  it('maps other Multer errors to 400', () => {
+    const err = new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'archivo')
+
+    errorMiddleware(err, req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(400)
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining('Error al procesar el archivo'),
+        statusCode: 400,
       })
     )
   })

@@ -1,4 +1,5 @@
-const { Comentario, Usuario } = require('../models');
+const { Comentario, Usuario, Trabajo } = require('../models');
+const notificacionService = require('./notificacion.service');
 
 class ComentarioService {
   async listar(trabajoId) {
@@ -26,7 +27,30 @@ class ComentarioService {
     const completo = await Comentario.findByPk(creado.id, {
       include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] }]
     });
+
+    await this.notificarNuevoComentario(trabajoId, usuarioId, completo?.usuario?.nombre);
+
     return completo || creado;
+  }
+
+  /**
+   * Avisa al autor del trabajo cuando otra persona comenta. Si la
+   * notificación falla no debe impedir que el comentario se guarde.
+   */
+  async notificarNuevoComentario(trabajoId, usuarioId, nombreComentador) {
+    try {
+      const trabajo = await Trabajo.findByPk(trabajoId, { attributes: ['id', 'titulo', 'usuario_id'] });
+      if (!trabajo || trabajo.usuario_id === usuarioId) return;
+
+      await notificacionService.crearYNotificar(
+        trabajo.usuario_id,
+        'comentario',
+        `Nuevo comentario de ${nombreComentador || 'un usuario'} en "${trabajo.titulo}".`,
+        trabajoId
+      );
+    } catch (err) {
+      console.error('No se pudo crear la notificación de comentario:', err);
+    }
   }
 
   async actualizar(comentarioId, usuarioId, comentario, calificacion) {

@@ -51,6 +51,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   marcarLeida: async (id: string) => {
     try {
       await axios.patch(`/api/v1/notificaciones/${id}/leer`)
+      // Actualizamos también el estado local para que el panel no muestre
+      // como no leída una notificación que ya se marcó.
+      set({ notificaciones: get().notificaciones.map((n) => (n.id === id ? { ...n, leida: true } : n)) })
       get().contar()
     } catch { /* ignore */ }
   },
@@ -58,7 +61,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   marcarTodasLeidas: async () => {
     try {
       await axios.post('/api/v1/notificaciones/leer-todas')
-      set({ noLeidas: 0 })
+      set({
+        noLeidas: 0,
+        notificaciones: get().notificaciones.map((n) => ({ ...n, leida: true })),
+      })
     } catch { /* ignore */ }
   }
 }))

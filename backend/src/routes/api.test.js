@@ -48,6 +48,10 @@ jest.mock('../services/email.service', () => ({
   sendPasswordResetLink: jest.fn(),
 }))
 
+jest.mock('../services/pdf.service', () => ({
+  extractTextFromPdf: jest.fn(),
+}))
+
 jest.mock('../validators/metadatos.schema', () => ({
   validarMetadatos: jest.fn((m) => m),
 }))
@@ -347,6 +351,122 @@ describe('API Integration', () => {
       expect(Trabajo.create).toHaveBeenCalledWith(
         expect.objectContaining({ palabras_clave: ['uno', 'dos'] }),
       )
+    })
+  })
+
+  describe('POST /api/v1/trabajos (archivo PDF)', () => {
+    const { Trabajo, Categoria } = require('../models')
+    const cloudinaryService = require('../services/cloudinary.service')
+    const { extractTextFromPdf } = require('../services/pdf.service')
+
+    const camposBase = (req) => req
+      .field('titulo', 'Trabajo con archivo')
+      .field('autor', 'Autora')
+      .field('anio', '2025')
+      .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('sube el PDF, guarda la URL y el texto extraído', async () => {
+      Categoria.findByPk.mockResolvedValue({ id: '123e4567-e89b-12d3-a456-426614174000' })
+      Trabajo.create.mockImplementation((data) => Promise.resolve({ id: 'nuevo', ...data }))
+      jest.spyOn(cloudinaryService, 'subirArchivo').mockResolvedValue({
+        url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/trabajo.pdf',
+        publicId: 'trabajos/trabajo.pdf',
+      })
+      extractTextFromPdf.mockResolvedValue('Texto extraído del PDF')
+
+      const res = await camposBase(request(app).post('/api/v1/trabajos'))
+        .attach('archivo', Buffer.from('%PDF-1.4'), {
+          filename: 'trabajo.pdf',
+          contentType: 'application/pdf',
+        })
+
+      expect(res.status).toBe(201)
+      expect(cloudinaryService.subirArchivo).toHaveBeenCalledTimes(1)
+      expect(extractTextFromPdf).toHaveBeenCalledTimes(1)
+      expect(Trabajo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          archivo_url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/trabajo.pdf',
+          texto_completo: 'Texto extraído del PDF',
+        })
+      )
+    })
+
+    it('rechaza archivos que no son PDF con 400', async () => {
+      const res = await camposBase(request(app).post('/api/v1/trabajos'))
+        .attach('archivo', Buffer.from('no soy un pdf'), {
+          filename: 'nota.txt',
+          contentType: 'text/plain',
+        })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toContain('Solo se permiten archivos PDF')
+      expect(Trabajo.create).not.toHaveBeenCalled()
+    })
+
+    it('rechaza un PDF de más de 10 MB con 413', async () => {
+      const res = await camposBase(request(app).post('/api/v1/trabajos'))
+        .attach('archivo', Buffer.alloc(10 * 1024 * 1024 + 1), {
+          filename: 'grande.pdf',
+          contentType: 'application/pdf',
+        })
+
+      expect(res.status).toBe(413)
+      expect(res.body.error).toContain('10 MB')
+      expect(Trabajo.create).not.toHaveBeenCalled()
+    })
+
+    it('elimina de Cloudinary el PDF si la creación falla después de subirlo', async () => {
+      Categoria.findByPk.mockResolvedValue(null)
+      jest.spyOn(cloudinaryService, 'subirArchivo').mockResolvedValue({
+        url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/huerfano.pdf',
+        publicId: 'trabajos/huerfano.pdf',
+      })
+      const eliminar = jest.spyOn(cloudinaryService, 'eliminarArchivo').mockResolvedValue({ result: 'ok' })
+
+      const res = await camposBase(request(app).post('/api/v1/trabajos'))
+        .attach('archivo', Buffer.from('%PDF-1.4'), {
+          filename: 'huerfano.pdf',
+          contentType: 'application/pdf',
+        })
+
+      expect(res.status).toBe(404)
+      expect(eliminar).toHaveBeenCalledWith('trabajos/huerfano.pdf')
+    })
+  })
+
+  describe('DELETE /api/v1/trabajos/:id', () => {
+    const { Trabajo, Version } = require('../models')
+    const cloudinaryService = require('../services/cloudinary.service')
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('elimina el trabajo y los archivos actuales y de versiones en Cloudinary', async () => {
+      const trabajo = {
+        id: 't1',
+        archivo_url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/actual.pdf',
+        destroy: jest.fn().mockResolvedValue(),
+      }
+      Trabajo.findByPk.mockResolvedValue(trabajo)
+      Version.findAll.mockResolvedValue([
+        { archivo_url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/version-1.pdf' },
+        { archivo_url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/actual.pdf' },
+        { archivo_url: null },
+      ])
+      const eliminar = jest.spyOn(cloudinaryService, 'eliminarArchivo').mockResolvedValue({ result: 'ok' })
+
+      const res = await request(app).delete('/api/v1/trabajos/t1')
+
+      expect(res.status).toBe(200)
+      expect(trabajo.destroy).toHaveBeenCalled()
+      expect(eliminar).toHaveBeenCalledTimes(2)
+      expect(eliminar).toHaveBeenCalledWith('trabajos/actual.pdf')
+      expect(eliminar).toHaveBeenCalledWith('trabajos/version-1.pdf')
     })
   })
 })

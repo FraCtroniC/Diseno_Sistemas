@@ -7,6 +7,7 @@ import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import { trabajoService, categoriaService, type Categoria, type Trabajo } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
+import { MAX_PDF_SIZE_MB, validatePdfFile } from '../utils/pdfValidation'
 import { TIPOS_DOCUMENTO } from '../types'
 
 type Step = 1 | 2
@@ -116,8 +117,7 @@ function validateField(field: keyof FormState, state: FormState, isEdit = false)
     case 'file':
       // En modo edición el PDF ya existe: solo se valida si se adjunta uno nuevo.
       if (!state.file) return isEdit ? undefined : 'Adjunta el archivo PDF del trabajo.'
-      if (state.file.type && state.file.type !== 'application/pdf') return 'El archivo debe ser un PDF.'
-      return undefined
+      return validatePdfFile(state.file)
     default:
       return undefined
   }
@@ -524,6 +524,7 @@ export default function Submission() {
                   className={inputErrorClass('file')}
                 />
                 {errors.file ? <p className="text-sm text-red-600">{errors.file}</p> : null}
+                <p className="text-xs text-slate-500 dark:text-slate-400">Formato PDF, máximo {MAX_PDF_SIZE_MB} MB.</p>
                 {form.file ? <p className="text-sm text-slate-500 dark:text-slate-400">Archivo seleccionado: {form.file.name}</p> : null}
                 {isEdit && editTrabajo?.archivo_url && !form.file ? (
                   <p className="text-xs text-slate-500 dark:text-slate-400">Se mantendrá el archivo PDF actual del documento.</p>
@@ -608,6 +609,7 @@ export default function Submission() {
           <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li>Metadatos obligatorios antes de avanzar.</li>
             <li>{isEdit ? 'El archivo PDF es opcional: solo se reemplaza si adjuntas uno nuevo.' : 'Archivo PDF requerido en la segunda etapa.'}</li>
+            <li>El archivo PDF no puede superar los {MAX_PDF_SIZE_MB} MB.</li>
             <li>Los datos se envían a la API real del backend.</li>
           </ul>
         </Card>
