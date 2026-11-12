@@ -19,10 +19,11 @@ type FormData = z.infer<typeof schema>
 
 export default function Login() {
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const login = useAuthStore((s) => s.login)
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     shouldFocusError: true,
   })
@@ -37,7 +38,9 @@ export default function Login() {
   }
 
   const onSubmit = async (data: FormData) => {
+    if (submitting) return
     setError('')
+    setSubmitting(true)
     try {
       const loggedInUser = await login(data.identifier, data.password)
       const isStaff = loggedInUser?.role === 'bibliotecario' || loggedInUser?.role === 'repositor'
@@ -52,6 +55,7 @@ export default function Login() {
       navigate(dest, { replace: true })
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.response?.data?.message || 'Credenciales inválidas')
+      setSubmitting(false)
     }
   }
 
@@ -102,16 +106,8 @@ export default function Login() {
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit">Entrar</Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setValue('identifier', 'admin@unefa.edu.ve', { shouldValidate: true })
-                setValue('password', 'admin123', { shouldValidate: true })
-              }}
-            >
-              Usar cuenta demo (admin)
+            <Button type="submit" disabled={submitting} aria-busy={submitting}>
+              {submitting ? 'Entrando…' : 'Entrar'}
             </Button>
           </div>
         </form>

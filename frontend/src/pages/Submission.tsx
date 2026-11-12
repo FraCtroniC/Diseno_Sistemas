@@ -607,10 +607,10 @@ export default function Submission() {
         <Card>
           <p className="text-sm font-semibold text-unefa">Validaciones activas</p>
           <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-            <li>Metadatos obligatorios antes de avanzar.</li>
-            <li>{isEdit ? 'El archivo PDF es opcional: solo se reemplaza si adjuntas uno nuevo.' : 'Archivo PDF requerido en la segunda etapa.'}</li>
-            <li>El archivo PDF no puede superar los {MAX_PDF_SIZE_MB} MB.</li>
-            <li>Los datos se envían a la API real del backend.</li>
+            <li>Completa los datos obligatorios para poder continuar.</li>
+            <li>{isEdit ? 'El PDF es opcional: solo se reemplaza si adjuntas uno nuevo.' : 'En la segunda etapa deberás adjuntar el archivo PDF.'}</li>
+            <li>El archivo PDF debe pesar como máximo {MAX_PDF_SIZE_MB} MB.</li>
+            <li>Al finalizar, tu trabajo quedará guardado en el repositorio.</li>
           </ul>
         </Card>
       </div>
