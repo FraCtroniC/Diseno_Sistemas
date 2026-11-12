@@ -1,3 +1,5 @@
+> **Documento histórico de especificación.** Conserva los requisitos originales del frontend y no describe necesariamente el estado actual. La fuente de verdad operativa está en [`../docs/ESTADO.md`](../docs/ESTADO.md) y la trazabilidad requisito → implementación en [`../docs/TRAZABILIDAD.md`](../docs/TRAZABILIDAD.md). Las diferencias entre esta especificación y lo implementado están registradas en la matriz.
+
 # AGENT.md - Frontend: Repositorio Digital UNEFA Táchira
 
 ## 1. Propósito del Proyecto

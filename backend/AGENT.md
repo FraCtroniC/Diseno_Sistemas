@@ -1,3 +1,5 @@
+> **Documento histórico de especificación.** Conserva las reglas de desarrollo y la Fase 1 originales; el documento solo llega hasta la Fase 1.3 y no describe el estado actual. La fuente de verdad operativa está en [`../docs/ESTADO.md`](../docs/ESTADO.md) y la trazabilidad requisito → implementación en [`../docs/TRAZABILIDAD.md`](../docs/TRAZABILIDAD.md).
+
 # AGENT.md - PLAN DE EJECUCIÓN PASO A PASO Y DIRECTRICES DE DESARROLLO
 ## SISTEMA: API REST del Repositorio Digital Institucional - UNEFA Núcleo Táchira
 

@@ -1,37 +1,23 @@
-# Arquitectura del Frontend
+# Arquitectura del frontend (documento histórico)
 
-## Visión general
-La aplicación está construida como un frontend de una sola página con rutas protegidas y componentes reutilizables. El diseño actual prioriza una experiencia clara para consulta de documentos, carga de metadatos y acceso administrativo.
+> **Este documento ya no es la fuente de verdad.** Describía una arquitectura basada en datos mock y una carpeta `src/mocks/` que ya no existe. Se conserva solo como referencia histórica.
 
-## Flujo de ejecución
-1. `src/main.tsx` monta la aplicación dentro de `BrowserRouter`.
-2. `src/App.tsx` define las rutas principales.
-3. `src/components/Layout.tsx` envuelve todas las vistas con navegación y encabezado global.
-4. Cada pantalla vive en `src/pages/` y consume componentes UI y mocks locales.
+## Arquitectura real
 
-## Componentes base
-- `Layout.tsx`: estructura global con navegación.
-- `ProtectedRoute.tsx`: guarda acceso por autenticación y rol.
-- `Button.tsx`, `Card.tsx`, `Input.tsx`: primitivas visuales compartidas.
+El frontend es una SPA React 18 + Vite + TypeScript que consume la API real del backend:
 
-## Estado y datos
-La capa de estado global actual está limitada a autenticación simulada mediante Zustand en `src/stores/useAuthStore.ts`. Los documentos y usuarios de prueba viven en `src/mocks/data.ts`.
+- `../src/main.tsx` monta la aplicación dentro de `BrowserRouter`.
+- `../src/App.tsx` define las rutas.
+- `../src/components/Layout.tsx` envuelve las vistas con navegación, notificaciones y tema.
+- `../src/components/ProtectedRoute.tsx` protege rutas por autenticación y rol.
+- `../src/pages/` contiene las pantallas.
+- `../src/services/` contiene la capa HTTP con Axios (`baseURL: '/api/v1'`, `withCredentials: true`).
+- `../src/stores/` contiene el estado global con Zustand.
+- `../src/utils/` contiene validaciones y utilidades.
 
-## Páginas
-- `Home.tsx`: presentación del repositorio y capacidades principales.
-- `Search.tsx`: búsqueda local por título, autor y año.
-- `Submission.tsx`: formulario por pasos para metadatos y archivo.
-- `Admin.tsx`: vista protegida para rol administrador.
-- `Login.tsx`: acceso con datos mock y redirección posterior.
+## Fuentes canónicas
 
-## Limitaciones conocidas
-- No existe persistencia remota.
-- No hay integración con backend ni subida real de archivos.
-- Los roles están simulados en memoria.
-- Los formularios aún no están conectados a validación declarativa con Zod.
-
-## Evolución recomendada
-Cuando el backend esté disponible, la separación natural sería:
-- servicios para API en una carpeta dedicada,
-- hooks para lógica reutilizable,
-- features por dominio: auth, search, submission, admin.
+- Arquitectura full-stack: [`../../README.md#arquitectura`](../../README.md#arquitectura)
+- Estado real: [`../../docs/ESTADO.md`](../../docs/ESTADO.md)
+- Trazabilidad: [`../../docs/TRAZABILIDAD.md`](../../docs/TRAZABILIDAD.md)
+- Documentación del backend: [`../../backend/README.md`](../../backend/README.md)

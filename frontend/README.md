@@ -1,78 +1,91 @@
-# Repositorio Digital UNEFA Táchira
+# Frontend — Repositorio Digital UNEFA Táchira
 
-Frontend en React + TypeScript para el Repositorio Digital de la UNEFA, Núcleo Táchira. El proyecto centraliza la consulta, carga y administración de documentos académicos, normativos y editoriales con una interfaz modular basada en rutas.
+Interfaz React del Repositorio Digital UNEFA Táchira. Consume la API real del backend; **no usa datos mock**.
 
-## Funcionalidad actual
+La documentación canónica del proyecto está en el [`README.md`](../README.md) raíz. El estado verificado y las brechas están en [`docs/ESTADO.md`](../docs/ESTADO.md) y [`docs/TRAZABILIDAD.md`](../docs/TRAZABILIDAD.md).
 
-- Inicio con presentación del sistema y accesos principales.
-- Búsqueda de documentos con filtros por término y año.
-- Flujo de envío de documentos en dos pasos.
-- Acceso simulado con roles y vista administrativa protegida.
-- Catálogo y usuarios en datos mock para desarrollo local.
+---
 
 ## Stack
 
-- React 18
-- Vite
+- React 18 + Vite 5
 - TypeScript
-- React Router DOM
-- Zustand
-- React Hook Form y Zod instalados para futura validación avanzada
-- Tailwind CSS
+- Tailwind CSS 3
+- React Router DOM 6
+- Zustand 4
+- React Hook Form 7 + Zod 3 (login, registro y perfil)
+- Recharts
+- react-pdf / pdfjs-dist
+- Vitest + Testing Library
 
 ## Requisitos
 
-- Node.js 18 o superior.
+- Node.js `>=20.16 <21` o `>=22.3` (rango del backend del mismo repositorio).
 - npm 9 o superior.
+- Backend en ejecución en `http://localhost:5000`.
 
 ## Instalación y arranque
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-## Scripts disponibles
+Abrir `http://localhost:5173`. Vite redirige `/api` a `http://localhost:5000`.
 
-- `npm run dev`: levanta el servidor de desarrollo.
-- `npm run build`: genera el build de producción.
-- `npm run preview`: previsualiza el build generado.
-- `npm run lint`: ejecuta ESLint sobre el proyecto.
+En producción, `vercel.json` reescribe `/api/(.*)` hacia `https://diseno-sistemas.onrender.com/api/$1`. Esa URL **no fue verificada** durante la auditoría.
 
-## Rutas principales
+## Scripts
 
-- `/`: pantalla de inicio.
-- `/search`: búsqueda de documentos.
-- `/submission`: carga de documentos.
-- `/admin`: panel administrativo protegido.
-- `/login`: autenticación simulada.
+| Script | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción en `dist/` |
+| `npm run preview` | Previsualiza el build |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest |
 
-## Estructura del proyecto
+## Rutas
 
-```text
-src/
-	App.tsx             # Definición de rutas
-	main.tsx            # Punto de entrada
-	types.ts            # Tipos compartidos
-	components/         # Layout, protección de rutas y UI base
-	mocks/              # Datos simulados para desarrollo
-	pages/              # Pantallas de la aplicación
-	stores/             # Estado global con Zustand
-	styles/             # Estilos globales y Tailwind
+| Ruta | Pantalla | Acceso |
+|---|---|---|
+| `/` | Inicio | Público |
+| `/search` | Búsqueda | Público |
+| `/catalogo/:category` | Catálogo por tipo | Público |
+| `/trabajos/:id` | Detalle del trabajo | Público; borradores según rol |
+| `/submission` | Carga/edición de trabajo | Requiere sesión para guardar |
+| `/login` | Inicio de sesión | Público |
+| `/register` | Registro | Público |
+| `/forgot-password` | Solicitud de recuperación | Público |
+| `/reset-password` | Restablecimiento | Público |
+| `/profile` | Perfil | Autenticado |
+| `/student` | Panel de autor/revisor | `repositor`, `bibliotecario` |
+| `/revisiones` | Cola de revisión | `admin`, `bibliotecario` |
+| `/admin` | Panel administrativo | `admin` |
+
+## Roles
+
+- `admin`: administración completa.
+- `repositor`: autor; crea y envía sus trabajos.
+- `bibliotecario`: revisa y publica.
+
+“Docente” y “Estudiante” son entidades de datos, no roles de login. Ver [`docs/TRAZABILIDAD.md`](../docs/TRAZABILIDAD.md#2-requisitos-funcionales).
+
+## Pruebas
+
+```bash
+npm test
+npx tsc --noEmit
+npm run build
+npm run lint
 ```
 
-## Estado funcional actual
+Resultados del último snapshot: 15/15 pruebas, TypeScript sin errores, build correcto con aviso de chunk > 500 kB, lint con 0 errores y 19 advertencias.
 
-El proyecto todavía trabaja con datos mock. El login acepta correos existentes en los mocks y la búsqueda/registro operan sobre información local. El backend, la persistencia real y la subida de archivos a un servicio remoto siguen pendientes de integración.
+## Notas
 
-## Documentación adicional
-
-- [Arquitectura](docs/architecture.md)
-- [Guía de desarrollo](docs/development.md)
-
-## Siguientes pasos recomendados
-
-1. Conectar autenticación real con backend y JWT.
-2. Reemplazar los mocks por consumo de API.
-3. Completar la validación de formularios con React Hook Form y Zod.
-4. Separar servicios, hooks y features por dominio funcional.
+- La carpeta `src/mocks/` ya no existe; fue eliminada cuando el frontend se conectó a la API.
+- La validación de PDF está en `src/utils/pdfValidation.ts` (tipo y tamaño máximo de 10 MB).
+- El build genera un único chunk de ~1,35 MB; falta code splitting.
+- La guía histórica [`docs/development.md`](docs/development.md) y la arquitectura histórica [`docs/architecture.md`](docs/architecture.md) se conservan solo como redirección.
