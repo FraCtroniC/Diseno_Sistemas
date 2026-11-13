@@ -2,6 +2,7 @@
 
 **Proyecto:** Repositorio Digital UNEFA  
 **Fecha:** 10 de noviembre de 2026  
+**Actualizado:** 13 de noviembre de 2026 (actualización de dependencias)
 **Ámbito:** entorno local aislado (sin Render, sin Neon y sin credenciales reales)  
 **Objetivo:** simular tráfico alto, detectar vulnerabilidades y corregir los hallazgos de mayor impacto, dejando evidencia reproducible.
 
@@ -20,7 +21,7 @@ Resultados principales:
 - **Artillery:** 2.492 peticiones, 0 usuarios fallidos, p95 92,8 ms. Antes de reutilizar tokens y optimizar la búsqueda, el mismo escenario acumulaba 569–620 usuarios fallidos y p95 de 13–14 segundos.
 - **autocannon:** la búsqueda pasó de 27 req/s (p50 696 ms) a 96 req/s (p50 192 ms), un 3,5× más de throughput y 3,6× menos latencia mediana. El resto de endpoints se mantuvo estable.
 - **Cuello de botella principal:** la búsqueda full-text calculaba `to_tsvector()` dos veces por fila. Se reemplazó por una columna `search_vector` generada y almacenada, con índice GIN.
-- **Pendiente:** quedan 13 vulnerabilidades de dependencias en backend y 8 en frontend detectadas por `npm audit`; varias requieren actualizaciones mayores (Express/React Router/pdfjs-dist/axios, entre otras) y no se aplicaron para no introducir cambios disruptivos sin una regresión específica.
+- **Dependencias:** se actualizaron las librerías afectadas. El frontend quedó en **0 vulnerabilidades** y el backend en **5 avisos bajos**, todos de Jest (solo desarrollo). El runtime de backend no tiene vulnerabilidades altas, críticas ni moderadas. Validado con 171 pruebas, smoke de seguridad, migraciones, build de producción y una comprobación de carga.
 
 ---
 
@@ -85,7 +86,7 @@ La prueba de humo real está en `backend/scripts/security-smoke.js` y su evidenc
 | 7 | Validación de PDF basada solo en el MIME declarado por el cliente | Media | Corregido | `Archivo con cabecera PDF falsa rechazado` |
 | 8 | Paginación y listados sin límite superior (riesgo de agotamiento de memoria/CPU) | Media | Corregido | `Límite de paginación validado` |
 | 9 | OAI-PMH revelaba la existencia de borradores en `ListMetadataFormats` | Baja | Corregido | `OAI no revela la existencia de borradores` |
-| 10 | Dependencias con vulnerabilidades conocidas | Variable | Pendiente | `npm audit` (ver sección 7) |
+| 10 | Dependencias con vulnerabilidades conocidas | Variable | Corregido | `npm audit`: frontend 0, backend 5 bajas (solo Jest) |
 
 ### 3.2 Detalle de las correcciones
 
@@ -372,16 +373,42 @@ npm run test:load:autocannon
 
 ### 7.1 Dependencias
 
-`npm audit fix` se ejecutó en backend y frontend. Quedan:
+Se aplicaron actualizaciones dentro del rango y actualizaciones mayores controladas. Estado final de `npm audit`:
 
 | Proyecto | Total | Críticas | Altas | Moderadas | Bajas |
 |---|---:|---:|---:|---:|---:|
-| Backend | 13 | 1 | 5 | 6 | 1 |
-| Frontend | 8 | 0 | 5 | 3 | 0 |
+| Backend | 5 | 0 | 0 | 0 | 5 |
+| Frontend | **0** | 0 | 0 | 0 | 0 |
 
-Paquetes afectados destacados: `proxy-addr` (crítica, backend), `body-parser`, `express`, `multer`, `nodemailer`, `joi`, `ip-address` (backend); `axios`, `follow-redirects`, `form-data`, `pdfjs-dist`, `zod`, `react-router` (frontend).
+**Backend.** Las 5 bajas restantes son `deepmerge` (prototype poisoning) arrastradas por `jest-config`; afectan únicamente a Jest, no al servidor en ejecución, y no existe versión corregida publicada. Se actualizaron:
 
-**Recomendación:** planificar actualizaciones mayores por separado, con las 156+15 pruebas y la prueba de humo como red de seguridad. No se aplicaron automáticamente porque `npm audit fix --force` puede romper la API de Express 5, React Router o la integración de PDFs.
+- `nodemailer` 8 → 10.5.0 (corrige las vulnerabilidades altas de lectura arbitraria de archivos, SSRF y DoS).
+- `uuid` forzado a 11.1.1 mediante `overrides` (Sequelize 6 lo usa para generar UUIDs; verificado con creación real de registros).
+- `jest` 30.4.2 → 30.5.2 y `overrides` de `minimatch` 11.0.8 y `glob` 14.0.6 para el tooling de desarrollo.
+- `npm audit fix` actualizó además `express`, `body-parser`, `proxy-addr`, `multer`, `joi`, `express-rate-limit` y `axios` dentro de sus rangos, eliminando la crítica de `proxy-addr` y las altas de `multer`, `joi`, `axios`, `follow-redirects` y `form-data`.
+
+**Frontend.** Se actualizaron:
+
+- `zod` 3.25 → 4.6.7 (corrige la alta de agotamiento de memoria).
+- `react-router-dom` 6.30 → 7.18.5 (corrige las moderadas de open redirect e inyección en hidratación SSR).
+- `vite` 5 → 7.3.8 y `@vitejs/plugin-react` 4 → 5.2.0 (corrigen la alta de `esbuild` y la moderada de `vite`).
+- `@hookform/resolvers` 3 → 7.0.6 por compatibilidad con Zod 4.
+- `overrides` de `minimatch` 11.0.8 para `@typescript-eslint/typescript-estree` (dev).
+
+**Validación tras las actualizaciones:**
+
+| Verificación | Resultado |
+|---|---|
+| Backend `npm test -- --runInBand` | 156/156 |
+| Frontend `npm test` | 15/15 |
+| Frontend `npx tsc --noEmit` | Sin errores |
+| Frontend `npm run build` | Correcto (Vite 7.3.8) |
+| Frontend `npm run lint` | 0 errores (19 warnings preexistentes) |
+| `npx sequelize-cli db:migrate` y `db:migrate:status` | Correctos |
+| Smoke de seguridad | 25/25 |
+| autocannon (10 s) | catálogo 124 req/s, búsqueda 103 req/s, 0 non-2xx |
+
+No se usó `npm audit fix --force`: las actualizaciones mayores se hicieron una por una y se validaron con las suites, el build y el smoke.
 
 ### 7.2 Rate limiting en múltiples instancias
 
@@ -434,8 +461,10 @@ La consulta a `usuarios` por petición autenticada es intencional para revocar a
 | `.local/artillery-report-pool20-tokens.json` | Artillery con tokens reutilizados, antes de optimizar búsqueda |
 | `.local/autocannon.json` | autocannon final por endpoint |
 | `.local/autocannon-before-search-optimization.json` | autocannon antes de la columna `search_vector` |
-| `.local/audit-backend.json` | `npm audit` del backend |
-| `.local/audit-frontend.json` | `npm audit` del frontend |
+| `.local/audit-backend.json` | `npm audit` del backend (estado inicial) |
+| `.local/audit-frontend.json` | `npm audit` del frontend (estado inicial) |
+| `.local/audit-backend-final.json` | `npm audit` final del backend: 5 bajas (Jest) |
+| `.local/audit-frontend-final.json` | `npm audit` final del frontend: 0 |
 | `.local/server.out.log`, `.local/server.err.log` | Logs del servidor local |
 | `.local/postgres.log` | Log del clúster PostgreSQL |
 
@@ -445,4 +474,4 @@ La consulta a `usuarios` por petición autenticada es intencional para revocar a
 
 El entorno local permitió reproducir los problemas de seguridad y los cuellos de botella de carga sin tocar producción. Las correcciones de autorización, visibilidad y PII cierran los riesgos más graves; la prueba de humo de 25 comprobaciones y las 171 pruebas automatizadas (156 backend + 15 frontend) dan una red de seguridad para seguir iterando.
 
-En rendimiento, el cambio de mayor impacto fue identificar que la búsqueda full-text era CPU-bound en PostgreSQL y reemplazar el cálculo repetido de `to_tsvector()` por una columna generada. Con eso, el p95 de Artillery bajó de 1.176 ms a 92,8 ms y la búsqueda de autocannon pasó de 27 a 96 req/s. El siguiente paso recomendado es abordar las dependencias con vulnerabilidades conocidas mediante actualizaciones mayores planificadas y, si el despliegue escala horizontalmente, mover el rate limiting a un almacén compartido.
+En rendimiento, el cambio de mayor impacto fue identificar que la búsqueda full-text era CPU-bound en PostgreSQL y reemplazar el cálculo repetido de `to_tsvector()` por una columna generada. Con eso, el p95 de Artillery bajó de 1.176 ms a 92,8 ms y la búsqueda de autocannon pasó de 27 a 96 req/s. Las dependencias quedaron saneadas: 0 vulnerabilidades en frontend y 5 avisos bajos de Jest en backend, sin afectar al runtime. Si el despliegue escala horizontalmente, el siguiente paso es mover el rate limiting a un almacén compartido.
