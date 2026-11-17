@@ -48,7 +48,7 @@ El servidor escucha por defecto en `http://localhost:5000`. Verificación: `GET 
 |---|---|---|
 | `PORT` | `5000` | Puerto HTTP |
 | `NODE_ENV` | `development` | `development`, `test` o `production` |
-| `FRONTEND_URL` | `http://localhost:5173` | Origen permitido por CORS |
+| `FRONTEND_URL` | `http://localhost:5173` | Origen permitido por CORS y base de enlaces públicos; se normaliza sin barra final |
 | `BACKEND_URL` | `http://localhost:5000` | URL pública del backend |
 | `DB_SSL` | `true` | `false` para PostgreSQL local sin SSL |
 | `DB_LOGGING` | activo | `false` para desactivar el log SQL |
@@ -248,6 +248,8 @@ La autenticación acepta JWT en cookie `httpOnly` o en `Authorization: Bearer <t
 | GET | `/feed/rss` | Público | RSS 2.0 |
 | GET | `/feed/atom` | Público | Atom |
 | GET | `/health` | Público | Estado del servicio |
+
+> Los feeds también están expuestos en el dominio del frontend como `/feed/rss` y `/feed/atom`: Vite hace proxy de `/feed` en desarrollo y Vercel reenvía `/feed/(.*)` al backend. Configura `FEED_SITE_URL` (o `FRONTEND_URL`) con la URL pública del frontend para que los `<link>` y `<guid>` del XML apunten al sitio correcto. Solo se publican trabajos en estado `publicado` (máximo 50).
 
 ## 8. Flujo de revisión
 

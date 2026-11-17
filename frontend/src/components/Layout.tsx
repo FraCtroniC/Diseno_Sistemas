@@ -319,10 +319,16 @@ export default function Layout({ children }: PropsWithChildren) {
                 <span className="text-xs font-semibold uppercase tracking-wider text-unefa">Ir al dashboard →</span>
               </NavLink>
             ) : null}
-            <a href="/feed/rss" target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center gap-2 rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10 dark:text-unefa-accent">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 010 4.36 2.18 2.18 0 010-4.36M4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44m0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93v-2.83z"/></svg>
-              <span>Feed RSS</span>
-            </a>
+            <div className="mt-3 space-y-2">
+              <a href="/feed/rss" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10 dark:text-unefa-accent">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 010 4.36 2.18 2.18 0 010-4.36M4 4.44A15.56 15.56 0 0119.56 20h-2.83A12.73 12.73 0 004 7.27V4.44m0 5.66a9.9 9.9 0 019.9 9.9h-2.83A7.07 7.07 0 004 12.93v-2.83z"/></svg>
+                <span>Suscribirse (RSS)</span>
+              </a>
+              <a href="/feed/atom" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-2xl bg-unefa/5 px-4 py-3 text-sm font-medium text-unefa-dark hover:bg-unefa/10 dark:text-unefa-accent">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 110 14 7 7 0 010-14zm0 3a4 4 0 100 8 4 4 0 000-8zm0 3a1 1 0 110 2 1 1 0 010-2z"/></svg>
+                <span>Feed Atom</span>
+              </a>
+            </div>
           </div>
           </div>
         </aside>

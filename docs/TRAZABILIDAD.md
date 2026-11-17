@@ -24,7 +24,7 @@ Este documento responde: **¿cada requisito tiene implementación, evidencia y e
 1. **`backend/AGENT.md` está incompleto:** solo llega a la Fase 1.3. No especifica módulos, endpoints ni criterios de aceptación posteriores. Los requisitos backend se limitan a las reglas y a la configuración base que sí están escritas.
 2. **No hay rúbrica formal del curso:** los criterios de éxito son los de [`PROYECTO.md`](PROYECTO.md), no una rúbrica externa.
 3. **El `README.md` original está desactualizado:** afirma que el proyecto usa mocks y que el backend está pendiente. Se usa solo como fuente de funcionalidad declarada, no como estado.
-4. **Algunas funciones añadidas no tienen prueba dedicada:** OAI-PMH, RSS/Atom, citas y versiones se verifican por código y, cuando aplica, por la prueba de humo. Se indica en cada fila.
+4. **Algunas funciones añadidas no tienen prueba dedicada:** OAI-PMH y versiones se verifican por código y, cuando aplica, por la prueba de humo. RSS/Atom y citas ya tienen pruebas propias. Se indica en cada fila.
 5. **Los resultados de pruebas reflejan el código confirmado en `2f8b0a9`.**
 
 ### 1.3 Leyenda
@@ -118,10 +118,10 @@ Estas funciones **no aparecen en los `AGENT.md`**. Se documentan como alcance a�
 | ID | Función añadida | Justificación | Implementación | Evidencia | Estado |
 |---|---|---|---|---|---|
 | RA-01 | OAI-PMH 2.0 | Interoperabilidad con cosechadores y repositorios externos | `backend/src/routes/oai.routes.js`, `backend/src/services/oai.service.js` | Código; comprobación de seguridad “OAI no revela borradores” | ➕ Añadido |
-| RA-02 | RSS 2.0 y Atom | Difusión de publicaciones sin depender de la interfaz | `backend/src/routes/feed.routes.js`, `backend/src/services/rss.service.js` | Código; sin prueba dedicada | ➕ Añadido |
+| RA-02 | RSS 2.0 y Atom | Difusión de publicaciones sin depender de la interfaz | `backend/src/routes/feed.routes.js`, `backend/src/services/rss.service.js` | `backend/src/services/rss.service.test.js`, `backend/src/routes/feed.routes.test.js` | ➕ Añadido |
 | RA-03 | Comentarios con calificación | Retroalimentación sobre documentos publicados | `backend/src/models/Comentario.js`, `backend/src/services/comentario.service.js`, `frontend/src/components/ComentariosSection.tsx` | `backend/src/services/comentario.service.test.js` | ➕ Añadido |
 | RA-04 | Historial de versiones y restauración | Trazabilidad de cambios y recuperación de estados anteriores | `backend/src/models/Version.js`, `backend/src/services/version.service.js`, `frontend/src/components/HistorialVersiones.tsx` | Código; sin prueba dedicada | ➕ Añadido |
-| RA-05 | Citas APA, BibTeX y RIS | Uso académico y referencia bibliográfica | `backend/src/services/cita.service.js`, `frontend/src/pages/TrabajoDetalle.tsx` | Código; sin prueba dedicada | ➕ Añadido |
+| RA-05 | Citas APA, BibTeX y RIS | Uso académico y referencia bibliográfica | `backend/src/services/cita.service.js`, `frontend/src/pages/TrabajoDetalle.tsx` | `backend/src/services/cita.service.test.js` | ➕ Añadido |
 | RA-06 | Estadísticas de vistas/descargas y panel | Medir uso y producción institucional | `backend/src/models/Visita.js`, `backend/src/services/estadistica.service.js`, `backend/src/services/admin.service.js`, `frontend/src/pages/Admin.tsx` | `backend/src/services/estadistica.service.test.js` | ➕ Añadido |
 | RA-07 | Notificaciones in-app y SSE | Avisar cambios de revisión y comentarios sin recargar | `backend/src/models/Notificacion.js`, `backend/src/services/notificacion.service.js`, `backend/src/services/sse.service.js`, `frontend/src/components/NotificationBell.tsx` | `backend/src/services/notificacion.service.test.js` | ➕ Añadido |
 | RA-08 | Recuperación de contraseña por correo | Autoservicio de acceso | `backend/src/services/auth.service.js`, `backend/src/services/email.service.js`, `frontend/src/pages/ForgotPassword.tsx`, `frontend/src/pages/ResetPassword.tsx` | `backend/src/services/auth.service.test.js` | ➕ Añadido |

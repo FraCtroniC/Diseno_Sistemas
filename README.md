@@ -14,14 +14,14 @@ Sistema full-stack para registrar, revisar, publicar y consultar la producción 
 - Flujo de revisión: `borrador` → `en_revision` → `publicado` o devolución a `borrador`; `archivado` para administración.
 - Notificaciones in-app y por SSE; comentarios con calificación; historial de versiones; citas en APA, BibTeX y RIS.
 - Panel administrativo con estadísticas de producción y visitas.
-- Interoperabilidad: OAI-PMH, RSS y Atom.
+- Interoperabilidad: OAI-PMH, RSS y Atom (feeds públicos en `/feed/rss` y `/feed/atom` del dominio del frontend).
 - Endurecimiento de seguridad verificado con 25 comprobaciones.
 
 ## Estado verificado
 
 | Verificación | Resultado | Comando / evidencia |
 |---|---|---|
-| Pruebas backend | **156/156** en 14 suites | `cd backend && npm test -- --runInBand` |
+| Pruebas backend | **174/174** en 18 suites | `cd backend && npm test -- --runInBand` |
 | Pruebas frontend | **15/15** en 4 archivos | `cd frontend && npm test` |
 | TypeScript | Sin errores | `cd frontend && npx tsc --noEmit` |
 | Build de producción | Correcto, con advertencia de tamaño | `cd frontend && npm run build` |
@@ -46,6 +46,12 @@ Navegador
 ```
 
 El frontend consume la API mediante `axios` con `baseURL: '/api/v1'` y `withCredentials: true`. El backend monta la API versionada en `/api/v1` y expone además `/oai`, `/feed` y `/health`.
+
+### Feeds RSS y Atom
+
+Las URLs públicas son `https://<dominio-del-frontend>/feed/rss` y `/feed/atom`. El XML lo genera el backend, pero se sirve bajo el dominio del frontend: Vite hace proxy de `/feed` en desarrollo y `vercel.json` reenvía `/feed/(.*)` a Render en producción. La sidebar enlaza a ambos formatos y `index.html` declara el autodescubrimiento con `<link rel="alternate">`.
+
+Los feeds incluyen únicamente trabajos en estado `publicado`, ordenados por fecha de creación (máximo 50). La base de los enlaces dentro del XML se toma de `FEED_SITE_URL`, con `FRONTEND_URL` como fallback; en Render debe apuntar a la URL pública del frontend para que los `<link>` y `<guid>` no queden apuntando a `localhost`.
 
 ## Stack
 

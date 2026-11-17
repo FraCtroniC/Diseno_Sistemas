@@ -1,4 +1,17 @@
 const { Trabajo, Categoria, Usuario } = require('../models');
+const environment = require('../../config/environment');
+
+// archivo_url suele ser absoluto: una URL de Cloudinary o
+// ${BACKEND_URL}/local-files/... en modo local. Solo se antepone la base pública
+// cuando viene una ruta relativa; si no, quedaría "https://sitiohttps://cdn/...".
+function urlPublica(archivoUrl) {
+  if (!archivoUrl) return '';
+  if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(archivoUrl) || /^[a-z][a-z0-9+.-]*:/i.test(archivoUrl)) {
+    return archivoUrl;
+  }
+  const base = (environment.feedSiteUrl || 'http://localhost:5173').replace(/\/+$/, '');
+  return `${base}${archivoUrl.startsWith('/') ? '' : '/'}${archivoUrl}`;
+}
 
 function apellidos(nombreCompleto) {
   const parts = nombreCompleto.trim().split(/\s+/);
@@ -27,7 +40,7 @@ function generarAPA(trabajo) {
     divulgacion: 'Material de divulgación'
   }[tipoDoc] || tipoDoc;
   const institucion = meta.institucion || 'UNEFA Núcleo Táchira';
-  const url = trabajo.archivo_url ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}${trabajo.archivo_url}` : '';
+  const url = urlPublica(trabajo.archivo_url);
 
   let cita = `${autor} (${year}). ${titulo}. [${tipoLabel}]. ${institucion}.`;
   if (url) cita += ` ${url}`;
@@ -71,7 +84,7 @@ function generarRIS(trabajo) {
   const year = trabajo.anio;
   const titulo = trabajo.titulo;
   const institucion = meta.institucion || 'UNEFA Núcleo Táchira';
-  const url = trabajo.archivo_url ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}${trabajo.archivo_url}` : '';
+  const url = urlPublica(trabajo.archivo_url);
 
   const lines = [
     'TY  - THES',

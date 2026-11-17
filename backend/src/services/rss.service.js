@@ -1,7 +1,9 @@
 const { Trabajo, Categoria } = require('../models');
-const { Op } = require('sequelize');
+const environment = require('../../config/environment');
 
-const SITE_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Los enlaces del feed apuntan al dominio público del frontend, no al backend
+// que genera el XML. Se normaliza la barra final para evitar URLs con "//".
+const SITE_URL = (environment.feedSiteUrl || 'http://localhost:5173').replace(/\/+$/, '');
 const MAX_ITEMS = 50;
 
 function escXml(s) {

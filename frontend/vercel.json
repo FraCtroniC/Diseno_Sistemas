@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "https://diseno-sistemas.onrender.com/api/$1" },
+    { "source": "/feed/(.*)", "destination": "https://diseno-sistemas.onrender.com/feed/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

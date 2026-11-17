@@ -118,9 +118,10 @@ Transiciones permitidas:
 - Notificaciones persistentes en `notificaciones`, contador de no leídas, marcado como leída y stream SSE.
 - Comentarios con calificación; edición y eliminación solo por su autor.
 - Versiones: se crea una versión antes de actualizar un trabajo; se puede listar y restaurar. Si la actualización falla después de crear la versión, esta puede quedar registrada sin que el trabajo cambie.
-- Citas: `GET /api/v1/trabajos/:id/cita?formato=apa|bibtex|ris`.
+- Citas: `GET /api/v1/trabajos/:id/cita?formato=apa|bibtex|ris`. La URL en APA y RIS se toma tal cual cuando `archivo_url` ya es absoluta (Cloudinary o `${BACKEND_URL}/local-files/...`); solo se antepone la base pública si es una ruta relativa.
+- `FRONTEND_URL` y `FEED_SITE_URL` se normalizan al cargar la configuración para no generar barras dobles en CORS, enlaces de recuperación ni feeds.
 
-**Evidencia:** `backend/src/models/Notificacion.js`, `backend/src/models/Comentario.js`, `backend/src/models/Version.js`, `backend/src/services/notificacion.service.js`, `backend/src/services/comentario.service.js`, `backend/src/services/version.service.js`, `backend/src/services/cita.service.js`, `frontend/src/components/NotificationBell.tsx`, `frontend/src/components/ComentariosSection.tsx`, `frontend/src/components/HistorialVersiones.tsx`.
+**Evidencia:** `backend/src/models/Notificacion.js`, `backend/src/models/Comentario.js`, `backend/src/models/Version.js`, `backend/src/services/notificacion.service.js`, `backend/src/services/comentario.service.js`, `backend/src/services/version.service.js`, `backend/src/services/cita.service.js`, `backend/src/services/cita.service.test.js`, `backend/config/environment.js`, `backend/src/environment.test.js`, `frontend/src/components/NotificationBell.tsx`, `frontend/src/components/ComentariosSection.tsx`, `frontend/src/components/HistorialVersiones.tsx`.
 
 ### 4.6 Estadísticas y administración
 
@@ -134,10 +135,12 @@ Transiciones permitidas:
 ### 4.7 Interoperabilidad
 
 - `GET /oai?verb=...` implementa `Identify`, `ListMetadataFormats`, `ListSets`, `GetRecord`, `ListIdentifiers` y `ListRecords`.
-- `GET /feed/rss` y `GET /feed/atom` generan feeds de trabajos publicados.
+- `GET /feed/rss` y `GET /feed/atom` generan feeds de trabajos publicados (máximo 50, ordenados por fecha de creación).
+- Las URLs públicas se sirven desde el dominio del frontend: Vite hace proxy de `/feed` en desarrollo y `vercel.json` reenvía `/feed/(.*)` al backend en producción. La sidebar y el autodescubrimiento (`<link rel="alternate">` en `index.html`) apuntan a esas URLs.
+- `FEED_SITE_URL` (o `FRONTEND_URL` como fallback) define la base de los enlaces dentro del XML; debe configurarse en Render con la URL pública del frontend.
 - OAI no revela la existencia de borradores.
 
-**Evidencia:** `backend/src/routes/oai.routes.js`, `backend/src/services/oai.service.js`, `backend/src/routes/feed.routes.js`, `backend/src/services/rss.service.js`, `.local/security-smoke.json` (comprobación “OAI no revela la existencia de borradores”).
+**Evidencia:** `backend/src/routes/oai.routes.js`, `backend/src/services/oai.service.js`, `backend/src/routes/feed.routes.js`, `backend/src/services/rss.service.js`, `backend/src/services/rss.service.test.js`, `backend/src/routes/feed.routes.test.js`, `frontend/vite.config.ts`, `frontend/vercel.json`, `frontend/index.html`, `frontend/src/components/Layout.tsx`, `.local/security-smoke.json` (comprobación “OAI no revela la existencia de borradores”).
 
 ### 4.8 Seguridad
 
