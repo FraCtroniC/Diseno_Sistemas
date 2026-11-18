@@ -11,6 +11,7 @@ export default function Student() {
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
   const [published, setPublished] = useState<Trabajo[]>([])
+  const [myPublished, setMyPublished] = useState<Trabajo[]>([])
   const [myDrafts, setMyDrafts] = useState<Trabajo[]>([])
   const [pendingReviews, setPendingReviews] = useState<Trabajo[]>([])
   const [inReview, setInReview] = useState<Trabajo[]>([])
@@ -20,6 +21,9 @@ export default function Student() {
       .then((res) => setPublished(res.data.datos))
       .catch(() => {})
     if (user) {
+      trabajoService.listar({ estado: 'publicado', usuario_id: user.id, limite: 50 })
+        .then((res) => setMyPublished(res.data.datos))
+        .catch(() => {})
       trabajoService.listar({ estado: 'borrador', usuario_id: user.id, limite: 50 })
         .then((res) => setMyDrafts(res.data.datos))
         .catch(() => {})
@@ -59,9 +63,9 @@ export default function Student() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Lecturas recomendadas</p>
-          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-slate-100">{published.length}</p>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Documentos publicados disponibles para consulta.</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Mis publicaciones</p>
+          <p className="mt-3 text-2xl font-black text-slate-900 dark:text-slate-100">{myPublished.length}</p>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Trabajos tuyos ya disponibles en el repositorio.</p>
         </Card>
 
         <Card>
@@ -115,7 +119,7 @@ export default function Student() {
         </Card>
       ) : null}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         <Card>
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-lg font-black dark:text-slate-100">Mis borradores</h3>
@@ -174,6 +178,39 @@ export default function Student() {
                     </p>
                     <span className="mt-2 inline-flex rounded-full bg-sky-200/60 px-2 py-0.5 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
                       En espera de aprobación
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="md:col-span-2 xl:col-span-1">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-black dark:text-slate-100">Mis trabajos publicados</h3>
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+              {myPublished.length}
+            </span>
+          </div>
+          {myPublished.length === 0 ? (
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              Aún no tienes trabajos publicados. Cuando se apruebe uno de tus envíos aparecerá aquí.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {myPublished.map((doc) => (
+                <li key={doc.id}>
+                  <Link
+                    to={`/trabajos/${doc.id}`}
+                    className="block rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-900/30 dark:bg-emerald-900/20 dark:hover:border-emerald-700"
+                  >
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{doc.titulo}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {doc.autor} &bull; {doc.anio} &bull; {doc.categoria?.nombre}
+                    </p>
+                    <span className="mt-2 inline-flex rounded-full bg-emerald-200/60 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      Publicado
                     </span>
                   </Link>
                 </li>

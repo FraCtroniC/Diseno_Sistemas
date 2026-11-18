@@ -133,6 +133,7 @@ export default function Admin() {
   const chartData = stats?.trabajosPorMes.map((m) => ({ mes: m.mes.slice(5) + '/' + m.mes.slice(0, 4), cantidad: m.cantidad })) ?? []
 
   const pieData = stats?.publishedPorCategoria.map((c) => ({ name: c.nombre, value: c.cantidad })) ?? []
+  const pieTotal = pieData.reduce((sum, item) => sum + item.value, 0)
 
   return (
       <section className="space-y-6 pb-6">
@@ -240,10 +241,10 @@ export default function Admin() {
               </div>
 
               <div className="mt-6 grid gap-6 md:grid-cols-2">
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
+                <div className="flex h-full flex-col rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
                   <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Documentos por mes</p>
-                  {chartData.length > 0 ? (
-                    <div className="mt-4 h-48">
+                  <div className="mt-4 min-h-[13rem] flex-1">
+                    {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={chartData}>
                           <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
@@ -252,29 +253,46 @@ export default function Admin() {
                           <Bar dataKey="cantidad" fill="#0b57a4" radius={[6, 6, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <p className="mt-4 text-sm text-slate-400">No hay datos disponibles.</p>
-                  )}
+                    ) : (
+                      <p className="text-sm text-slate-400">No hay datos disponibles.</p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
+                <div className="flex h-full flex-col rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
                   <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Documentos por categoría</p>
-                  {pieData.length > 0 ? (
-                    <div className="mt-4 h-48">
+                  <div className="mt-4 min-h-[13rem] flex-1">
+                    {pieData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent = 0 }) => `${(percent * 100).toFixed(0)}%`}>
+                          <Pie
+                            data={pieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius="78%"
+                            label={{
+                              position: 'inside',
+                              fill: '#ffffff',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              valueAccessor: (entry) => {
+                                if (typeof entry.value !== 'number' || entry.value <= 0 || pieTotal === 0) return ''
+                                return `${Math.round((entry.value / pieTotal) * 100)}%`
+                              },
+                            }}
+                          >
                             {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                           </Pie>
                           <Tooltip />
                           <Legend wrapperStyle={{ fontSize: '11px' }} />
                         </PieChart>
                       </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <p className="mt-4 text-sm text-slate-400">No hay datos disponibles.</p>
-                  )}
+                    ) : (
+                      <p className="text-sm text-slate-400">No hay datos disponibles.</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
