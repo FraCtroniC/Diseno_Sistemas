@@ -2,9 +2,11 @@
 
 **Proyecto:** Repositorio Digital UNEFA  
 **Fecha:** 10 de noviembre de 2026  
-**Actualizado:** 13 de noviembre de 2026 (actualización de dependencias)
+**Actualizado:** 13 de noviembre de 2026 (dependencias) y 18 de noviembre de 2026 (catálogo académico)
 **Ámbito:** entorno local aislado (sin Render, sin Neon y sin credenciales reales)  
 **Objetivo:** simular tráfico alto, detectar vulnerabilidades y corregir los hallazgos de mayor impacto, dejando evidencia reproducible.
+
+> **Actualización del 2026-11-18:** el catálogo se separó en 6 carreras UNEFA y 7 categorías temáticas; `trabajos.carrera_id` es obligatorio. Las suites vigentes reportan **193/193** pruebas en 19 suites. Las mediciones de carga de este informe corresponden al entorno y a los datos del 10–13 de noviembre.
 
 ---
 
@@ -15,13 +17,13 @@ Se montó un entorno local completo con PostgreSQL 18 aislado, datos sintéticos
 Resultados principales:
 
 - **Seguridad:** 25/25 comprobaciones correctas. Se corrigieron fugas de borradores, PII sin autenticación, IDOR en edición/borrado/cambio de estado, JWT no revalidados, inyección en la búsqueda, ausencia de rate limiting, límites de cuerpo/timeouts y validación débil de PDFs.
-- **Backend:** 156 pruebas en 14 suites, todas correctas.
+- **Backend:** 156 pruebas en 14 suites al momento de las mediciones; 193 pruebas en 19 suites tras la actualización del catálogo (2026-11-18), todas correctas.
 - **Frontend:** 15 pruebas en 4 archivos, todas correctas; `tsc --noEmit` sin errores.
 - **k6:** 4.295 peticiones, 119,36 req/s, p95 83,79 ms, 0 fallos. Frente a la primera ejecución, el p95 bajó un 49,9 % y el throughput subió un 9,6 %.
 - **Artillery:** 2.492 peticiones, 0 usuarios fallidos, p95 92,8 ms. Antes de reutilizar tokens y optimizar la búsqueda, el mismo escenario acumulaba 569–620 usuarios fallidos y p95 de 13–14 segundos.
 - **autocannon:** la búsqueda pasó de 27 req/s (p50 696 ms) a 96 req/s (p50 192 ms), un 3,5× más de throughput y 3,6× menos latencia mediana. El resto de endpoints se mantuvo estable.
 - **Cuello de botella principal:** la búsqueda full-text calculaba `to_tsvector()` dos veces por fila. Se reemplazó por una columna `search_vector` generada y almacenada, con índice GIN.
-- **Dependencias:** se actualizaron las librerías afectadas. El frontend quedó en **0 vulnerabilidades** y el backend en **5 avisos bajos**, todos de Jest (solo desarrollo). El runtime de backend no tiene vulnerabilidades altas, críticas ni moderadas. Validado con 171 pruebas, smoke de seguridad, migraciones, build de producción y una comprobación de carga.
+- **Dependencias:** se actualizaron las librerías afectadas. El frontend quedó en **0 vulnerabilidades** y el backend en **5 avisos bajos**, todos de Jest (solo desarrollo). El runtime de backend no tiene vulnerabilidades altas, críticas ni moderadas. Validado con la suite vigente (193 pruebas), smoke de seguridad, migraciones, build de producción y una comprobación de carga.
 
 ---
 
@@ -51,7 +53,7 @@ Resultados principales:
 El seed genera:
 
 - 6 usuarios: admin, repositor, bibliotecario, dos autores y un usuario inactivo.
-- 5 categorías y 5 carreras.
+- 7 categorías temáticas y 6 carreras UNEFA (catálogo actualizado el 2026-11-18).
 - 3 tutores y 12 estudiantes.
 - 500 trabajos: 400 publicados, 40 borradores y 60 en otros estados.
 - 300 comentarios y 60 notificaciones.
@@ -285,7 +287,7 @@ Otros factores identificados:
 
 | Verificación | Resultado |
 |---|---|
-| Backend (`npm test -- --runInBand`) | **156/156** pruebas, 14 suites |
+| Backend (`npm test -- --runInBand`) | **193/193** pruebas, 19 suites (actualización 2026-11-18) |
 | Frontend (`npm test`) | **15/15** pruebas, 4 archivos |
 | TypeScript (`npx tsc --noEmit`) | Sin errores |
 | Prueba de humo de seguridad | **25/25** comprobaciones |
@@ -399,7 +401,7 @@ Se aplicaron actualizaciones dentro del rango y actualizaciones mayores controla
 
 | Verificación | Resultado |
 |---|---|
-| Backend `npm test -- --runInBand` | 156/156 |
+| Backend `npm test -- --runInBand` | 193/193 |
 | Frontend `npm test` | 15/15 |
 | Frontend `npx tsc --noEmit` | Sin errores |
 | Frontend `npm run build` | Correcto (Vite 7.3.8) |
@@ -472,6 +474,6 @@ La consulta a `usuarios` por petición autenticada es intencional para revocar a
 
 ## 9. Conclusión
 
-El entorno local permitió reproducir los problemas de seguridad y los cuellos de botella de carga sin tocar producción. Las correcciones de autorización, visibilidad y PII cierran los riesgos más graves; la prueba de humo de 25 comprobaciones y las 171 pruebas automatizadas (156 backend + 15 frontend) dan una red de seguridad para seguir iterando.
+El entorno local permitió reproducir los problemas de seguridad y los cuellos de botella de carga sin tocar producción. Las correcciones de autorización, visibilidad y PII cierran los riesgos más graves; la prueba de humo de 25 comprobaciones y las 208 pruebas automatizadas (193 backend + 15 frontend) dan una red de seguridad para seguir iterando.
 
 En rendimiento, el cambio de mayor impacto fue identificar que la búsqueda full-text era CPU-bound en PostgreSQL y reemplazar el cálculo repetido de `to_tsvector()` por una columna generada. Con eso, el p95 de Artillery bajó de 1.176 ms a 92,8 ms y la búsqueda de autocannon pasó de 27 a 96 req/s. Las dependencias quedaron saneadas: 0 vulnerabilidades en frontend y 5 avisos bajos de Jest en backend, sin afectar al runtime. Si el despliegue escala horizontalmente, el siguiente paso es mover el rate limiting a un almacén compartido.

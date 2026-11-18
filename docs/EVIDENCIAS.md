@@ -2,7 +2,7 @@
 
 Este documento registra **qué se ejecutó, con qué comando, qué resultado se obtuvo y dónde está el artefacto**. No incluye resultados estimados ni pruebas que no se hayan ejecutado.
 
-**Snapshot:** commit `2f8b0a9` · 11 de noviembre de 2026.
+**Snapshot:** commit `2f8b0a9` · 11 de noviembre de 2026, más la actualización del catálogo académico del 18 de noviembre de 2026.
 **Entorno de ejecución:** Windows, Node.js `v24.13.0`, npm `11.14.0`.
 
 ---
@@ -11,11 +11,11 @@ Este documento registra **qué se ejecutó, con qué comando, qué resultado se 
 
 | ID | Verificación | Resultado | Artefacto / ubicación |
 |---|---|---|---|
-| E-01 | Pruebas backend | 156/156 en 14 suites | Salida de consola; `backend/src/**/*.test.js` |
+| E-01 | Pruebas backend | 193/193 en 19 suites | Salida de consola; `backend/src/**/*.test.js` |
 | E-02 | Pruebas frontend | 15/15 en 4 archivos | Salida de consola; `frontend/src/**/*.test.{ts,tsx}` |
 | E-03 | TypeScript | Sin errores | Salida de `npx tsc --noEmit` |
 | E-04 | Build de producción | Correcto, con aviso de chunk | `frontend/dist/` |
-| E-05 | Lint | 0 errores, 19 advertencias | Salida de `npm run lint` |
+| E-05 | Lint | 0 errores, 18 advertencias | Salida de `npm run lint` |
 | E-06 | Prueba de humo de seguridad | 25/25 | `.local/security-smoke.json` |
 | E-07 | Carga k6 | 4.295 peticiones, 119,36 req/s, p95 83,79 ms, 0 fallos | `.local/k6-summary.json` |
 | E-08 | Carga Artillery | 2.492 peticiones, 0 fallidos, p95 92,8 ms | `.local/artillery-report.json` |
@@ -23,6 +23,7 @@ Este documento registra **qué se ejecutó, con qué comando, qué resultado se 
 | E-10 | Auditoría de dependencias | 13 backend, 8 frontend | `.local/audit-backend.json`, `.local/audit-frontend.json` |
 | E-11 | Informe consolidado | Informe de carga y seguridad | `docs/informe-pruebas-carga-seguridad.md` |
 | E-12 | Historial de cambios | 22 commits al cierre: 21 de código + 1 de documentación | `git log` |
+| E-13 | Migración del catálogo académico | 6 carreras, 7 categorías, 18/18 trabajos con `carrera_id`, 0 con `metadatos.carrera` | Consulta de verificación sobre Neon; migración `2026111801-carreras-unefa-y-categorias-tematicas.js` |
 
 ---
 
@@ -40,15 +41,15 @@ npm test -- --runInBand
 **Resultado:**
 
 ```text
-Test Suites: 14 passed, 14 total
-Tests:       156 passed, 156 total
+Test Suites: 19 passed, 19 total
+Tests:       193 passed, 193 total
 Snapshots:   0 total
-Time:        16.934 s
+Time:        4.251 s
 ```
 
-**Interpretación:** las 14 suites de servicios, middlewares y API pasan. La duración depende de la máquina. La ejecución no requirió un PostgreSQL local activo en el puerto `55432`; la suite de API usa configuración de test y mocks. La prueba de humo de seguridad sí requiere base de datos y servidor.
+**Interpretación:** las 19 suites de servicios, middlewares y API pasan. La duración depende de la máquina. La ejecución no requirió un PostgreSQL local activo en el puerto `55432`; la suite de API usa configuración de test y mocks. La prueba de humo de seguridad sí requiere base de datos y servidor.
 
-**Cobertura de archivos:** `backend/src/middlewares/error.middleware.test.js`, `role.middleware.test.js`, `upload.middleware.test.js`, `backend/src/routes/api.test.js`, `backend/src/services/auth.service.test.js`, `categoria.service.test.js`, `cloudinary.service.test.js`, `comentario.service.test.js`, `estadistica.service.test.js`, `notificacion.service.test.js`, `pdf.service.test.js`, `revision.service.test.js`, `trabajo.service.test.js`, `usuario.service.test.js`.
+**Cobertura de archivos:** `backend/src/middlewares/error.middleware.test.js`, `role.middleware.test.js`, `upload.middleware.test.js`, `backend/src/routes/api.test.js`, `backend/src/services/auth.service.test.js`, `carrera.service.test.js`, `categoria.service.test.js`, `cloudinary.service.test.js`, `comentario.service.test.js`, `estadistica.service.test.js`, `notificacion.service.test.js`, `pdf.service.test.js`, `revision.service.test.js`, `trabajo.service.test.js`, `usuario.service.test.js`.
 
 ### E-02 — Pruebas frontend
 
@@ -94,11 +95,11 @@ npm run build
 **Resultado relevante:**
 
 ```text
-✓ 757 modules transformed.
-dist/index.html                 0.49 kB │ gzip:   0.31 kB
-dist/assets/index-BNK03uo9.css 58.42 kB │ gzip:  10.22 kB
-dist/assets/index-CC1Z4HTd.js  1,346.71 kB │ gzip: 391.45 kB
-✓ built in 21.69s
+✓ 849 modules transformed.
+dist/index.html                 0.72 kB │ gzip:   0.39 kB
+dist/assets/index-Ckv_A-3f.css  58.35 kB │ gzip:  10.21 kB
+dist/assets/index-CWoAaHVy.js  1,354.66 kB │ gzip: 397.90 kB
+✓ built in 10.88s
 ```
 
 **Advertencia:** Vite reporta un chunk mayor a 500 kB. No es un fallo de build; es deuda de rendimiento (G-05). La duración varía según la máquina. El artefacto queda en `frontend/dist/`.
@@ -115,7 +116,7 @@ npm run lint
 **Resultado:**
 
 ```text
-19 problems (0 errors, 19 warnings)
+18 problems (0 errors, 18 warnings)
 ```
 
 **Interpretación:** no hay errores bloqueantes. Las advertencias son deuda de calidad; no se corrigieron en esta auditoría para no alterar el comportamiento.
@@ -248,6 +249,27 @@ git log --pretty=format:"%h|%ad|%s" --date=short
 ```
 
 **Resultado:** 22 commits al cierre documental: 21 de código entre el 10 de junio y el 11 de noviembre de 2026, más el commit de documentación de esta misma fecha. La reconstrucción por hitos está en [`CHANGELOG.md`](../CHANGELOG.md).
+
+### E-13 — Migración del catálogo académico
+
+**Comando:**
+
+```powershell
+cd backend
+npm run db:migrate
+```
+
+**Verificación sobre la base actual (Neon, 2026-11-18):**
+
+| Comprobación | Resultado |
+|---|---|
+| Carreras en el catálogo | 6 |
+| Categorías temáticas | 7 |
+| Trabajos con `carrera_id` | 18/18 |
+| Trabajos con `metadatos.carrera` | 0 |
+| Trabajos sin carrera | 0 |
+
+La migración `2026111801-carreras-unefa-y-categorias-tematicas.js` reutiliza los IDs de las cinco categorías existentes, agrega las dos categorías temáticas faltantes, crea las seis carreras y rellena `carrera_id` antes de aplicar `SET NOT NULL`. Las categorías temáticas y el catálogo de carreras quedan separados.
 
 ---
 

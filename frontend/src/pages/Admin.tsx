@@ -11,6 +11,7 @@ import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import PasswordInput from '../components/ui/PasswordInput'
+import CarrerasManager from '../components/admin/CarrerasManager'
 import { TIPOS_CEDULA, composeCedula, parseCedula } from '../types'
 
 const COLORS = ['#0b57a4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
@@ -602,11 +603,16 @@ export default function Admin() {
           </div>
         </div>
 
+        <CarrerasManager />
+
         <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gestión de categorías</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Administrar carreras y categorías</h3>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Categorías temáticas</h3>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+                Áreas temáticas y colecciones que clasifican el contenido del repositorio, independientes de la carrera del autor.
+              </p>
             </div>
           </div>
 
@@ -617,12 +623,12 @@ export default function Admin() {
                 <Input
                   value={newCatNombre}
                   onChange={(e) => setNewCatNombre(e.target.value)}
-                  placeholder="Nombre (ej: Ingeniería de Sistemas)"
+                  placeholder="Nombre (ej: Tecnología y Sistemas)"
                 />
                 <Input
                   value={newCatSlug}
                   onChange={(e) => setNewCatSlug(e.target.value)}
-                  placeholder="Slug (ej: ingenieria-de-sistemas)"
+                  placeholder="Slug (ej: tecnologia-y-sistemas)"
                 />
                 <Input
                   value={newCatDesc}

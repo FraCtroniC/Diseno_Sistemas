@@ -50,6 +50,14 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
+    carrera_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'carreras',
+        key: 'id'
+      }
+    },
     archivo_url: {
       type: DataTypes.TEXT,
       allowNull: true

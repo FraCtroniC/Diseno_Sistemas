@@ -4,8 +4,8 @@ const { validarMetadatos } = require('../validators/metadatos.schema');
 const { extractTextFromPdf } = require('./pdf.service');
 const notificacionService = require('./notificacion.service');
 
-const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'metadatos', 'estado'];
-const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'metadatos', 'estado'];
+const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'metadatos', 'estado'];
+const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'metadatos', 'estado'];
 
 function pick(obj, keys) {
   const result = {};
@@ -151,6 +151,19 @@ class TrabajoService {
       throw err;
     }
 
+    if (!data.carrera_id) {
+      const err = new Error('La carrera es requerida');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const carrera = await Carrera.findByPk(data.carrera_id);
+    if (!carrera) {
+      const err = new Error('Carrera no encontrada');
+      err.statusCode = 404;
+      throw err;
+    }
+
     if (rol !== 'admin' && data.estado && data.estado !== 'borrador') {
       const err = new Error('Solo los administradores pueden crear trabajos publicados directamente');
       err.statusCode = 403;
@@ -227,6 +240,15 @@ class TrabajoService {
       }
     }
 
+    if (data.carrera_id) {
+      const carrera = await Carrera.findByPk(data.carrera_id);
+      if (!carrera) {
+        const err = new Error('Carrera no encontrada');
+        err.statusCode = 404;
+        throw err;
+      }
+    }
+
     if (rol !== 'admin' && data.estado) {
       const err = new Error('No puedes cambiar el estado directamente. Usa la opción "Solicitar revisión"');
       err.statusCode = 403;
@@ -280,13 +302,13 @@ class TrabajoService {
     return trabajo;
   }
 
-  async buscar({ q, categoria, tipo_documento, anio, estado, usuario_id, pagina, limite, solicitante } = {}) {
+  async buscar({ q, categoria, carrera, tipo_documento, anio, estado, usuario_id, pagina, limite, solicitante } = {}) {
     const paginacion = normalizarPaginacion(pagina, limite);
     const offset = (paginacion.pagina - 1) * paginacion.limite;
     const where = {};
     const attributes = [
       'id', 'titulo', 'autor', 'tutor', 'anio', 'resumen',
-      'palabras_clave', 'categoria_id', 'archivo_url', 'metadatos',
+      'palabras_clave', 'categoria_id', 'carrera_id', 'archivo_url', 'metadatos',
       'estado', 'usuario_id', 'identificador', 'createdAt', 'updatedAt'
     ];
 
@@ -309,6 +331,7 @@ class TrabajoService {
     }
 
     if (categoria) where.categoria_id = categoria;
+    if (carrera) where.carrera_id = carrera;
     if (tipo_documento) {
       where.metadatos = {
         [Op.contains]: { tipo_documento }

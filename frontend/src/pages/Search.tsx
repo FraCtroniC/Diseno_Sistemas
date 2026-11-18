@@ -4,6 +4,8 @@ import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import { trabajoService, categoriaService, type Trabajo, type Categoria } from '../services/trabajoService'
+import { carreraService } from '../services/entidadService'
+import type { CarreraEntity } from '../services/trabajoService'
 import { TIPOS_DOCUMENTO } from '../types'
 import { SkeletonCard } from '../components/ui/Skeleton'
 
@@ -11,6 +13,7 @@ export default function Search() {
   const [query, setQuery] = useState('')
   const [yearFilter, setYearFilter] = useState('')
   const [categoriaFilter, setCategoriaFilter] = useState('')
+  const [carreraFilter, setCarreraFilter] = useState('')
   const [tipoDocFilter, setTipoDocFilter] = useState('')
   const [sortFilter, setSortFilter] = useState('reciente')
   const [results, setResults] = useState<Trabajo[]>([])
@@ -19,6 +22,7 @@ export default function Search() {
   const [pagina, setPagina] = useState(1)
   const [totalPaginas, setTotalPaginas] = useState(1)
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [carreras, setCarreras] = useState<CarreraEntity[]>([])
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -26,18 +30,32 @@ export default function Search() {
     categoriaService.listar()
       .then((res) => setCategorias(res.data.data))
       .catch(() => {})
+    carreraService.listar()
+      .then((res) => setCarreras(res.data.data))
+      .catch(() => {})
   }, [])
 
-  async function doSearch(q: string, y: string, cat: string, tipoDoc: string, sort: string, page: number = 1) {
+  async function doSearch(q: string, y: string, cat: string, carrera: string, tipoDoc: string, sort: string, page: number = 1) {
     setLoading(true)
     try {
-      const params: Record<string, string | number> = { estado: 'publicado', pagina: page, limite: 10 }
+      const params: {
+        q?: string
+        categoria?: string
+        carrera?: string
+        tipo_documento?: string
+        sort?: string
+        anio?: number
+        estado?: string
+        pagina?: number
+        limite?: number
+      } = { estado: 'publicado', pagina: page, limite: 10 }
       if (q.trim()) params.q = q.trim()
-      if (y) params.anio = y
+      if (y) params.anio = Number(y)
       if (cat) params.categoria = cat
+      if (carrera) params.carrera = carrera
       if (tipoDoc) params.tipo_documento = tipoDoc
       if (sort) params.sort = sort
-      const res = await trabajoService.buscar(params as any)
+      const res = await trabajoService.buscar(params)
       setResults(res.data.datos)
       setTotal(res.data.total)
       setPagina(page)
@@ -55,17 +73,19 @@ export default function Search() {
     const q = params.get('query') ?? ''
     const y = params.get('year') ?? ''
     const cat = params.get('categoria') ?? ''
+    const carrera = params.get('carrera') ?? ''
     const tipoDoc = params.get('tipo_documento') ?? ''
     const sort = params.get('sort') ?? 'reciente'
     const page = parseInt(params.get('pagina') || '1', 10)
     setQuery(q)
     setYearFilter(y)
     setCategoriaFilter(cat)
+    setCarreraFilter(carrera)
     setTipoDocFilter(tipoDoc)
     setSortFilter(sort)
 
-    doSearch(q, y, cat, tipoDoc, sort, page)
-  }, [location.search, categorias])
+    doSearch(q, y, cat, carrera, tipoDoc, sort, page)
+  }, [location.search])
 
   return (
     <section className="space-y-6">
@@ -92,7 +112,17 @@ export default function Search() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Carrera</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Carrera</span>
+            <select value={carreraFilter} onChange={(e) => setCarreraFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+              <option value="">Todas</option>
+              {carreras.map((c) => (
+                <option key={c.id} value={c.id}>{c.nombre}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Categoría temática</span>
             <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
               <option value="">Todas</option>
               {categorias.map((c) => (
@@ -122,13 +152,14 @@ export default function Search() {
         </div>
 
           <div className="mt-4 flex gap-3">
-            <Button type="button" onClick={() => { setQuery(''); setYearFilter(''); setCategoriaFilter(''); setTipoDocFilter(''); setSortFilter('reciente'); navigate('/search') }}>
+            <Button type="button" onClick={() => { setQuery(''); setYearFilter(''); setCategoriaFilter(''); setCarreraFilter(''); setTipoDocFilter(''); setSortFilter('reciente'); navigate('/search') }}>
               Limpiar filtros
             </Button>
             <Button variant="secondary" type="button" onClick={() => {
               const params = new URLSearchParams()
               if (query.trim()) params.set('query', query.trim())
               if (yearFilter) params.set('year', yearFilter)
+              if (carreraFilter) params.set('carrera', carreraFilter)
               if (categoriaFilter) params.set('categoria', categoriaFilter)
               if (tipoDocFilter) params.set('tipo_documento', tipoDocFilter)
               if (sortFilter !== 'reciente') params.set('sort', sortFilter)

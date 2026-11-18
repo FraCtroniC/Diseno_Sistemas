@@ -42,6 +42,9 @@ const createTrabajoRules = [
   body('categoria_id')
     .notEmpty().withMessage('La categoría es requerida')
     .isUUID().withMessage('categoria_id debe ser un UUID válido'),
+  body('carrera_id')
+    .notEmpty().withMessage('La carrera es requerida')
+    .isUUID().withMessage('carrera_id debe ser un UUID válido'),
   body('metadatos')
     .optional()
     .customSanitizer((value) => {
@@ -76,6 +79,9 @@ const updateTrabajoRules = [
   body('categoria_id')
     .optional()
     .isUUID().withMessage('categoria_id debe ser un UUID válido'),
+  body('carrera_id')
+    .optional()
+    .isUUID().withMessage('carrera_id debe ser un UUID válido'),
   body('estado')
     .optional()
     .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
@@ -116,6 +122,9 @@ const buscarRules = [
   query('categoria')
     .optional()
     .isUUID().withMessage('categoria debe ser un UUID válido'),
+  query('carrera')
+    .optional()
+    .isUUID().withMessage('carrera debe ser un UUID válido'),
   query('tipo_documento')
     .optional()
     .isString().withMessage('tipo_documento debe ser texto'),

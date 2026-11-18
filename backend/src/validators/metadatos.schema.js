@@ -5,7 +5,6 @@ const metadatosSchema = Joi.object({
   idioma: Joi.string().valid('es', 'en', 'pt').optional(),
   paginas: Joi.number().integer().min(5).max(5000).optional(),
   institucion: Joi.string().max(200).optional(),
-  carrera: Joi.string().max(200).optional(),
   tutor_academico: Joi.string().max(200).optional(),
   tutor_industrial: Joi.string().max(200).optional(),
   linea_investigacion: Joi.string().max(200).optional(),

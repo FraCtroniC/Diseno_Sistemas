@@ -30,19 +30,23 @@ const USERS = [
 ];
 
 const CATEGORIAS = [
-  { id: 'adc2de6b-25f2-4056-af26-9654a4c62361', nombre: 'Ingeniería de Sistemas', slug: 'ingenieria-de-sistemas', descripcion: 'Sistemas, software y tecnología.' },
-  { id: '53fb5fad-fa55-4000-a5af-f89efe6f8f92', nombre: 'Ingeniería Civil', slug: 'ingenieria-civil', descripcion: 'Obras, estructuras y construcción.' },
-  { id: 'ee37b974-2e5c-4955-9381-c0ec91475474', nombre: 'Administración de Empresas', slug: 'administracion-de-empresas', descripcion: 'Gestión y organización.' },
-  { id: '721e96ea-d4b1-4267-a3a3-27ef767a4243', nombre: 'Contaduría Pública', slug: 'contaduria-publica', descripcion: 'Contabilidad y finanzas.' },
-  { id: 'b5a8b06f-7aae-4cbe-a3c2-a6406abe0552', nombre: 'Educación', slug: 'educacion', descripcion: 'Docencia, currículo y pedagogía.' }
+  { id: 'adc2de6b-25f2-4056-af26-9654a4c62361', nombre: 'Tecnología y Sistemas', slug: 'tecnologia-y-sistemas', descripcion: 'Software, redes, datos y sistemas de información.' },
+  { id: '53fb5fad-fa55-4000-a5af-f89efe6f8f92', nombre: 'Ingeniería y Construcción', slug: 'ingenieria-y-construccion', descripcion: 'Obras, estructuras y construcción.' },
+  { id: 'ee37b974-2e5c-4955-9381-c0ec91475474', nombre: 'Administración y Gestión', slug: 'administracion-y-gestion', descripcion: 'Gestión pública y organización.' },
+  { id: '721e96ea-d4b1-4267-a3a3-27ef767a4243', nombre: 'Economía y Finanzas', slug: 'economia-y-finanzas', descripcion: 'Economía, contabilidad y finanzas.' },
+  { id: 'b5a8b06f-7aae-4cbe-a3c2-a6406abe0552', nombre: 'Estudios Institucionales', slug: 'estudios-institucionales', descripcion: 'Normativas, manuales y documentos internos.' },
+  { id: 'c1a00001-0000-4000-8000-000000000001', nombre: 'Turismo y Sociedad', slug: 'turismo-y-sociedad', descripcion: 'Turismo, patrimonio, cultura y comunidad.' },
+  { id: 'c1a00002-0000-4000-8000-000000000002', nombre: 'Energía y Electricidad', slug: 'energia-y-electricidad', descripcion: 'Sistemas eléctricos, potencia y energías.' }
 ];
 
-const CARRERAS = CATEGORIAS.map((categoria, indice) => ({
-  id: `c000000${indice + 1}-0000-4000-8000-00000000000${indice + 1}`,
-  nombre: categoria.nombre,
-  slug: categoria.slug,
-  descripcion: `Carrera de ${categoria.nombre}`
-}));
+const CARRERAS = [
+  { id: 'b1a00001-0000-4000-8000-000000000001', nombre: 'Administración y Gestión Municipal', slug: 'administracion-y-gestion-municipal', descripcion: 'Gestión pública, organización y administración municipal.' },
+  { id: 'b1a00002-0000-4000-8000-000000000002', nombre: 'Licenciatura en Turismo', slug: 'licenciatura-en-turismo', descripcion: 'Turismo, patrimonio, cultura y desarrollo comunitario.' },
+  { id: 'b1a00003-0000-4000-8000-000000000003', nombre: 'Economía', slug: 'economia', descripcion: 'Economía, finanzas y análisis económico.' },
+  { id: 'b1a00004-0000-4000-8000-000000000004', nombre: 'Ingeniería de Sistemas', slug: 'ingenieria-de-sistemas', descripcion: 'Software, redes, datos y sistemas de información.' },
+  { id: 'b1a00005-0000-4000-8000-000000000005', nombre: 'Ingeniería Civil', slug: 'ingenieria-civil', descripcion: 'Obras civiles, estructuras e infraestructura.' },
+  { id: 'b1a00006-0000-4000-8000-000000000006', nombre: 'Ingeniería Eléctrica', slug: 'ingenieria-electrica', descripcion: 'Sistemas eléctricos, potencia y energía.' }
+];
 
 const TUTORES = [
   { id: 'd0000001-0000-4000-8000-000000000001', nombre: 'Dra. Ana Rodríguez', email: 'ana.rodriguez@test.local', cedula: 'V-30000001' },
@@ -195,7 +199,6 @@ async function seed() {
         tipo_documento: TIPOS[indice % TIPOS.length],
         idioma: 'es',
         paginas: 20 + (indice % 300),
-        carrera: carrera.nombre,
         institucion: 'UNEFA Núcleo Táchira'
       },
       identificador: publicado ? `UNEFA-TCH-${year}-${String(indice + 1).padStart(4, '0')}` : null,

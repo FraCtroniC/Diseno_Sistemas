@@ -2,7 +2,7 @@
 
 Sistema full-stack para registrar, revisar, publicar y consultar la producción académica e institucional de la UNEFA Núcleo Táchira.
 
-**Snapshot documentado:** commit `2f8b0a9` del 11 de noviembre de 2026 (código) y el commit de cierre de la documentación de la misma fecha. Este README describe lo que el repositorio hace hoy, no lo que se planeó originalmente. El estado detallado y las brechas conocidas están en [`docs/ESTADO.md`](docs/ESTADO.md); la correspondencia requisito → implementación → prueba está en [`docs/TRAZABILIDAD.md`](docs/TRAZABILIDAD.md).
+**Snapshot documentado:** commit `2f8b0a9` del 11 de noviembre de 2026 (código) y el commit de cierre de la documentación de la misma fecha, más la actualización del catálogo académico del 18 de noviembre de 2026. Este README describe lo que el repositorio hace hoy, no lo que se planeó originalmente. El estado detallado y las brechas conocidas están en [`docs/ESTADO.md`](docs/ESTADO.md); la correspondencia requisito → implementación → prueba está en [`docs/TRAZABILIDAD.md`](docs/TRAZABILIDAD.md).
 
 ---
 
@@ -10,10 +10,11 @@ Sistema full-stack para registrar, revisar, publicar y consultar la producción 
 
 - Autenticación con JWT en cookie `httpOnly` y tres roles: `admin`, `repositor` y `bibliotecario`.
 - Catálogo público con búsqueda full-text, filtros y detalle de trabajos.
-- Carga de trabajos con metadatos, palabras clave y PDF de hasta 10 MB.
+- Catálogo académico con las seis carreras de la UNEFA (Administración y Gestión Municipal, Licenciatura en Turismo, Economía, Ingeniería de Sistemas, Ingeniería Civil e Ingeniería Eléctrica) y siete categorías temáticas independientes.
+- Carga de trabajos con carrera obligatoria, categoría temática, metadatos, palabras clave y PDF de hasta 10 MB.
 - Flujo de revisión: `borrador` → `en_revision` → `publicado` o devolución a `borrador`; `archivado` para administración.
 - Notificaciones in-app y por SSE; comentarios con calificación; historial de versiones; citas en APA, BibTeX y RIS.
-- Panel administrativo con estadísticas de producción y visitas.
+- Panel administrativo con estadísticas, CRUD de carreras y gestión de categorías temáticas.
 - Interoperabilidad: OAI-PMH, RSS y Atom (feeds públicos en `/feed/rss` y `/feed/atom` del dominio del frontend).
 - Endurecimiento de seguridad verificado con 25 comprobaciones.
 
@@ -21,11 +22,11 @@ Sistema full-stack para registrar, revisar, publicar y consultar la producción 
 
 | Verificación | Resultado | Comando / evidencia |
 |---|---|---|
-| Pruebas backend | **174/174** en 18 suites | `cd backend && npm test -- --runInBand` |
+| Pruebas backend | **193/193** en 19 suites | `cd backend && npm test -- --runInBand` |
 | Pruebas frontend | **15/15** en 4 archivos | `cd frontend && npm test` |
 | TypeScript | Sin errores | `cd frontend && npx tsc --noEmit` |
 | Build de producción | Correcto, con advertencia de tamaño | `cd frontend && npm run build` |
-| Lint | 0 errores, 19 advertencias | `cd frontend && npm run lint` |
+| Lint | 0 errores, 18 advertencias | `cd frontend && npm run lint` |
 | Prueba de humo de seguridad | **25/25** | `.local/security-smoke.json`, 2026-11-11T03:15:32Z |
 
 > Las evidencias de `.local/` son locales y están ignoradas por Git. El informe consolidado y reproducible está en [`docs/informe-pruebas-carga-seguridad.md`](docs/informe-pruebas-carga-seguridad.md). Ver [`docs/EVIDENCIAS.md`](docs/EVIDENCIAS.md).
@@ -102,7 +103,7 @@ npm run db:seed
 npm run dev
 ```
 
-El seeder del administrador crea `admin@unefa.edu.ve`. Si `ADMIN_PASSWORD` no está definido, genera una contraseña aleatoria y la imprime en consola. Los seeders también crean categorías y trabajos de ejemplo.
+El seeder del administrador crea `admin@unefa.edu.ve`. Si `ADMIN_PASSWORD` no está definido, genera una contraseña aleatoria y la imprime en consola. Los seeders también crean las seis carreras, las siete categorías temáticas y trabajos de ejemplo.
 
 Backend disponible en `http://localhost:5000`. Verificación rápida: `http://localhost:5000/health`.
 

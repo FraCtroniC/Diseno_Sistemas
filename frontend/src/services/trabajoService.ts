@@ -4,6 +4,7 @@ export interface CarreraEntity {
   id: string
   nombre: string
   slug: string
+  descripcion?: string | null
 }
 
 export interface TutorEntity {
@@ -24,7 +25,7 @@ export interface Trabajo {
   tutor: string | null
   anio: number
   identificador: string | null
-  carrera_id: string | null
+  carrera_id: string
   tutor_id: string | null
   estudiante_id: string | null
   carrera?: CarreraEntity | null
@@ -73,7 +74,7 @@ export const trabajoService = {
   eliminar: (id: string) =>
     api.delete<{ success: boolean; message: string }>(`/trabajos/${id}`),
 
-  buscar: (params: { q?: string; categoria?: string; anio?: number; estado?: string; usuario_id?: string; pagina?: number; limite?: number }) =>
+  buscar: (params: { q?: string; categoria?: string; carrera?: string; tipo_documento?: string; sort?: string; anio?: number; estado?: string; usuario_id?: string; pagina?: number; limite?: number }) =>
     api.get<{ success: boolean; total: number; datos: Trabajo[]; pagina: number; limite: number; totalPaginas: number }>('/trabajos/buscar', { params }),
 }
 

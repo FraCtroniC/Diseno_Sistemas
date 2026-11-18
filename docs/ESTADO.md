@@ -1,7 +1,7 @@
 # Estado del proyecto
 
-**Snapshot:** commit `2f8b0a9` · 11 de noviembre de 2026 · rama `main`
-**Árbol de trabajo:** limpio. Los tres cambios de frontend se confirmaron en `2f8b0a9`; la documentación se confirma en el commit de cierre. Los resultados de este documento se obtuvieron sobre ese mismo código.
+**Snapshot:** commit `2f8b0a9` · 11 de noviembre de 2026 · rama `main`, más la actualización del catálogo académico del 18 de noviembre de 2026.
+**Árbol de trabajo:** la actualización del catálogo (carreras, categorías, migración y formularios) está pendiente de commit al redactar este documento.
 **Alcance:** estado verificado del repositorio, no del despliegue en producción.
 
 > Este documento responde una sola pregunta: **¿qué funciona hoy y cómo se comprueba?** Si una función no tiene evidencia, no se marca como cumplida.
@@ -22,11 +22,12 @@
 
 | Verificación | Resultado | Comando | Fecha |
 |---|---|---|---|
-| Pruebas backend | **156/156** en 14 suites | `cd backend && npm test -- --runInBand` | 2026-11-11 |
-| Pruebas frontend | **15/15** en 4 archivos | `cd frontend && npm test` | 2026-11-11 |
-| TypeScript | Sin errores | `cd frontend && npx tsc --noEmit` | 2026-11-11 |
-| Build | Correcto; aviso de chunk > 500 kB | `cd frontend && npm run build` | 2026-11-11 |
-| Lint | 0 errores, 19 advertencias | `cd frontend && npm run lint` | 2026-11-11 |
+| Pruebas backend | **193/193** en 19 suites | `cd backend && npm test -- --runInBand` | 2026-11-18 |
+| Pruebas frontend | **15/15** en 4 archivos | `cd frontend && npm test` | 2026-11-18 |
+| TypeScript | Sin errores | `cd frontend && npx tsc --noEmit` | 2026-11-18 |
+| Build | Correcto; aviso de chunk > 500 kB | `cd frontend && npm run build` | 2026-11-18 |
+| Lint | 0 errores, 18 advertencias | `cd frontend && npm run lint` | 2026-11-18 |
+| Migración del catálogo | 6 carreras, 7 categorías, 18/18 trabajos con `carrera_id` y 0 con `metadatos.carrera` | `npm run db:migrate` + consulta de verificación sobre Neon | 2026-11-18 |
 | Seguridad | **25/25** comprobaciones | `cd backend && npm run test:security` | 2026-11-11T03:15:32Z |
 | Carga k6 | 4.295 peticiones, 119,36 req/s, p95 83,79 ms, 0 fallos | `npm run test:load:k6` | 2026-11-10 |
 | Carga Artillery | 2.492 peticiones, 0 fallidos, p95 92,8 ms | `npm run test:load:artillery` | 2026-11-10 |
@@ -40,15 +41,15 @@
 | Módulo | Estado | Qué funciona | Evidencia principal |
 |---|---|---|---|
 | Autenticación y usuarios | ✅ | Registro, login, logout, perfil, recuperación de contraseña, JWT en cookie `httpOnly`, roles y estado activo | `backend/src/services/auth.service.js`, `backend/src/controllers/auth.controller.js`, `frontend/src/stores/useAuthStore.ts`, `backend/src/services/auth.service.test.js` |
-| Catálogo y búsqueda | ✅ | Catálogo público, búsqueda full-text, filtros, paginación y detalle | `backend/src/services/trabajo.service.js`, `frontend/src/pages/Search.tsx`, `frontend/src/pages/Catalog.tsx`, `backend/src/routes/api.test.js` |
-| Carga y edición de trabajos | ✅ | Metadatos, palabras clave, PDF de hasta 10 MB, edición y borrado con control de propiedad | `frontend/src/pages/Submission.tsx`, `backend/src/controllers/trabajo.controller.js`, `backend/src/middlewares/upload.middleware.js`, `frontend/src/utils/pdfValidation.test.ts` |
+| Catálogo y búsqueda | ✅ | Catálogo público, búsqueda full-text, filtros por carrera y categoría temática, paginación y detalle | `backend/src/services/trabajo.service.js`, `frontend/src/pages/Search.tsx`, `frontend/src/pages/Catalog.tsx`, `backend/src/routes/api.test.js` |
+| Carga y edición de trabajos | ✅ | Carrera obligatoria, categoría temática, metadatos, palabras clave, PDF de hasta 10 MB, edición y borrado con control de propiedad | `frontend/src/pages/Submission.tsx`, `backend/src/controllers/trabajo.controller.js`, `backend/src/middlewares/upload.middleware.js`, `frontend/src/utils/pdfValidation.test.ts` |
 | Flujo de revisión | ✅ | `borrador` → `en_revision` → `publicado` / `borrador`; archivado; comentario de revisión; historial | `backend/src/services/revision.service.js`, `frontend/src/pages/Revisiones.tsx`, `backend/src/services/revision.service.test.js` |
 | Notificaciones | 🟡 | In-app y SSE para cambios de estado y comentarios; no hay correo en cambios de revisión | `backend/src/services/notificacion.service.js`, `backend/src/services/sse.service.js`, `frontend/src/components/NotificationBell.tsx` |
 | Comentarios | ✅ | Crear, listar, editar y eliminar; calificación | `backend/src/services/comentario.service.js`, `frontend/src/components/ComentariosSection.tsx`, `backend/src/services/comentario.service.test.js` |
 | Versiones | ✅ | Historial y restauración por admin/repositor | `backend/src/services/version.service.js`, `frontend/src/components/HistorialVersiones.tsx` |
 | Citas | ✅ | APA, BibTeX y RIS | `backend/src/services/cita.service.js`, `frontend/src/pages/TrabajoDetalle.tsx` |
 | Estadísticas | ✅ | Vistas, descargas, producción por categoría, usuarios y top de trabajos | `backend/src/services/estadistica.service.js`, `backend/src/services/admin.service.js`, `frontend/src/pages/Admin.tsx`, `backend/src/services/estadistica.service.test.js` |
-| Administración | ✅ | Usuarios, carreras, tutores, estudiantes, categorías y panel de control | `backend/src/routes/usuario.routes.js`, `backend/src/routes/carrera.routes.js`, `backend/src/routes/tutor.routes.js`, `backend/src/routes/estudiante.routes.js`, `frontend/src/pages/Admin.tsx` |
+| Administración | ✅ | Usuarios, CRUD de carreras con validación de borrado, tutores, estudiantes, categorías temáticas y panel de control | `backend/src/routes/usuario.routes.js`, `backend/src/routes/carrera.routes.js`, `backend/src/services/carrera.service.js`, `frontend/src/pages/Admin.tsx`, `frontend/src/components/admin/CarrerasManager.tsx` |
 | Documentos normativos | 🟡 | Tipo `normativas`, catálogo y conteo de normativas publicadas; sin control de vigencia/derogación | `frontend/src/types.ts`, `backend/src/validators/metadatos.schema.js`, `backend/src/services/admin.service.js` |
 | Editorial y divulgación | 🟡 | Tipos `editorial` y `divulgacion` dentro del flujo general; sin flujo editorial dedicado | `frontend/src/types.ts`, `frontend/src/pages/Submission.tsx` |
 | Interoperabilidad | ✅ | OAI-PMH 2.0, RSS 2.0 y Atom | `backend/src/routes/oai.routes.js`, `backend/src/services/oai.service.js`, `backend/src/routes/feed.routes.js`, `backend/src/services/rss.service.js` |
@@ -72,7 +73,7 @@
 ### 4.2 Catálogo, búsqueda y detalle
 
 - `GET /api/v1/trabajos` lista con paginación y filtros por estado y autor.
-- `GET /api/v1/trabajos/buscar` busca por título, autor, tutor, palabras clave y texto completo; filtra por categoría, tipo de documento y año.
+- `GET /api/v1/trabajos/buscar` busca por título, autor, tutor, palabras clave y texto completo; filtra por carrera, categoría temática, tipo de documento y año.
 - La búsqueda usa `search_vector` y `plainto_tsquery`, con `sequelize.escape` para el término.
 - `GET /api/v1/trabajos/:id` devuelve el detalle; los borradores solo son visibles para su autor, admin o bibliotecario.
 - El catálogo público solo muestra trabajos publicados.
@@ -83,7 +84,8 @@
 ### 4.3 Carga y edición de trabajos
 
 - Formulario de dos pasos en `Submission.tsx`.
-- Metadatos: título, autor, tutor, año, tipo de documento, carrera, categoría, resumen, palabras clave.
+- Metadatos: título, autor, tutor, año, tipo de documento, carrera obligatoria, categoría temática, resumen y palabras clave.
+- La carrera se guarda en `trabajos.carrera_id` (UUID con clave foránea y `NOT NULL`) y se selecciona desde el catálogo `/carreras`; ya no vive en `metadatos.carrera`.
 - Validación de PDF en frontend (tipo y tamaño) y backend (MIME, tamaño y cabecera `%PDF-`).
 - Límite de 10 MB aplicado tanto en frontend como en backend.
 - Almacenamiento en Cloudinary o en `.local/uploads` según `CLOUDINARY_MODE`.
@@ -175,7 +177,7 @@ Hallazgos corregidos y verificados:
 | G-11 | Metadatos académicos sin confirmar | 🔴 | Alto para la entrega | `docs/PROYECTO.md` |
 | G-13 | URL de demo no verificada | 🟡 | Medio para la evaluación práctica | `frontend/vercel.json` |
 | G-14 | Sin `LICENSE`, términos ni política de privacidad | 🔴 | Bajo/medio | Inventario del repositorio |
-| G-15 | `carrera_id`, `tutor_id` y `estudiante_id` existen en migraciones y asociaciones, pero no como atributos del modelo `Trabajo` ni en la API de creación/edición | 🟡 | Medio: las relaciones académicas se leen, pero no se asignan desde la interfaz | `backend/src/models/Trabajo.js`, `backend/database/migrations/2026062803-create-entidades-academicas.js`, `backend/src/services/trabajo.service.js` |
+| G-15 | `tutor_id` y `estudiante_id` existen en migraciones y asociaciones, pero no como atributos del modelo `Trabajo` ni en la API de creación/edición. `carrera_id` ya está resuelto | 🟡 | Medio: tutores y estudiantes se leen, pero no se asignan desde la interfaz | `backend/src/models/Trabajo.js`, `backend/database/migrations/2026062803-create-entidades-academicas.js`, `backend/src/services/trabajo.service.js` |
 | G-16 | La versión se crea antes de aplicar la actualización; si esta falla, puede quedar una versión sin cambio efectivo | 🟡 | Bajo: ruido en el historial | `backend/src/controllers/trabajo.controller.js`, `backend/src/services/version.service.js` |
 
 ### 5.1 Brechas resueltas
@@ -183,6 +185,7 @@ Hallazgos corregidos y verificados:
 | ID | Brecha | Resolución | Evidencia |
 |---|---|---|---|
 | G-12 | Tres archivos frontend sin confirmar | Confirmados el 2026-11-11 | Commit `2f8b0a9` |
+| G-15 (parcial) | `carrera_id` no se asignaba desde el modelo ni la API | `carrera_id` obligatorio en modelo, API y formulario; filtro por carrera y CRUD de carreras | Migración `2026111801-carreras-unefa-y-categorias-tematicas.js`, `backend/src/services/carrera.service.test.js`, `backend/src/routes/api.test.js` |
 
 ## 6. Backlog priorizado
 
@@ -201,7 +204,7 @@ Hallazgos corregidos y verificados:
 3. Implementar correo en cambios de revisión, si se confirma en el alcance.
 4. Decidir si se implementan los roles “Docente” y “Estudiante” o se corrige la especificación.
 5. Añadir auditoría de login y cambios de rol.
-6. Declarar `carrera_id`, `tutor_id` y `estudiante_id` en el modelo `Trabajo` y permitir asignarlos desde la API y el formulario (G-15).
+6. Declarar `tutor_id` y `estudiante_id` en el modelo `Trabajo` y permitir asignarlos desde la API y el formulario (G-15, parte restante).
 
 ### P2 — mejora continua
 

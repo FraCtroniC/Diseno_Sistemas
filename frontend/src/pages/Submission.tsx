@@ -5,10 +5,11 @@ import { toastFieldErrors } from '../utils/formToast'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
-import { trabajoService, categoriaService, type Categoria, type Trabajo } from '../services/trabajoService'
+import { trabajoService, categoriaService, type Categoria, type CarreraEntity, type Trabajo } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
 import { MAX_PDF_SIZE_MB, validatePdfFile } from '../utils/pdfValidation'
 import { TIPOS_DOCUMENTO } from '../types'
+import { carreraService } from '../services/entidadService'
 
 type Step = 1 | 2
 
@@ -18,7 +19,7 @@ type FormState = {
   tutor: string
   year: string
   documentType: string
-  program: string
+  careerId: string
   categoryId: string
   description: string
   keywords: string
@@ -34,7 +35,7 @@ const initialState: FormState = {
   tutor: '',
   year: '',
   documentType: '',
-  program: '',
+  careerId: '',
   categoryId: '',
   description: '',
   keywords: '',
@@ -42,10 +43,10 @@ const initialState: FormState = {
   file: null,
 }
 
-const STEP_ONE_FIELDS: (keyof FormState)[] = ['title', 'authors', 'tutor', 'year', 'program', 'categoryId', 'keywords']
+const STEP_ONE_FIELDS: (keyof FormState)[] = ['title', 'authors', 'tutor', 'year', 'careerId', 'categoryId', 'keywords']
 const STEP_TWO_FIELDS: (keyof FormState)[] = ['description', 'file']
 const FIELD_ORDER: (keyof FormState)[] = [
-  'title', 'authors', 'tutor', 'year', 'program', 'documentType', 'categoryId',
+  'title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'categoryId',
   'keywords', 'description', 'file', 'publicationState',
 ]
 
@@ -55,7 +56,7 @@ const FIELD_LABELS: Record<keyof FormState, string> = {
   tutor: 'Tutor / asesor',
   year: 'Año',
   documentType: 'Tipo de documento',
-  program: 'Programa académico',
+  careerId: 'Carrera',
   categoryId: 'Categoría',
   description: 'Resumen / descripción',
   keywords: 'Palabras clave',
@@ -102,8 +103,8 @@ function validateField(field: keyof FormState, state: FormState, isEdit = false)
       if (Number(year) < 1900 || Number(year) > 2100) return 'El año debe estar entre 1900 y 2100.'
       return undefined
     }
-    case 'program':
-      return state.program.trim() ? undefined : 'Indica el programa académico.'
+    case 'careerId':
+      return state.careerId ? undefined : 'Selecciona una carrera.'
     case 'categoryId':
       return state.categoryId ? undefined : 'Selecciona una categoría.'
     case 'keywords': {
@@ -140,6 +141,7 @@ export default function Submission() {
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [carreras, setCarreras] = useState<CarreraEntity[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [focusRequest, setFocusRequest] = useState<{ field: keyof FormState } | null>(null)
   const user = useAuthStore((s) => s.user)
@@ -154,6 +156,9 @@ export default function Submission() {
   useEffect(() => {
     categoriaService.listar()
       .then((res) => setCategorias(res.data.data))
+      .catch(() => {})
+    carreraService.listar()
+      .then((res) => setCarreras(res.data.data))
       .catch(() => {})
   }, [])
 
@@ -183,7 +188,7 @@ export default function Submission() {
           tutor: trabajo.tutor ?? '',
           year: trabajo.anio ? String(trabajo.anio) : '',
           documentType: typeof metadatos.tipo_documento === 'string' ? metadatos.tipo_documento : '',
-          program: typeof metadatos.carrera === 'string' ? metadatos.carrera : '',
+          careerId: trabajo.carrera_id || trabajo.carrera?.id || '',
           categoryId: trabajo.categoria_id ?? '',
           description: trabajo.resumen ?? '',
           keywords: (trabajo.palabras_clave ?? []).join(', '),
@@ -307,16 +312,17 @@ export default function Submission() {
       formData.append('tutor', form.tutor.trim())
       formData.append('anio', form.year)
       formData.append('resumen', form.description)
+      formData.append('carrera_id', form.careerId)
       formData.append('categoria_id', form.categoryId)
       formData.append('palabras_clave', JSON.stringify(parseKeywords(form.keywords)))
 
       // Los metadatos se combinan con los existentes para no perder datos
-      // que no están en el formulario (idioma, páginas, DOI, etc.).
+      // que no están en el formulario (idioma, páginas, DOI, etc.). La carrera
+      // ya no vive aquí: se guarda en `carrera_id`.
       const metadatos: Record<string, unknown> = { ...(isEdit ? metadatosRecord(editTrabajo?.metadatos) : {}) }
+      delete metadatos.carrera
       if (form.documentType) metadatos.tipo_documento = form.documentType
       else delete metadatos.tipo_documento
-      if (form.program.trim()) metadatos.carrera = form.program.trim()
-      else delete metadatos.carrera
       formData.append('metadatos', JSON.stringify(metadatos))
 
       if (form.file) {
@@ -445,9 +451,20 @@ export default function Submission() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Programa académico</span>
-                  <Input data-field="program" value={form.program} onChange={(event) => updateField('program', event.target.value)} placeholder="Ingeniería / Educación / Administración" aria-invalid={errors.program ? true : undefined} className={inputErrorClass('program')} />
-                  {errors.program ? <p className="text-sm text-red-600">{errors.program}</p> : null}
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Carrera</span>
+                  <select
+                    data-field="careerId"
+                    className={`w-full rounded-xl border bg-white px-4 py-2 text-sm outline-none transition focus:ring-2 dark:bg-slate-800 dark:text-slate-100 ${borderClass('careerId')}`}
+                    value={form.careerId}
+                    onChange={(event) => updateField('careerId', event.target.value)}
+                    aria-invalid={errors.careerId ? true : undefined}
+                  >
+                    <option value="">Selecciona una carrera</option>
+                    {carreras.map((carrera) => (
+                      <option key={carrera.id} value={carrera.id}>{carrera.nombre}</option>
+                    ))}
+                  </select>
+                  {errors.careerId ? <p className="text-sm text-red-600">{errors.careerId}</p> : null}
                 </label>
 
                 <label className="space-y-2">
@@ -465,7 +482,7 @@ export default function Submission() {
                 </label>
 
                 <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Categoría</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Categoría temática</span>
                   <select
                     data-field="categoryId"
                     className={`w-full rounded-xl border bg-white px-4 py-2 text-sm outline-none transition focus:ring-2 dark:bg-slate-800 dark:text-slate-100 ${borderClass('categoryId')}`}
@@ -473,7 +490,7 @@ export default function Submission() {
                     onChange={(event) => updateField('categoryId', event.target.value)}
                     aria-invalid={errors.categoryId ? true : undefined}
                   >
-                    <option value="">Selecciona una categoría</option>
+                    <option value="">Selecciona una categoría temática</option>
                     {categorias.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.nombre}</option>
                     ))}
@@ -589,6 +606,11 @@ export default function Submission() {
           <h3 className="mt-2 text-xl font-bold text-slate-900 dark:text-slate-100">{form.title || 'Sin título aún'}</h3>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{authorsPreview.length > 0 ? authorsPreview.join(', ') : 'Autores pendientes'}</p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+            {form.careerId ? (
+              <span className="rounded-full bg-unefa/10 px-3 py-1 text-unefa-dark">
+                {carreras.find((carrera) => carrera.id === form.careerId)?.nombre ?? 'Carrera'}
+              </span>
+            ) : null}
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-700 dark:text-slate-300">{form.documentType}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">{form.year || 'Año'}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">

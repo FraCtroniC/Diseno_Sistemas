@@ -57,7 +57,7 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
         status,
         category: cat?.slug ?? t.categoria_id,
         tipoDocumento: tipoDocumento as DocumentItem['tipoDocumento'],
-        carrera: cat?.nombre,
+        carrera: t.carrera?.nombre,
       }
     })
   },

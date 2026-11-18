@@ -81,7 +81,7 @@ npm run build
 npm run lint
 ```
 
-Resultados del último snapshot: 15/15 pruebas, TypeScript sin errores, build correcto con aviso de chunk > 500 kB, lint con 0 errores y 19 advertencias.
+Resultados del último snapshot: 15/15 pruebas, TypeScript sin errores, build correcto con aviso de chunk > 500 kB, lint con 0 errores y 18 advertencias.
 
 ## Notas
 

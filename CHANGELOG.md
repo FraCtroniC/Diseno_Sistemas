@@ -2,8 +2,44 @@
 
 **Nota metodológica:** este changelog se reconstruyó desde `git log`. El repositorio **no usa versiones semánticas ni etiquetas (`tags`)**. Los hitos se agrupan por fecha y por funcionalidad, no por número de versión.
 
-**Último commit de código:** `2f8b0a9` · 11 de noviembre de 2026.
+**Último commit de código confirmado:** `2f8b0a9` · 11 de noviembre de 2026.
 **Documentación:** commit de cierre de la misma fecha.
+**Actualización funcional posterior:** 18 de noviembre de 2026 (catálogo académico), pendiente de commit al redactar esta entrada.
+
+---
+
+## [2026-11-18] — Catálogo académico y categorías temáticas
+
+### Añadido
+
+- Catálogo `carreras` con las seis carreras que se imparten: Administración y Gestión Municipal, Licenciatura en Turismo, Economía, Ingeniería de Sistemas, Ingeniería Civil e Ingeniería Eléctrica.
+- CRUD de carreras en el panel de administración (`/admin`) con validación de nombre/slug únicos y bloqueo de borrado (`409`) cuando existen trabajos o estudiantes asociados.
+- Migración `2026111801-carreras-unefa-y-categorias-tematicas.js` con transacción, IDs fijos, relleno de `trabajos.carrera_id`, limpieza de `metadatos.carrera`, verificación de nulos y `SET NOT NULL`.
+- Seeder `20260609-carreras-base.js` y pruebas `backend/src/services/carrera.service.test.js`.
+
+### Cambiado
+
+- `categorias` deja de representar carreras y pasa a ser clasificación temática: Administración y Gestión, Economía y Finanzas, Turismo y Sociedad, Tecnología y Sistemas, Ingeniería y Construcción, Energía y Electricidad y Estudios Institucionales.
+- `trabajos.carrera_id` es obligatorio en el modelo, la API y el formulario; `GET /trabajos/buscar` acepta el filtro `carrera`.
+- El formulario de carga usa un select de carrera y un select de categoría temática independientes.
+- El detalle del trabajo muestra la carrera desde `trabajo.carrera.nombre`; se elimina `metadatos.carrera` como fuente de verdad.
+- La búsqueda separa los filtros “Carrera” y “Categoría temática”.
+- Seeders de categorías, trabajos de ejemplo y datos de prueba actualizados al nuevo catálogo.
+
+### Migración aplicada
+
+- Base actual (Neon, 2026-11-18): 6 carreras, 7 categorías temáticas, 18/18 trabajos con `carrera_id` y 0 trabajos con `metadatos.carrera`.
+- Los trabajos existentes se conservaron: Administración de Empresas → Administración y Gestión Municipal; Contaduría Pública → Economía; Educación → Licenciatura en Turismo.
+
+### Verificación
+
+| Verificación | Resultado |
+|---|---|
+| Backend | 193/193 en 19 suites |
+| Frontend | 15/15 en 4 archivos |
+| TypeScript | Sin errores |
+| Build | Correcto, con aviso de chunk > 500 kB |
+| Lint | 0 errores, 18 advertencias |
 
 ---
 
@@ -116,7 +152,7 @@ Paquete documental confirmado en el commit de cierre de esta fecha. Incluye la m
 
 ---
 
-## Estado de pruebas en el último snapshot
+## Estado de pruebas del snapshot `2f8b0a9` (2026-11-11)
 
 | Verificación | Resultado |
 |---|---|

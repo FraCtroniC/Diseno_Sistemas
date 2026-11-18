@@ -7,6 +7,9 @@ jest.mock('../models', () => ({
   Categoria: {
     findByPk: jest.fn(),
   },
+  Carrera: {
+    findByPk: jest.fn(),
+  },
   Usuario: {},
   sequelize: {
     escape: jest.fn((value) => `'${String(value).replace(/'/g, "''")}'`),
@@ -23,7 +26,7 @@ jest.mock('./notificacion.service', () => ({
   crearYNotificar: mockCrearYNotificar,
 }))
 
-const { Trabajo, Categoria } = require('../models')
+const { Trabajo, Categoria, Carrera } = require('../models')
 const trabajoService = require('./trabajo.service')
 
 describe('TrabajoService', () => {
@@ -164,31 +167,50 @@ describe('TrabajoService', () => {
       Categoria.findByPk.mockResolvedValue(null)
 
       await expect(
-        trabajoService.crear({ titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024 }, 'u1')
+        trabajoService.crear({ titulo: 'Test', categoria_id: 'cat1', carrera_id: 'car1', autor: 'Author', anio: 2024 }, 'u1')
       ).rejects.toThrow('Categoría no encontrada')
+    })
+
+    it('throws 404 if carrera not found', async () => {
+      Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+      Carrera.findByPk.mockResolvedValue(null)
+
+      await expect(
+        trabajoService.crear({ titulo: 'Test', categoria_id: 'cat1', carrera_id: 'car1', autor: 'Author', anio: 2024 }, 'u1')
+      ).rejects.toThrow('Carrera no encontrada')
+    })
+
+    it('rechaza la creación sin carrera', async () => {
+      Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+
+      await expect(
+        trabajoService.crear({ titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024 }, 'u1')
+      ).rejects.toThrow('La carrera es requerida')
     })
 
     it('creates trabajo successfully', async () => {
       Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+      Carrera.findByPk.mockResolvedValue({ id: 'car1' })
       Trabajo.create.mockResolvedValue({ id: 't1', titulo: 'Test' })
 
       const result = await trabajoService.crear(
-        { titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024 },
+        { titulo: 'Test', categoria_id: 'cat1', carrera_id: 'car1', autor: 'Author', anio: 2024 },
         'u1'
       )
 
       expect(result.id).toBe('t1')
       expect(Trabajo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ usuario_id: 'u1', titulo: 'Test' })
+        expect.objectContaining({ usuario_id: 'u1', titulo: 'Test', carrera_id: 'car1' })
       )
     })
 
     it('blocks non-admin roles from creating published works', async () => {
       Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+      Carrera.findByPk.mockResolvedValue({ id: 'car1' })
 
       await expect(
         trabajoService.crear(
-          { titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024, estado: 'publicado' },
+          { titulo: 'Test', categoria_id: 'cat1', carrera_id: 'car1', autor: 'Author', anio: 2024, estado: 'publicado' },
           'u1', null, null, 'repositor'
         )
       ).rejects.toThrow('Solo los administradores')
@@ -196,11 +218,12 @@ describe('TrabajoService', () => {
 
     it('notifies the author when created as published', async () => {
       Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+      Carrera.findByPk.mockResolvedValue({ id: 'car1' })
       Trabajo.create.mockResolvedValue({ id: 't1', titulo: 'Test', usuario_id: 'u1', estado: 'publicado' })
       mockCrearYNotificar.mockResolvedValue(1)
 
       await trabajoService.crear(
-        { titulo: 'Test', categoria_id: 'cat1', autor: 'Author', anio: 2024, estado: 'publicado' },
+        { titulo: 'Test', categoria_id: 'cat1', carrera_id: 'car1', autor: 'Author', anio: 2024, estado: 'publicado' },
         'u1', null, null, 'admin'
       )
 
@@ -222,6 +245,16 @@ describe('TrabajoService', () => {
       await expect(
         trabajoService.actualizar('t1', { categoria_id: 'bad-cat' })
       ).rejects.toThrow('Categoría no encontrada')
+    })
+
+    it('validates carrera if provided', async () => {
+      Trabajo.findByPk.mockResolvedValue({ id: 't1', update: jest.fn() })
+      Categoria.findByPk.mockResolvedValue({ id: 'cat1' })
+      Carrera.findByPk.mockResolvedValue(null)
+
+      await expect(
+        trabajoService.actualizar('t1', { carrera_id: 'bad-career' }, 'u1', null, null, 'admin')
+      ).rejects.toThrow('Carrera no encontrada')
     })
 
     it('blocks non-admin roles from changing estado directly', async () => {
@@ -327,6 +360,18 @@ describe('TrabajoService', () => {
             anio: 2024,
             estado: 'publicado',
           }),
+        })
+      )
+    })
+
+    it('filters by carrera', async () => {
+      Trabajo.findAndCountAll.mockResolvedValue({ count: 0, rows: [] })
+
+      await trabajoService.buscar({ carrera: 'car1', estado: 'publicado' })
+
+      expect(Trabajo.findAndCountAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ carrera_id: 'car1' }),
         })
       )
     })

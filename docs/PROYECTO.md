@@ -14,8 +14,8 @@ Documento de definición del proyecto para evaluación académica. Describe el p
 | Institución | UNEFA Núcleo Táchira | Confirmado |
 | Tipo de proyecto | Proyecto académico de desarrollo de software | Inferido; confirmar con la asignatura |
 | Repositorio de código | `https://github.com/FraCtroniC/Dise-o_Sistemas.git` | Confirmado |
-| Versión evaluada | Commit `2f8b0a9` (código) + commit de cierre documental | Confirmado |
-| Fecha de última actualización | 11 de noviembre de 2026 | Confirmado en Git |
+| Versión evaluada | Commit `2f8b0a9` (código) + commit de cierre documental + actualización del catálogo académico | Confirmado |
+| Fecha de última actualización | 18 de noviembre de 2026 | Confirmado en el árbol de trabajo |
 | Autor registrado en Git | `Fabián <elbowe277@gmail.com>` | Confirmado |
 | Lista completa de autores | — | **Pendiente de confirmar** |
 | Profesor / evaluador | — | **Pendiente de confirmar** |
@@ -74,7 +74,7 @@ Implementar un repositorio digital full-stack que permita registrar, revisar, pu
 | Módulo | Qué incluye | Estado |
 |---|---|---|
 | Acceso y usuarios | Registro, login, logout, perfil, recuperación de contraseña, roles y estado activo | ✅ Implementado |
-| Producción académica | Registro de metadatos, carga de PDF, catálogo, búsqueda y detalle | ✅ Implementado |
+| Producción académica | Registro de metadatos con carrera obligatoria y categoría temática, carga de PDF, catálogo, búsqueda y detalle | ✅ Implementado |
 | Flujo de revisión | Transiciones de estado, comentario de revisión, historial y notificaciones in-app | ✅ Implementado |
 | Documentación institucional y normativa | Tipo de documento `normativas`, catálogo y conteo de normativas publicadas | 🟡 Parcial: sin módulo dedicado de vigencia/versionado normativo |
 | Editorial y divulgación | Tipos `editorial` y `divulgacion` dentro del flujo general | 🟡 Parcial: sin flujo editorial dedicado con ISBN/ISSN obligatorio |
@@ -85,6 +85,8 @@ Implementar un repositorio digital full-stack que permita registrar, revisar, pu
 | Interoperabilidad | OAI-PMH 2.0, RSS 2.0 y Atom | ✅ Implementado |
 | Seguridad | IDOR, PII, inyección SQL, JWT, rate limiting, validación de PDF y paginación | ✅ Verificado con 25/25 comprobaciones |
 | Documentación | README, estado, trazabilidad, evidencias, demo y changelog | ✅ Este paquete |
+
+El catálogo académico (`carreras`) contiene únicamente los programas que se imparten: Administración y Gestión Municipal, Licenciatura en Turismo, Economía, Ingeniería de Sistemas, Ingeniería Civil e Ingeniería Eléctrica. Las `categorias` son áreas temáticas independientes (por ejemplo, Tecnología y Sistemas o Energía y Electricidad) y no representan carreras.
 
 ### 5.2 Fuera de alcance o no comprometido
 
@@ -110,7 +112,7 @@ Estos elementos **no forman parte de la entrega actual**. No deben presentarse c
 Se considera que la entrega cumple si un evaluador puede verificar todo lo siguiente:
 
 1. Levantar backend y frontend siguiendo únicamente el `README.md`.
-2. Ejecutar las suites y obtener **156/156** pruebas backend y **15/15** frontend.
+2. Ejecutar las suites y obtener **193/193** pruebas backend y **15/15** frontend.
 3. Ejecutar `npx tsc --noEmit` sin errores.
 4. Ejecutar la prueba de humo de seguridad y obtener **25/25**.
 5. Encontrar cada requisito de la línea base en `docs/TRAZABILIDAD.md`, con implementación, evidencia y estado.
@@ -146,7 +148,7 @@ Se considera que la entrega cumple si un evaluador puede verificar todo lo sigui
 | R-10 | Bundle único de ~1,35 MB | Media | Bajo | Code splitting y carga diferida |
 | R-11 | Sin auditoría de accesos por usuario | Media | Medio | Registrar login, cambios de rol y cambios de estado |
 | R-12 | Dependencia de Cloudinary en producción | Media | Medio | Modo local para pruebas; respaldo de archivos y configuración |
-| R-13 | Las relaciones académicas (`carrera_id`, `tutor_id`, `estudiante_id`) no se asignan desde la API | Alta | Medio | Declararlas en el modelo `Trabajo` y exponerlas en creación/edición (G-15) |
+| R-13 | `tutor_id` y `estudiante_id` no se asignan desde la API; `carrera_id` ya está resuelto y es obligatorio | Media | Medio | Declarar tutores y estudiantes en el modelo `Trabajo` y exponerlos en creación/edición (G-15 parcial) |
 
 ## 9. Glosario
 

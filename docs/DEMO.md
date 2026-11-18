@@ -13,11 +13,11 @@
 | Minuto | Bloque | Qué prueba |
 |---|---|---|
 | 0:00–0:45 | Contexto | Problema, alcance y estado real |
-| 0:45–2:00 | Catálogo público | Búsqueda, filtros, detalle, citas y comentarios |
-| 2:00–3:45 | Rol `repositor` | Carga de metadatos y PDF; envío a revisión |
+| 0:45–2:00 | Catálogo público | Búsqueda, filtros por carrera y categoría, detalle, citas y comentarios |
+| 2:00–3:45 | Rol `repositor` | Carga de metadatos, carrera obligatoria, categoría y PDF; envío a revisión |
 | 3:45–5:15 | Rol `bibliotecario` | Cola de revisión; aprobación y publicación |
 | 5:15–6:15 | Notificación y verificación pública | Notificación in-app y trabajo visible |
-| 6:15–7:45 | Rol `admin` | Panel de control, estadísticas y usuarios |
+| 6:15–7:45 | Rol `admin` | Panel de control, estadísticas, usuarios, carreras y categorías |
 | 7:45–8:45 | Interoperabilidad | OAI-PMH y RSS |
 | 8:45–10:00 | Evidencias y cierre | Pruebas, trazabilidad y límites |
 
@@ -106,10 +106,10 @@ Aclarar de entrada:
 2. Mostrar la portada y los trabajos publicados.
 3. Ir a `/search`.
 4. Buscar `gestión`.
-5. Filtrar por año `2026`.
+5. Filtrar por año `2026` y mostrar los filtros separados de carrera y categoría temática.
 6. Abrir un resultado.
 7. En el detalle, mostrar:
-   - Metadatos: título, autor, año, categoría, resumen y palabras clave.
+   - Metadatos: título, autor, año, carrera, categoría temática, resumen y palabras clave.
    - Botones de cita: APA, BibTeX, RIS.
    - Comentarios.
    - Historial de versiones.
@@ -128,7 +128,8 @@ Aclarar de entrada:
    - Autor: `Autor Demo`.
    - Año: `2026`.
    - Tipo: `Pregrado`.
-   - Categoría: una disponible.
+   - Carrera: `Ingeniería de Sistemas`.
+   - Categoría temática: una disponible.
    - Resumen y palabras clave.
 5. Pulsar “Siguiente”.
 6. Adjuntar el PDF.
@@ -179,7 +180,9 @@ Aclarar de entrada:
    - Visitas y descargas.
    - Top de trabajos.
    - “Cuentas con acceso”.
-4. Mencionar que desde aquí se crean usuarios y se asignan roles.
+   - Catálogo de carreras UNEFA: crear, editar y eliminar (el borrado se bloquea si la carrera tiene trabajos).
+   - Categorías temáticas.
+4. Mencionar que desde aquí se crean usuarios, se asignan roles y se mantiene el catálogo académico.
 
 **Resultado esperado:** el panel carga estadísticas reales de la base de datos.
 
@@ -203,7 +206,7 @@ Mostrar, sin ejecutar todo en vivo:
 
 Cerrar con:
 
-> “Las suites reportan 156/156 pruebas backend y 15/15 frontend; TypeScript compila sin errores; la prueba de humo de seguridad dio 25/25. Lo que no está implementado está marcado como pendiente o fuera de alcance en la trazabilidad.”
+> “Las suites reportan 193/193 pruebas backend y 15/15 frontend; TypeScript compila sin errores; la prueba de humo de seguridad dio 25/25. Lo que no está implementado está marcado como pendiente o fuera de alcance en la trazabilidad.”
 
 ## 4. Demo corta (3 minutos)
 

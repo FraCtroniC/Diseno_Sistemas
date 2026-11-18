@@ -30,6 +30,13 @@ jest.mock('../models', () => ({
     create: jest.fn(),
     count: jest.fn(),
   },
+  Carrera: {
+    findAll: jest.fn(),
+    findByPk: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    count: jest.fn(),
+  },
   Version: {
     max: jest.fn(),
     create: jest.fn(),
@@ -334,8 +341,9 @@ describe('API Integration', () => {
 
   describe('POST /api/v1/trabajos (creación)', () => {
     it('acepta palabras clave enviadas como string JSON y las guarda como arreglo', async () => {
-      const { Trabajo, Categoria } = require('../models')
+      const { Trabajo, Categoria, Carrera } = require('../models')
       Categoria.findByPk.mockResolvedValue({ id: '123e4567-e89b-12d3-a456-426614174000' })
+      Carrera.findByPk.mockResolvedValue({ id: '223e4567-e89b-12d3-a456-426614174000' })
       Trabajo.create.mockImplementation((data) => Promise.resolve({ id: 'nuevo', ...data }))
 
       const res = await request(app)
@@ -344,18 +352,53 @@ describe('API Integration', () => {
         .field('autor', 'Autora')
         .field('anio', '2025')
         .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+        .field('carrera_id', '223e4567-e89b-12d3-a456-426614174000')
         .field('palabras_clave', '["uno", "dos"]')
-        .field('metadatos', JSON.stringify({ tipo_documento: 'pregrado', carrera: 'Educación' }))
+        .field('metadatos', JSON.stringify({ tipo_documento: 'pregrado' }))
 
       expect(res.status).toBe(201)
       expect(Trabajo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ palabras_clave: ['uno', 'dos'] }),
+        expect.objectContaining({
+          palabras_clave: ['uno', 'dos'],
+          carrera_id: '223e4567-e89b-12d3-a456-426614174000',
+        }),
       )
+    })
+
+    it('rechaza la creación si falta la carrera', async () => {
+      const { Trabajo } = require('../models')
+
+      const res = await request(app)
+        .post('/api/v1/trabajos')
+        .field('titulo', 'Sin carrera')
+        .field('autor', 'Autora')
+        .field('anio', '2025')
+        .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+
+      expect(res.status).toBe(400)
+      expect(Trabajo.create).not.toHaveBeenCalled()
+    })
+
+    it('rechaza la creación si la carrera no existe', async () => {
+      const { Categoria, Carrera } = require('../models')
+      Categoria.findByPk.mockResolvedValue({ id: '123e4567-e89b-12d3-a456-426614174000' })
+      Carrera.findByPk.mockResolvedValue(null)
+
+      const res = await request(app)
+        .post('/api/v1/trabajos')
+        .field('titulo', 'Carrera inexistente')
+        .field('autor', 'Autora')
+        .field('anio', '2025')
+        .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+        .field('carrera_id', '223e4567-e89b-12d3-a456-426614174000')
+
+      expect(res.status).toBe(404)
+      expect(res.body.error).toContain('Carrera no encontrada')
     })
   })
 
   describe('POST /api/v1/trabajos (archivo PDF)', () => {
-    const { Trabajo, Categoria } = require('../models')
+    const { Trabajo, Categoria, Carrera } = require('../models')
     const cloudinaryService = require('../services/cloudinary.service')
     const { extractTextFromPdf } = require('../services/pdf.service')
 
@@ -364,6 +407,11 @@ describe('API Integration', () => {
       .field('autor', 'Autora')
       .field('anio', '2025')
       .field('categoria_id', '123e4567-e89b-12d3-a456-426614174000')
+      .field('carrera_id', '223e4567-e89b-12d3-a456-426614174000')
+
+    beforeEach(() => {
+      Carrera.findByPk.mockResolvedValue({ id: '223e4567-e89b-12d3-a456-426614174000' })
+    })
 
     afterEach(() => {
       jest.restoreAllMocks()

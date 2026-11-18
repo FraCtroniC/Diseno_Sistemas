@@ -6,8 +6,11 @@ module.exports = {
     const sisId = 'adc2de6b-25f2-4056-af26-9654a4c62361';
     const civilId = '53fb5fad-fa55-4000-a5af-f89efe6f8f92';
     const adminEmpId = 'ee37b974-2e5c-4955-9381-c0ec91475474';
-    const contId = '721e96ea-d4b1-4267-a3a3-27ef767a4243';
     const eduId = 'b5a8b06f-7aae-4cbe-a3c2-a6406abe0552';
+    const adminCarreraId = 'b1a00001-0000-4000-8000-000000000001';
+    const turismoCarreraId = 'b1a00002-0000-4000-8000-000000000002';
+    const sistemasCarreraId = 'b1a00004-0000-4000-8000-000000000004';
+    const civilCarreraId = 'b1a00005-0000-4000-8000-000000000005';
 
     await queryInterface.bulkInsert('trabajos', [
       {
@@ -19,7 +22,8 @@ module.exports = {
         resumen: 'Estudio sobre el rediseño curricular y su impacto en la formación integral por competencias.',
         palabras_clave: ['curriculo', 'competencias', 'educacion'],
         categoria_id: eduId,
-        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 120, carrera: 'Educación' }),
+        carrera_id: turismoCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 120 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -35,7 +39,8 @@ module.exports = {
         resumen: 'Análisis de herramientas digitales para optimizar procesos académicos, administrativos y de consulta.',
         palabras_clave: ['transformacion digital', 'gestion academica', 'tecnologia'],
         categoria_id: sisId,
-        metadatos: JSON.stringify({ tipo_documento: 'institucional', idioma: 'es', paginas: 85, carrera: 'Ingeniería de Sistemas' }),
+        carrera_id: sistemasCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'institucional', idioma: 'es', paginas: 85 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -51,7 +56,8 @@ module.exports = {
         resumen: 'Sistematización de estrategias didácticas centradas en el estudiante y la evaluación formativa.',
         palabras_clave: ['metodologias activas', 'aprendizaje', 'evaluacion'],
         categoria_id: eduId,
-        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 95, carrera: 'Educación' }),
+        carrera_id: turismoCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 95 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -67,7 +73,8 @@ module.exports = {
         resumen: 'Mapa de líneas priorizadas para la producción de trabajos de grado y proyectos aplicados.',
         palabras_clave: ['investigacion', 'ingenieria', 'trabajos de grado'],
         categoria_id: sisId,
-        metadatos: JSON.stringify({ tipo_documento: 'postgrado', idioma: 'es', paginas: 150, carrera: 'Ingeniería de Sistemas' }),
+        carrera_id: sistemasCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'postgrado', idioma: 'es', paginas: 150 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -83,7 +90,8 @@ module.exports = {
         resumen: 'Selección de artículos, memorias y reseñas de interés para la comunidad universitaria.',
         palabras_clave: ['divulgacion', 'cientifico', 'boletin'],
         categoria_id: adminEmpId,
-        metadatos: JSON.stringify({ tipo_documento: 'divulgacion', idioma: 'es', paginas: 45, carrera: 'Administración de Empresas' }),
+        carrera_id: adminCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'divulgacion', idioma: 'es', paginas: 45 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -99,7 +107,8 @@ module.exports = {
         resumen: 'Lineamientos para la presentación formal de trabajos académicos y publicaciones institucionales.',
         palabras_clave: ['normativas', 'citas', 'referencias'],
         categoria_id: eduId,
-        metadatos: JSON.stringify({ tipo_documento: 'normativas', idioma: 'es', paginas: 32, carrera: 'Educación' }),
+        carrera_id: turismoCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'normativas', idioma: 'es', paginas: 32 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -115,7 +124,8 @@ module.exports = {
         resumen: 'Compendio de procesos internos para solicitudes, validaciones y trámites académicos.',
         palabras_clave: ['procedimientos', 'academico', 'manual'],
         categoria_id: adminEmpId,
-        metadatos: JSON.stringify({ tipo_documento: 'institucional', idioma: 'es', paginas: 68, carrera: 'Administración de Empresas' }),
+        carrera_id: adminCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'institucional', idioma: 'es', paginas: 68 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -131,7 +141,8 @@ module.exports = {
         resumen: 'Selección de libros, cuadernos y publicaciones especiales generadas por la institución.',
         palabras_clave: ['editorial', 'memorias', 'publicaciones'],
         categoria_id: eduId,
-        metadatos: JSON.stringify({ tipo_documento: 'editorial', idioma: 'es', paginas: 200, carrera: 'Educación' }),
+        carrera_id: turismoCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'editorial', idioma: 'es', paginas: 200 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -147,7 +158,8 @@ module.exports = {
         resumen: 'Desarrollo de una aplicación web para la gestión de inventarios en pequeñas y medianas empresas.',
         palabras_clave: ['inventarios', 'pymes', 'sistema web'],
         categoria_id: sisId,
-        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 110, carrera: 'Ingeniería de Sistemas' }),
+        carrera_id: sistemasCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 110 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,
@@ -163,7 +175,8 @@ module.exports = {
         resumen: 'Evaluación de cargas y resistencia de puentes peatonales en zonas urbanas del estado Táchira.',
         palabras_clave: ['puentes', 'estructural', 'peatonal'],
         categoria_id: civilId,
-        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 130, carrera: 'Ingeniería Civil' }),
+        carrera_id: civilCarreraId,
+        metadatos: JSON.stringify({ tipo_documento: 'pregrado', idioma: 'es', paginas: 130 }),
         archivo_url: null,
         estado: 'publicado',
         usuario_id: adminId,

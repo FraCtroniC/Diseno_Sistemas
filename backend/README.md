@@ -4,7 +4,7 @@ API REST del Repositorio Digital UNEFA Táchira. Gestiona autenticación, usuari
 
 **Stack:** Node.js · Express 5 · Sequelize · PostgreSQL · Joi · express-validator · JWT · Cloudinary · Nodemailer.
 
-**Estado verificado:** 156/156 pruebas en 14 suites. Ver [`../docs/ESTADO.md`](../docs/ESTADO.md) y [`../docs/EVIDENCIAS.md`](../docs/EVIDENCIAS.md).
+**Estado verificado:** 193/193 pruebas en 19 suites. Ver [`../docs/ESTADO.md`](../docs/ESTADO.md) y [`../docs/EVIDENCIAS.md`](../docs/EVIDENCIAS.md).
 
 ---
 
@@ -133,8 +133,8 @@ backend/
 │   ├── environment.js       # Variables de entorno centralizadas
 │   └── load-env.js          # Carga .env o .env.test
 ├── database/
-│   ├── migrations/          # 18 migraciones
-│   └── seeders/             # Admin, categorías y trabajos de ejemplo
+│   ├── migrations/          # 19 migraciones
+│   └── seeders/             # Admin, carreras, categorías y trabajos de ejemplo
 ├── scripts/
 │   ├── seed-test-data.js    # Datos sintéticos para pruebas
 │   ├── start-test-server.js # Servidor de test
@@ -156,12 +156,12 @@ backend/
 | Tabla | Propósito | Campos principales |
 |---|---|---|
 | `usuarios` | Cuentas y roles | `nombre`, `username`, `email`, `password_hash`, `cedula`, `telefono`, `rol`, `activo`, `reset_token`, `reset_token_expires` |
-| `categorias` | Clasificación temática | `nombre`, `slug`, `descripcion` |
-| `trabajos` | Documentos del repositorio | `titulo`, `autor`, `tutor`, `anio`, `resumen`, `palabras_clave`, `categoria_id`, `archivo_url`, `metadatos` (JSONB), `identificador`, `texto_completo`, `estado`, `usuario_id` |
+| `categorias` | Clasificación temática (áreas, no carreras) | `nombre`, `slug`, `descripcion` |
+| `trabajos` | Documentos del repositorio | `titulo`, `autor`, `tutor`, `anio`, `resumen`, `palabras_clave`, `carrera_id` (obligatorio), `categoria_id`, `archivo_url`, `metadatos` (JSONB), `identificador`, `texto_completo`, `estado`, `usuario_id` |
 
-**Brecha G-15 (modelo `Trabajo`):** las columnas `carrera_id`, `tutor_id` y `estudiante_id` existen en la migración `2026062803-create-entidades-academicas.js` y en las asociaciones de lectura (`carrera`, `tutorAsignado`, `estudiante`), pero **no están declaradas como atributos del modelo** ni se escriben desde la API. Las lecturas pueden incluir las entidades asociadas si los valores se insertaron directamente en la base; la API no permite asignarlas al crear o editar un trabajo.
+**Relaciones académicas:** desde la migración `2026111801-carreras-unefa-y-categorias-tematicas.js`, `carrera_id` es obligatorio y apunta al catálogo `carreras`. La API lo exige al crear un trabajo, lo valida al editar y permite filtrar con `GET /trabajos/buscar?carrera=<uuid>`. La carrera dejó de guardarse en `metadatos.carrera`. `tutor_id` y `estudiante_id` existen en migraciones y asociaciones, pero todavía no se escriben desde la API (brecha G-15 parcial).
 | `revisiones` | Historial de cambios de estado | `trabajo_id`, `revisor_id`, `estado_anterior`, `estado_nuevo`, `comentario` |
-| `carreras` | Catálogo de carreras | `nombre`, `slug`, `descripcion` |
+| `carreras` | Catálogo real de las seis carreras UNEFA | `nombre`, `slug`, `descripcion` |
 | `tutores` | Tutores académicos/industriales | `nombre`, `email`, `cedula` |
 | `estudiantes` | Datos académicos del autor | `nombre`, `email`, `cedula`, `telefono`, `carrera_id` |
 | `visitas` | Vistas y descargas | `trabajo_id`, `tipo` (`vista`/`descarga`) |
@@ -206,19 +206,21 @@ La autenticación acepta JWT en cookie `httpOnly` o en `Authorization: Bearer <t
 | GET | `/estudiantes`, `/estudiantes/:id` | Admin o bibliotecario |
 | POST/PUT/DELETE | `/estudiantes`, `/estudiantes/:id` | Admin |
 
+> `/carreras` expone el catálogo académico real. El alta y la edición validan nombre y slug únicos; el borrado responde `409` si la carrera tiene trabajos o estudiantes asociados.
+
 ### 7.3 Trabajos
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | GET | `/trabajos` | Público/opcional | Lista con paginación y filtros por estado y autor |
-| GET | `/trabajos/buscar` | Público/opcional | Búsqueda full-text |
+| GET | `/trabajos/buscar` | Público/opcional | Búsqueda full-text con filtros por carrera, categoría, tipo de documento y año |
 | GET | `/trabajos/:id` | Público/opcional | Detalle; borradores solo para autor/admin/bibliotecario |
 | GET | `/trabajos/:id/archivo` | Público/opcional | Descarga con control de acceso |
 | GET | `/trabajos/:id/cita` | Público/opcional | Cita en `apa`, `bibtex` o `ris` |
 | GET | `/trabajos/:id/estadisticas` | Público/opcional | Vistas y descargas |
 | GET | `/trabajos/:id/comentarios` | Público/opcional | Comentarios |
 | GET | `/trabajos/:id/versiones` | Público/opcional | Historial de versiones |
-| POST | `/trabajos` | Admin, repositor, bibliotecario | Crea con PDF opcional |
+| POST | `/trabajos` | Admin, repositor, bibliotecario | Crea con PDF opcional; `categoria_id` y `carrera_id` son obligatorios |
 | PUT | `/trabajos/:id` | Admin, repositor, bibliotecario | Actualiza con control de propiedad |
 | DELETE | `/trabajos/:id` | Admin, repositor | Elimina con control de propiedad |
 | PATCH | `/trabajos/:id/estado` | Autenticado | Cambia estado según rol |
@@ -305,7 +307,7 @@ cd backend
 npm test -- --runInBand
 ```
 
-Resultado esperado: **156/156** en 14 suites.
+Resultado esperado: **193/193** en 19 suites.
 
 ```bash
 npm run test:security

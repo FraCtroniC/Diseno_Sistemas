@@ -170,7 +170,6 @@ export default function TrabajoDetalle() {
                     idioma: 'Idioma',
                     paginas: 'Páginas',
                     institucion: 'Institución',
-                    carrera: 'Carrera',
                     tutor_academico: 'Tutor académico',
                     tutor_industrial: 'Tutor industrial',
                     linea_investigacion: 'Línea de investigación',
