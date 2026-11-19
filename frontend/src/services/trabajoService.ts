@@ -29,11 +29,14 @@ export interface Trabajo {
   anio: number
   identificador: string | null
   carrera_id: string
+  linea_operativa_id: string | null
   tutor_id: string | null
   estudiante_id: string | null
   carrera?: CarreraEntity | null
   tutorAsignado?: TutorEntity | null
   estudiante?: EstudianteEntity | null
+  lineaOperativa?: LineaOperativaEntity | null
+  areasEstrategicas?: AreaEstrategicaEntity[]
   resumen: string | null
   palabras_clave: string[]
   categoria_id: string
@@ -53,6 +56,20 @@ export interface Categoria {
   nombre: string
   descripcion: string | null
   slug: string
+}
+
+export interface LineaOperativaEntity {
+  id: string
+  nombre: string
+  sigla: string
+  slug: string
+}
+
+export interface AreaEstrategicaEntity {
+  id: string
+  nombre: string
+  slug: string
+  linea_operativa_id: string
 }
 
 export const trabajoService = {
@@ -96,4 +113,20 @@ export const categoriaService = {
 
   eliminar: (id: string) =>
     api.delete<{ success: boolean; message: string }>(`/categorias/${id}`),
+}
+
+export const lineaService = {
+  listar: () =>
+    api.get<{ success: boolean; data: LineaOperativaEntity[] }>('/lineas-operativas'),
+
+  obtenerPorId: (id: string) =>
+    api.get<{ success: boolean; data: LineaOperativaEntity }>(`/lineas-operativas/${id}`),
+}
+
+export const areaService = {
+  listar: (params?: { linea_operativa?: string }) =>
+    api.get<{ success: boolean; data: AreaEstrategicaEntity[] }>('/areas-estrategicas', { params }),
+
+  obtenerPorId: (id: string) =>
+    api.get<{ success: boolean; data: AreaEstrategicaEntity }>(`/areas-estrategicas/${id}`),
 }

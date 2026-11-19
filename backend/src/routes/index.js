@@ -10,6 +10,8 @@ const tutorRoutes = require('./tutor.routes');
 const estudianteRoutes = require('./estudiante.routes');
 const adminRoutes = require('./admin.routes');
 const notificacionRoutes = require('./notificacion.routes');
+const lineaRoutes = require('./linea.routes');
+const areaRoutes = require('./area.routes');
 
 const router = Router();
 
@@ -24,5 +26,7 @@ router.use('/tutores', tutorRoutes);
 router.use('/estudiantes', estudianteRoutes);
 router.use('/admin', adminRoutes);
 router.use('/notificaciones', notificacionRoutes);
+router.use('/lineas-operativas', lineaRoutes);
+router.use('/areas-estrategicas', areaRoutes);
 
 module.exports = router;

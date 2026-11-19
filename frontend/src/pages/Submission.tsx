@@ -5,7 +5,7 @@ import { toastFieldErrors } from '../utils/formToast'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
-import { trabajoService, categoriaService, type Categoria, type CarreraEntity, type Trabajo } from '../services/trabajoService'
+import { trabajoService, categoriaService, type Categoria, type CarreraEntity, type Trabajo, lineaService, areaService, type LineaOperativaEntity, type AreaEstrategicaEntity } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
 import { MAX_PDF_SIZE_MB, validatePdfFile } from '../utils/pdfValidation'
 import { TIPOS_DOCUMENTO, esPostgrado } from '../types'
@@ -21,6 +21,8 @@ type FormState = {
   documentType: string
   careerId: string
   categoryId: string
+  lineaId: string
+  areaIds: string[]
   description: string
   keywords: string
   publicationState: 'draft' | 'published' | 'archived'
@@ -37,16 +39,18 @@ const initialState: FormState = {
   documentType: '',
   careerId: '',
   categoryId: '',
+  lineaId: '',
+  areaIds: [],
   description: '',
   keywords: '',
   publicationState: 'draft',
   file: null,
 }
 
-const STEP_ONE_FIELDS: (keyof FormState)[] = ['title', 'authors', 'tutor', 'year', 'careerId', 'categoryId', 'keywords']
+const STEP_ONE_FIELDS: (keyof FormState)[] = ['title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'categoryId', 'lineaId', 'keywords']
 const STEP_TWO_FIELDS: (keyof FormState)[] = ['description', 'file']
 const FIELD_ORDER: (keyof FormState)[] = [
-  'title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'categoryId',
+  'title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'categoryId', 'lineaId',
   'keywords', 'description', 'file', 'publicationState',
 ]
 
@@ -57,7 +61,8 @@ const FIELD_LABELS: Record<keyof FormState, string> = {
   year: 'Año',
   documentType: 'Tipo de documento',
   careerId: 'Carrera',
-  categoryId: 'Categoría',
+  categoryId: 'Categoría temática',
+  lineaId: 'Línea operativa',
   description: 'Resumen / descripción',
   keywords: 'Palabras clave',
   file: 'Archivo PDF',
@@ -122,6 +127,8 @@ function validateField(
     }
     case 'categoryId':
       return state.categoryId ? undefined : 'Selecciona una categoría.'
+    case 'lineaId':
+      return state.lineaId ? undefined : 'Selecciona una línea operativa.'
     case 'keywords': {
       const keywords = parseKeywords(state.keywords)
       if (keywords.length > 15) return 'Máximo 15 palabras clave.'
@@ -162,6 +169,8 @@ export default function Submission() {
   const [apiError, setApiError] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [carreras, setCarreras] = useState<CarreraEntity[]>([])
+  const [lineas, setLineas] = useState<LineaOperativaEntity[]>([])
+  const [areas, setAreas] = useState<AreaEstrategicaEntity[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [focusRequest, setFocusRequest] = useState<{ field: keyof FormState } | null>(null)
   const user = useAuthStore((s) => s.user)
@@ -180,7 +189,21 @@ export default function Submission() {
     carreraService.listar()
       .then((res) => setCarreras(res.data.data))
       .catch(() => {})
+    lineaService.listar()
+      .then((res) => setLineas(res.data.data))
+      .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!form.lineaId) {
+      setAreas([])
+      setForm(prev => ({ ...prev, areaIds: [] }))
+      return
+    }
+    areaService.listar({ linea_operativa: form.lineaId })
+      .then((res) => setAreas(res.data.data))
+      .catch(() => setAreas([]))
+  }, [form.lineaId])
 
   /** Precarga el formulario con los datos del trabajo a editar (?edit=<id>). */
   useEffect(() => {
@@ -212,6 +235,8 @@ export default function Submission() {
             : (esPostgrado(trabajo.carrera?.nivel) ? 'postgrado' : ''),
           careerId: trabajo.carrera_id || trabajo.carrera?.id || '',
           categoryId: trabajo.categoria_id ?? '',
+          lineaId: trabajo.linea_operativa_id ?? '',
+          areaIds: (trabajo.areasEstrategicas ?? []).map((a) => a.id),
           description: trabajo.resumen ?? '',
           keywords: (trabajo.palabras_clave ?? []).join(', '),
           publicationState: trabajo.estado === 'publicado' ? 'published' : trabajo.estado === 'archivado' ? 'archived' : 'draft',
@@ -357,6 +382,8 @@ export default function Submission() {
       formData.append('resumen', form.description)
       formData.append('carrera_id', form.careerId)
       formData.append('categoria_id', form.categoryId)
+      if (form.lineaId) formData.append('linea_operativa_id', form.lineaId)
+      formData.append('areas_estrategicas_ids', JSON.stringify(form.areaIds))
       formData.append('palabras_clave', JSON.stringify(parseKeywords(form.keywords)))
 
       // Los metadatos se combinan con los existentes para no perder datos
@@ -548,6 +575,70 @@ export default function Submission() {
                 </label>
 
                 <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Línea operativa</span>
+                  <select
+                    data-field="lineaId"
+                    className={`w-full rounded-xl border bg-white px-4 py-2 text-sm outline-none transition focus:ring-2 dark:bg-slate-800 dark:text-slate-100 ${borderClass('lineaId')}`}
+                    value={form.lineaId}
+                    onChange={(event) => updateField('lineaId', event.target.value)}
+                    aria-invalid={errors.lineaId ? true : undefined}
+                  >
+                    <option value="">Selecciona una línea operativa</option>
+                    {lineas.map((linea) => (
+                      <option key={linea.id} value={linea.id}>{[linea.sigla, linea.nombre].filter(Boolean).join(' - ')}</option>
+                    ))}
+                  </select>
+                  {errors.lineaId ? <p className="text-sm text-red-600">{errors.lineaId}</p> : null}
+                </label>
+
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Área estratégica</span>
+                  <select
+                    className={`w-full rounded-xl border bg-white px-4 py-2 text-sm outline-none transition focus:ring-2 dark:bg-slate-800 dark:text-slate-100 ${form.areaIds.length > 0 ? 'border-unefa focus:border-unefa' : 'border-slate-300 focus:border-unefa'}`}
+                    value=""
+                    onChange={(event) => {
+                      const id = event.target.value
+                      if (!id) return
+                      setForm(prev => ({
+                        ...prev,
+                        areaIds: prev.areaIds.includes(id) ? prev.areaIds : [...prev.areaIds, id]
+                      }))
+                      event.target.value = ''
+                    }}
+                    multiple={false}
+                    size={1}
+                  >
+                    <option value="">Agregar área estratégica...</option>
+                    {areas.map((area) => (
+                      <option key={area.id} value={area.id}>{area.nombre}</option>
+                    ))}
+                  </select>
+                  {form.areaIds.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {form.areaIds.map((id) => {
+                        const area = areas.find((a) => a.id === id)
+                        return (
+                          <span key={id} className="flex items-center gap-1.5 rounded-full bg-unefa/10 px-2.5 py-1 text-xs font-semibold text-unefa-dark dark:text-unefa-accent">
+                            {area?.nombre ?? id}
+                            <button
+                              type="button"
+                              onClick={() => setForm(prev => ({ ...prev, areaIds: prev.areaIds.filter((a) => a !== id) }))}
+                              className="hover:text-unefa"
+                              aria-label={`Eliminar ${area?.nombre}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        )
+                      })}
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Selecciona una o más áreas estratégicas de la línea elegida.
+                      </p>
+                    </div>
+                  ) : null}
+                </label>
+
+                <label className="space-y-2 md:col-span-2">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Palabras clave (separadas por coma)</span>
                   <Input data-field="keywords" value={form.keywords} onChange={(event) => updateField('keywords', event.target.value)} placeholder="educación virtual, aprendizaje, repositorio" aria-invalid={errors.keywords ? true : undefined} className={inputErrorClass('keywords')} />
                   <p className="text-xs text-slate-500 dark:text-slate-400">Ayudan a que el trabajo aparezca en la búsqueda. Máximo 15.</p>
@@ -666,6 +757,16 @@ export default function Submission() {
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
               {isEdit && editTrabajo ? ESTADO_LABELS[editTrabajo.estado] : form.publicationState}
             </span>
+            {form.lineaId ? (
+              <span className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark dark:text-unefa-accent">
+                {lineas.find((l) => l.id === form.lineaId)?.sigla ?? 'Línea'}
+              </span>
+            ) : null}
+            {form.areaIds.length > 0 ? (
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                {form.areaIds.length} área{form.areaIds.length !== 1 ? 's' : ''}
+              </span>
+            ) : null}
           </div>
           {keywordsPreview.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-1.5">

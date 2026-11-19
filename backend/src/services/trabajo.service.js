@@ -1,5 +1,5 @@
 const { Op, literal } = require('sequelize');
-const { Trabajo, Categoria, Usuario, Carrera, NivelAcademico, Tutor, Estudiante, sequelize } = require('../models');
+const { Trabajo, Categoria, Usuario, Carrera, NivelAcademico, Tutor, Estudiante, LineaOperativa, AreaEstrategica, sequelize } = require('../models');
 const { validarMetadatos } = require('../validators/metadatos.schema');
 const { extractTextFromPdf } = require('./pdf.service');
 const notificacionService = require('./notificacion.service');
@@ -13,8 +13,20 @@ function incluirCarreraConNivel() {
   };
 }
 
-const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'metadatos', 'estado'];
-const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'metadatos', 'estado'];
+function incluirLineaYArea() {
+  return [
+    { model: LineaOperativa, as: 'lineaOperativa', attributes: ['id', 'nombre', 'sigla', 'slug'] },
+    {
+      model: AreaEstrategica,
+      as: 'areasEstrategicas',
+      attributes: ['id', 'nombre', 'slug', 'linea_operativa_id'],
+      through: { attributes: [] }
+    }
+  ];
+}
+
+const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'linea_operativa_id', 'metadatos', 'estado'];
+const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'linea_operativa_id', 'metadatos', 'estado'];
 
 function pick(obj, keys) {
   const result = {};
@@ -107,7 +119,8 @@ class TrabajoService {
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
-      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
+      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] },
+      ...incluirLineaYArea()
     ];
 
     const { count, rows } = await Trabajo.findAndCountAll({
@@ -133,7 +146,8 @@ class TrabajoService {
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
-      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
+      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] },
+      ...incluirLineaYArea()
     ];
 
     const trabajo = await Trabajo.findByPk(id, { include: includes });
@@ -173,6 +187,15 @@ class TrabajoService {
       throw err;
     }
 
+    if (data.linea_operativa_id) {
+      const linea = await LineaOperativa.findByPk(data.linea_operativa_id);
+      if (!linea) {
+        const err = new Error('Línea operativa no encontrada');
+        err.statusCode = 404;
+        throw err;
+      }
+    }
+
     if (rol !== 'admin' && data.estado && data.estado !== 'borrador') {
       const err = new Error('Solo los administradores pueden crear trabajos publicados directamente');
       err.statusCode = 403;
@@ -187,12 +210,18 @@ class TrabajoService {
       textoCompleto = await extractTextFromPdf(archivoBuffer);
     }
 
+    const areasIds = Array.isArray(data.areas_estrategicas_ids) ? data.areas_estrategicas_ids : [];
+
     const trabajo = await Trabajo.create({
       ...pick(data, CAMPOS_CREAR),
       archivo_url: archivoUrl,
       texto_completo: textoCompleto,
       usuario_id: usuarioId
     });
+
+    if (areasIds.length > 0) {
+      await trabajo.setAreasEstrategicas(areasIds);
+    }
 
     // Publicación directa (solo admin): avisamos al autor, igual que en el flujo de revisión.
     if (trabajo.estado === 'publicado') {
@@ -258,6 +287,15 @@ class TrabajoService {
       }
     }
 
+    if (data.linea_operativa_id) {
+      const linea = await LineaOperativa.findByPk(data.linea_operativa_id);
+      if (!linea) {
+        const err = new Error('Línea operativa no encontrada');
+        err.statusCode = 404;
+        throw err;
+      }
+    }
+
     if (rol !== 'admin' && data.estado) {
       const err = new Error('No puedes cambiar el estado directamente. Usa la opción "Solicitar revisión"');
       err.statusCode = 403;
@@ -273,6 +311,10 @@ class TrabajoService {
     }
     const estadoAnterior = trabajo.estado;
     await trabajo.update(updateData);
+
+    if (Array.isArray(data.areas_estrategicas_ids)) {
+      await trabajo.setAreasEstrategicas(data.areas_estrategicas_ids);
+    }
 
     // Publicación directa al editar (solo admin): avisamos al autor.
     if (trabajo.estado === 'publicado' && estadoAnterior !== 'publicado') {
@@ -311,7 +353,7 @@ class TrabajoService {
     return trabajo;
   }
 
-  async buscar({ q, categoria, carrera, tipo_documento, anio, estado, usuario_id, pagina, limite, solicitante } = {}) {
+  async buscar({ q, categoria, carrera, tipo_documento, anio, estado, usuario_id, pagina, limite, solicitante, linea_operativa } = {}) {
     const paginacion = normalizarPaginacion(pagina, limite);
     const offset = (paginacion.pagina - 1) * paginacion.limite;
     const where = {};
@@ -341,6 +383,7 @@ class TrabajoService {
 
     if (categoria) where.categoria_id = categoria;
     if (carrera) where.carrera_id = carrera;
+    if (linea_operativa) where.linea_operativa_id = linea_operativa;
     if (tipo_documento) {
       where.metadatos = {
         [Op.contains]: { tipo_documento }
@@ -364,7 +407,8 @@ class TrabajoService {
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
-      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
+      { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] },
+      ...incluirLineaYArea()
     ];
 
     const { count, rows } = await Trabajo.findAndCountAll({

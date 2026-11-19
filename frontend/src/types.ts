@@ -31,6 +31,26 @@ export function esPostgrado(nivel?: NivelAcademico | null): boolean {
   return nivel?.grupo === 'postgrado'
 }
 
+export interface LineaOperativa {
+  id: string
+  nombre: string
+  sigla: string
+  descripcion?: string | null
+  slug: string
+  orden: number
+  activo: boolean
+}
+
+export interface AreaEstrategica {
+  id: string
+  linea_operativa_id: string
+  nombre: string
+  descripcion?: string | null
+  slug: string
+  orden: number
+  activo: boolean
+}
+
 export interface DocumentItem {
   id: string
   title: string

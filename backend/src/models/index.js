@@ -24,6 +24,8 @@ const VisitaModel = require('./Visita');
 const NotificacionModel = require('./Notificacion');
 const ComentarioModel = require('./Comentario');
 const VersionModel = require('./Version');
+const LineaOperativaModel = require('./LineaOperativa');
+const AreaEstrategicaModel = require('./AreaEstrategica');
 
 const Usuario = UsuarioModel(sequelize);
 const Categoria = CategoriaModel(sequelize);
@@ -37,10 +39,12 @@ const Visita = VisitaModel(sequelize);
 const Notificacion = NotificacionModel(sequelize);
 const Comentario = ComentarioModel(sequelize);
 const Version = VersionModel(sequelize);
+const LineaOperativa = LineaOperativaModel(sequelize);
+const AreaEstrategica = AreaEstrategicaModel(sequelize);
 
-Object.values({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version }).forEach((model) => {
+Object.values({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version, LineaOperativa, AreaEstrategica }).forEach((model) => {
   if (model.associate) {
-    model.associate({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version });
+    model.associate({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version, LineaOperativa, AreaEstrategica });
   }
 });
 
@@ -58,7 +62,9 @@ const db = {
   Visita,
   Notificacion,
   Comentario,
-  Version
+  Version,
+  LineaOperativa,
+  AreaEstrategica
 };
 
 module.exports = db;

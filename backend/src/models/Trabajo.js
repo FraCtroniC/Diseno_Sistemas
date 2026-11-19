@@ -8,6 +8,13 @@ module.exports = (sequelize) => {
       Trabajo.belongsTo(models.Carrera, { foreignKey: 'carrera_id', as: 'carrera' });
       Trabajo.belongsTo(models.Tutor, { foreignKey: 'tutor_id', as: 'tutorAsignado' });
       Trabajo.belongsTo(models.Estudiante, { foreignKey: 'estudiante_id', as: 'estudiante' });
+      Trabajo.belongsTo(models.LineaOperativa, { foreignKey: 'linea_operativa_id', as: 'lineaOperativa' });
+      Trabajo.belongsToMany(models.AreaEstrategica, {
+        through: 'trabajo_area_estrategica',
+        foreignKey: 'trabajo_id',
+        otherKey: 'area_estrategica_id',
+        as: 'areasEstrategicas'
+      });
       Trabajo.hasMany(models.Revision, { foreignKey: 'trabajo_id', as: 'revisiones' });
     }
   }

@@ -45,6 +45,19 @@ const createTrabajoRules = [
   body('carrera_id')
     .notEmpty().withMessage('La carrera es requerida')
     .isUUID().withMessage('carrera_id debe ser un UUID válido'),
+  body('linea_operativa_id')
+    .optional()
+    .isUUID().withMessage('linea_operativa_id debe ser un UUID válido'),
+  body('areas_estrategicas_ids')
+    .optional()
+    .customSanitizer((value) => {
+      if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch { return value; }
+      }
+      return value;
+    })
+    .isArray().withMessage('areas_estrategicas_ids debe ser un arreglo de UUIDs')
+    .custom((ids) => ids.every((id) => /^[0-9a-fA-F-]{36}$/.test(id))).withMessage('Cada área estratégica debe ser un UUID válido'),
   body('metadatos')
     .optional()
     .customSanitizer((value) => {
@@ -82,6 +95,19 @@ const updateTrabajoRules = [
   body('carrera_id')
     .optional()
     .isUUID().withMessage('carrera_id debe ser un UUID válido'),
+  body('linea_operativa_id')
+    .optional()
+    .isUUID().withMessage('linea_operativa_id debe ser un UUID válido'),
+  body('areas_estrategicas_ids')
+    .optional()
+    .customSanitizer((value) => {
+      if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch { return value; }
+      }
+      return value;
+    })
+    .isArray().withMessage('areas_estrategicas_ids debe ser un arreglo de UUIDs')
+    .custom((ids) => ids.every((id) => /^[0-9a-fA-F-]{36}$/.test(id))).withMessage('Cada área estratégica debe ser un UUID válido'),
   body('estado')
     .optional()
     .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
@@ -125,6 +151,9 @@ const buscarRules = [
   query('carrera')
     .optional()
     .isUUID().withMessage('carrera debe ser un UUID válido'),
+  query('linea_operativa')
+    .optional()
+    .isUUID().withMessage('linea_operativa debe ser un UUID válido'),
   query('tipo_documento')
     .optional()
     .isString().withMessage('tipo_documento debe ser texto'),
