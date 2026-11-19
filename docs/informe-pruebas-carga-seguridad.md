@@ -2,11 +2,11 @@
 
 **Proyecto:** Repositorio Digital UNEFA  
 **Fecha:** 10 de noviembre de 2026  
-**Actualizado:** 13 de noviembre de 2026 (dependencias) y 18 de noviembre de 2026 (catálogo académico)
+**Actualizado:** 13 de noviembre de 2026 (dependencias) y 18 de noviembre de 2026 (catálogo académico e integración del posgrado)
 **Ámbito:** entorno local aislado (sin Render, sin Neon y sin credenciales reales)  
 **Objetivo:** simular tráfico alto, detectar vulnerabilidades y corregir los hallazgos de mayor impacto, dejando evidencia reproducible.
 
-> **Actualización del 2026-11-18:** el catálogo se separó en 6 carreras UNEFA y 7 categorías temáticas; `trabajos.carrera_id` es obligatorio. Las suites vigentes reportan **193/193** pruebas en 19 suites. Las mediciones de carga de este informe corresponden al entorno y a los datos del 10–13 de noviembre.
+> **Actualización del 2026-11-19:** el catálogo se separó en 11 programas UNEFA (6 de pregrado, 3 de maestría y 2 de doctorado) repartidos en 3 niveles, y 7 categorías temáticas; `trabajos.carrera_id` es obligatorio. La migración del posgrado ya está aplicada en Neon. Las suites vigentes reportan **198/198** pruebas en 19 suites y **22/22** en 6 archivos de frontend. Las mediciones de carga de este informe corresponden al entorno y a los datos del 10–13 de noviembre.
 
 ---
 
@@ -53,7 +53,7 @@ Resultados principales:
 El seed genera:
 
 - 6 usuarios: admin, repositor, bibliotecario, dos autores y un usuario inactivo.
-- 7 categorías temáticas y 6 carreras UNEFA (catálogo actualizado el 2026-11-18).
+- 7 categorías temáticas y 11 programas UNEFA en 3 niveles (catálogo actualizado el 2026-11-18).
 - 3 tutores y 12 estudiantes.
 - 500 trabajos: 400 publicados, 40 borradores y 60 en otros estados.
 - 300 comentarios y 60 notificaciones.
@@ -287,8 +287,8 @@ Otros factores identificados:
 
 | Verificación | Resultado |
 |---|---|
-| Backend (`npm test -- --runInBand`) | **193/193** pruebas, 19 suites (actualización 2026-11-18) |
-| Frontend (`npm test`) | **15/15** pruebas, 4 archivos |
+| Backend (`npm test -- --runInBand`) | **198/198** pruebas, 19 suites (actualización 2026-11-18) |
+| Frontend (`npm test`) | **22/22** pruebas, 6 archivos |
 | TypeScript (`npx tsc --noEmit`) | Sin errores |
 | Prueba de humo de seguridad | **25/25** comprobaciones |
 | k6 | Umbrales cumplidos, 0 fallos |

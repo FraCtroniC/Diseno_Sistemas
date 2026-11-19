@@ -9,7 +9,10 @@ const createCarreraRules = [
     .isString().withMessage('La descripción debe ser texto'),
   body('slug')
     .notEmpty().withMessage('El slug es requerido')
-    .matches(/^[a-z0-9-]+$/).withMessage('El slug solo puede contener minúsculas, números y guiones')
+    .matches(/^[a-z0-9-]+$/).withMessage('El slug solo puede contener minúsculas, números y guiones'),
+  body('nivel_id')
+    .optional({ nullable: true })
+    .isUUID().withMessage('nivel_id debe ser un UUID válido')
 ];
 
 const updateCarreraRules = [
@@ -21,7 +24,10 @@ const updateCarreraRules = [
     .isString().withMessage('La descripción debe ser texto'),
   body('slug')
     .optional()
-    .matches(/^[a-z0-9-]+$/).withMessage('El slug solo puede contener minúsculas, números y guiones')
+    .matches(/^[a-z0-9-]+$/).withMessage('El slug solo puede contener minúsculas, números y guiones'),
+  body('nivel_id')
+    .optional({ nullable: true })
+    .isUUID().withMessage('nivel_id debe ser un UUID válido')
 ];
 
 module.exports = { createCarreraRules, updateCarreraRules };

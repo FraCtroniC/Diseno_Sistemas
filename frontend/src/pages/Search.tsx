@@ -18,6 +18,7 @@ export default function Search() {
   const [sortFilter, setSortFilter] = useState('reciente')
   const [results, setResults] = useState<Trabajo[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(1)
   const [totalPaginas, setTotalPaginas] = useState(1)
@@ -37,6 +38,7 @@ export default function Search() {
 
   async function doSearch(q: string, y: string, cat: string, carrera: string, tipoDoc: string, sort: string, page: number = 1) {
     setLoading(true)
+    setError(null)
     try {
       const params: {
         q?: string
@@ -61,8 +63,11 @@ export default function Search() {
       setPagina(page)
       setTotalPaginas(res.data.totalPaginas || 1)
     } catch {
+      // Sin este mensaje la búsqueda mostraba "0 resultados" como si la
+      // consulta fuera válida, enmascarando un fallo de la API.
       setResults([])
       setTotal(0)
+      setError('No se pudo realizar la búsqueda. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -171,6 +176,15 @@ export default function Search() {
           </div>
       </Card>
 
+      {error ? (
+        <Card className="border-rose-100 bg-rose-50/80 dark:border-rose-900/40 dark:bg-rose-900/20">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">{error}</p>
+            <Button variant="secondary" onClick={() => doSearch(query, yearFilter, categoriaFilter, carreraFilter, tipoDocFilter, sortFilter, pagina)}>Reintentar</Button>
+          </div>
+        </Card>
+      ) : null}
+
       {loading ? (
         <div className="grid gap-4">
           <SkeletonCard />
@@ -213,7 +227,7 @@ export default function Search() {
             </Card>
           ))}
 
-          {results.length === 0 ? <Card><p className="text-sm text-slate-600 dark:text-slate-400">No hay resultados con esos filtros.</p></Card> : null}
+          {results.length === 0 && !error ? <Card><p className="text-sm text-slate-600 dark:text-slate-400">No hay resultados con esos filtros.</p></Card> : null}
         </div>
       )}
 

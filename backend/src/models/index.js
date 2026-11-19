@@ -17,6 +17,7 @@ const CategoriaModel = require('./Categoria');
 const TrabajoModel = require('./Trabajo');
 const RevisionModel = require('./Revision');
 const CarreraModel = require('./Carrera');
+const NivelAcademicoModel = require('./NivelAcademico');
 const TutorModel = require('./Tutor');
 const EstudianteModel = require('./Estudiante');
 const VisitaModel = require('./Visita');
@@ -29,6 +30,7 @@ const Categoria = CategoriaModel(sequelize);
 const Trabajo = TrabajoModel(sequelize);
 const Revision = RevisionModel(sequelize);
 const Carrera = CarreraModel(sequelize);
+const NivelAcademico = NivelAcademicoModel(sequelize);
 const Tutor = TutorModel(sequelize);
 const Estudiante = EstudianteModel(sequelize);
 const Visita = VisitaModel(sequelize);
@@ -36,9 +38,9 @@ const Notificacion = NotificacionModel(sequelize);
 const Comentario = ComentarioModel(sequelize);
 const Version = VersionModel(sequelize);
 
-Object.values({ Usuario, Categoria, Trabajo, Revision, Carrera, Tutor, Estudiante, Visita, Notificacion, Comentario, Version }).forEach((model) => {
+Object.values({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version }).forEach((model) => {
   if (model.associate) {
-    model.associate({ Usuario, Categoria, Trabajo, Revision, Carrera, Tutor, Estudiante, Visita, Notificacion, Comentario, Version });
+    model.associate({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version });
   }
 });
 
@@ -50,6 +52,7 @@ const db = {
   Trabajo,
   Revision,
   Carrera,
+  NivelAcademico,
   Tutor,
   Estudiante,
   Visita,

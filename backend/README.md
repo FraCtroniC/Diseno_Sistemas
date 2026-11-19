@@ -4,7 +4,7 @@ API REST del Repositorio Digital UNEFA Táchira. Gestiona autenticación, usuari
 
 **Stack:** Node.js · Express 5 · Sequelize · PostgreSQL · Joi · express-validator · JWT · Cloudinary · Nodemailer.
 
-**Estado verificado:** 193/193 pruebas en 19 suites. Ver [`../docs/ESTADO.md`](../docs/ESTADO.md) y [`../docs/EVIDENCIAS.md`](../docs/EVIDENCIAS.md).
+**Estado verificado:** 198/198 pruebas en 19 suites. Ver [`../docs/ESTADO.md`](../docs/ESTADO.md) y [`../docs/EVIDENCIAS.md`](../docs/EVIDENCIAS.md).
 
 ---
 
@@ -159,9 +159,10 @@ backend/
 | `categorias` | Clasificación temática (áreas, no carreras) | `nombre`, `slug`, `descripcion` |
 | `trabajos` | Documentos del repositorio | `titulo`, `autor`, `tutor`, `anio`, `resumen`, `palabras_clave`, `carrera_id` (obligatorio), `categoria_id`, `archivo_url`, `metadatos` (JSONB), `identificador`, `texto_completo`, `estado`, `usuario_id` |
 
-**Relaciones académicas:** desde la migración `2026111801-carreras-unefa-y-categorias-tematicas.js`, `carrera_id` es obligatorio y apunta al catálogo `carreras`. La API lo exige al crear un trabajo, lo valida al editar y permite filtrar con `GET /trabajos/buscar?carrera=<uuid>`. La carrera dejó de guardarse en `metadatos.carrera`. `tutor_id` y `estudiante_id` existen en migraciones y asociaciones, pero todavía no se escriben desde la API (brecha G-15 parcial).
+**Relaciones académicas:** desde la migración `2026111801-carreras-unefa-y-categorias-tematicas.js`, `carrera_id` es obligatorio y apunta al catálogo `carreras`. La API lo exige al crear un trabajo, lo valida al editar y permite filtrar con `GET /trabajos/buscar?carrera=<uuid>`. La carrera dejó de guardarse en `metadatos.carrera`. Desde la migración `2026111802-crear-niveles-academicos-y-posgrado.js`, cada programa referencia su nivel con `carreras.nivel_id`; `GET /niveles-academicos` lista los niveles y `GET /carreras?nivel=<slug>` filtra por `pregrado`, `maestria` o `doctorado`. El nivel se devuelve anidado en las respuestas de trabajos como `carrera.nivel`. `tutor_id` y `estudiante_id` existen en migraciones y asociaciones, pero todavía no se escriben desde la API (brecha G-15 parcial).
 | `revisiones` | Historial de cambios de estado | `trabajo_id`, `revisor_id`, `estado_anterior`, `estado_nuevo`, `comentario` |
-| `carreras` | Catálogo real de las seis carreras UNEFA | `nombre`, `slug`, `descripcion` |
+| `niveles_academicos` | Niveles pregrado, maestría y doctorado | `nombre`, `slug`, `grupo`, `orden` |
+| `carreras` | Catálogo de los once programas UNEFA Táchira | `nombre`, `slug`, `descripcion`, `nivel_id` |
 | `tutores` | Tutores académicos/industriales | `nombre`, `email`, `cedula` |
 | `estudiantes` | Datos académicos del autor | `nombre`, `email`, `cedula`, `telefono`, `carrera_id` |
 | `visitas` | Vistas y descargas | `trabajo_id`, `tipo` (`vista`/`descarga`) |
@@ -307,7 +308,7 @@ cd backend
 npm test -- --runInBand
 ```
 
-Resultado esperado: **193/193** en 19 suites.
+Resultado esperado: **198/198** en 19 suites.
 
 ```bash
 npm run test:security

@@ -12,6 +12,13 @@ const listarEntidadRules = [
     .toInt()
 ];
 
+const listarCarreraRules = [
+  query('nivel')
+    .optional()
+    .isIn(['pregrado', 'maestria', 'doctorado'])
+    .withMessage('nivel debe ser pregrado, maestria o doctorado')
+];
+
 const listarEstudianteRules = [
   ...listarEntidadRules,
   query('carrera_id')
@@ -19,4 +26,4 @@ const listarEstudianteRules = [
     .isUUID().withMessage('carrera_id debe ser un UUID válido')
 ];
 
-module.exports = { listarEntidadRules, listarEstudianteRules };
+module.exports = { listarEntidadRules, listarCarreraRules, listarEstudianteRules };

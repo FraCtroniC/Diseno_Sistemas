@@ -206,7 +206,7 @@ Mostrar, sin ejecutar todo en vivo:
 
 Cerrar con:
 
-> “Las suites reportan 193/193 pruebas backend y 15/15 frontend; TypeScript compila sin errores; la prueba de humo de seguridad dio 25/25. Lo que no está implementado está marcado como pendiente o fuera de alcance en la trazabilidad.”
+> “Las suites reportan 198/198 pruebas backend y 22/22 frontend; TypeScript compila sin errores; la prueba de humo de seguridad dio 25/25. Lo que no está implementado está marcado como pendiente o fuera de alcance en la trazabilidad.”
 
 ## 4. Demo corta (3 minutos)
 

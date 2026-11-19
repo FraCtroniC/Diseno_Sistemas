@@ -8,7 +8,7 @@ import Input from '../components/ui/Input'
 import { trabajoService, categoriaService, type Categoria, type CarreraEntity, type Trabajo } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
 import { MAX_PDF_SIZE_MB, validatePdfFile } from '../utils/pdfValidation'
-import { TIPOS_DOCUMENTO } from '../types'
+import { TIPOS_DOCUMENTO, esPostgrado } from '../types'
 import { carreraService } from '../services/entidadService'
 
 type Step = 1 | 2
@@ -83,7 +83,12 @@ function metadatosRecord(value: unknown): Record<string, unknown> {
     : {}
 }
 
-function validateField(field: keyof FormState, state: FormState, isEdit = false): string | undefined {
+function validateField(
+  field: keyof FormState,
+  state: FormState,
+  isEdit = false,
+  carreras: CarreraEntity[] = [],
+): string | undefined {
   switch (field) {
     case 'title':
       if (!state.title.trim()) return 'El título es obligatorio.'
@@ -103,8 +108,18 @@ function validateField(field: keyof FormState, state: FormState, isEdit = false)
       if (Number(year) < 1900 || Number(year) > 2100) return 'El año debe estar entre 1900 y 2100.'
       return undefined
     }
-    case 'careerId':
-      return state.careerId ? undefined : 'Selecciona una carrera.'
+    case 'careerId': {
+      if (!state.careerId) return 'Selecciona una carrera.'
+      const carrera = carreras.find((item) => item.id === state.careerId)
+      if (!carrera) return undefined
+      if (state.documentType === 'postgrado' && !esPostgrado(carrera.nivel)) {
+        return 'Selecciona un programa de maestría o doctorado para un documento de postgrado.'
+      }
+      if (state.documentType && state.documentType !== 'postgrado' && esPostgrado(carrera.nivel)) {
+        return 'El programa seleccionado es de postgrado; cambia el tipo de documento a Postgrado.'
+      }
+      return undefined
+    }
     case 'categoryId':
       return state.categoryId ? undefined : 'Selecciona una categoría.'
     case 'keywords': {
@@ -124,10 +139,15 @@ function validateField(field: keyof FormState, state: FormState, isEdit = false)
   }
 }
 
-function validateFields(fields: (keyof FormState)[], state: FormState, isEdit = false): FormErrors {
+function validateFields(
+  fields: (keyof FormState)[],
+  state: FormState,
+  isEdit = false,
+  carreras: CarreraEntity[] = [],
+): FormErrors {
   const nextErrors: FormErrors = {}
   fields.forEach((field) => {
-    const message = validateField(field, state, isEdit)
+    const message = validateField(field, state, isEdit, carreras)
     if (message) nextErrors[field] = message
   })
   return nextErrors
@@ -187,7 +207,9 @@ export default function Submission() {
           authors: trabajo.autor,
           tutor: trabajo.tutor ?? '',
           year: trabajo.anio ? String(trabajo.anio) : '',
-          documentType: typeof metadatos.tipo_documento === 'string' ? metadatos.tipo_documento : '',
+          documentType: typeof metadatos.tipo_documento === 'string'
+            ? metadatos.tipo_documento
+            : (esPostgrado(trabajo.carrera?.nivel) ? 'postgrado' : ''),
           careerId: trabajo.carrera_id || trabajo.carrera?.id || '',
           categoryId: trabajo.categoria_id ?? '',
           description: trabajo.resumen ?? '',
@@ -207,6 +229,11 @@ export default function Submission() {
   const authorsPreview = useMemo(
     () => form.authors.split(',').map((author) => author.trim()).filter(Boolean),
     [form.authors],
+  )
+
+  const carrerasDisponibles = useMemo(
+    () => carreras.filter((carrera) => esPostgrado(carrera.nivel) === (form.documentType === 'postgrado')),
+    [carreras, form.documentType],
   )
 
   /** Clase extra para los campos que usan el componente Input cuando tienen error. */
@@ -258,10 +285,26 @@ export default function Submission() {
 
   function updateField<K extends keyof FormState>(field: K, value: FormState[K]) {
     const nextForm = { ...form, [field]: value }
-    setForm(nextForm)
-    if (errors[field]) {
-      setErrorFor(field, validateField(field, nextForm))
+
+    // El tipo de documento determina qué programas pueden elegirse. Si el cambio
+    // deja la carrera actual fuera del conjunto válido, se limpia.
+    if (field === 'documentType') {
+      const carreraActual = carreras.find((item) => item.id === form.careerId)
+      if (carreraActual) {
+        const debeSerPostgrado = value === 'postgrado'
+        if (esPostgrado(carreraActual.nivel) !== debeSerPostgrado) {
+          nextForm.careerId = ''
+        }
+      }
     }
+
+    setForm(nextForm)
+    const campos = field === 'documentType' ? [field, 'careerId' as const] : [field]
+    campos.forEach((campo) => {
+      if (errors[campo]) {
+        setErrorFor(campo, validateField(campo, nextForm, isEdit, carreras))
+      }
+    })
   }
 
   function goToField(field: keyof FormState) {
@@ -271,7 +314,7 @@ export default function Submission() {
   }
 
   function handleNext() {
-    const nextErrors = validateFields(STEP_ONE_FIELDS, form, isEdit)
+    const nextErrors = validateFields(STEP_ONE_FIELDS, form, isEdit, carreras)
     applyErrorUpdates(nextErrors)
     if (Object.keys(nextErrors).length === 0) {
       setStep(2)
@@ -286,7 +329,7 @@ export default function Submission() {
     event.preventDefault()
     setApiError('')
 
-    const allErrors = validateFields([...STEP_ONE_FIELDS, ...STEP_TWO_FIELDS], form, isEdit)
+    const allErrors = validateFields([...STEP_ONE_FIELDS, ...STEP_TWO_FIELDS], form, isEdit, carreras)
     applyErrorUpdates(allErrors)
 
     if (Object.keys(allErrors).length > 0) {
@@ -451,7 +494,9 @@ export default function Submission() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Carrera</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {form.documentType === 'postgrado' ? 'Programa de posgrado' : 'Carrera'}
+                  </span>
                   <select
                     data-field="careerId"
                     className={`w-full rounded-xl border bg-white px-4 py-2 text-sm outline-none transition focus:ring-2 dark:bg-slate-800 dark:text-slate-100 ${borderClass('careerId')}`}
@@ -459,9 +504,13 @@ export default function Submission() {
                     onChange={(event) => updateField('careerId', event.target.value)}
                     aria-invalid={errors.careerId ? true : undefined}
                   >
-                    <option value="">Selecciona una carrera</option>
-                    {carreras.map((carrera) => (
-                      <option key={carrera.id} value={carrera.id}>{carrera.nombre}</option>
+                    <option value="">
+                      {form.documentType === 'postgrado' ? 'Selecciona un programa de posgrado' : 'Selecciona una carrera'}
+                    </option>
+                    {carrerasDisponibles.map((carrera) => (
+                      <option key={carrera.id} value={carrera.id}>
+                        {[carrera.nombre, carrera.nivel?.nombre].filter(Boolean).join(' · ')}
+                      </option>
                     ))}
                   </select>
                   {errors.careerId ? <p className="text-sm text-red-600">{errors.careerId}</p> : null}
@@ -608,6 +657,7 @@ export default function Submission() {
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
             {form.careerId ? (
               <span className="rounded-full bg-unefa/10 px-3 py-1 text-unefa-dark">
+                {form.documentType === 'postgrado' ? 'Programa: ' : ''}
                 {carreras.find((carrera) => carrera.id === form.careerId)?.nombre ?? 'Carrera'}
               </span>
             ) : null}

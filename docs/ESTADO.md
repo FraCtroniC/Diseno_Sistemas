@@ -1,7 +1,7 @@
 # Estado del proyecto
 
 **Snapshot:** commit `2f8b0a9` · 11 de noviembre de 2026 · rama `main`, más la actualización del catálogo académico del 18 de noviembre de 2026.
-**Árbol de trabajo:** la actualización del catálogo (carreras, categorías, migración y formularios) está pendiente de commit al redactar este documento.
+**Árbol de trabajo:** la actualización del catálogo (carreras, categorías, migración y formularios) y la limpieza del esquema legacy del 18 de noviembre están pendientes de commit al redactar este documento.
 **Alcance:** estado verificado del repositorio, no del despliegue en producción.
 
 > Este documento responde una sola pregunta: **¿qué funciona hoy y cómo se comprueba?** Si una función no tiene evidencia, no se marca como cumplida.
@@ -22,34 +22,36 @@
 
 | Verificación | Resultado | Comando | Fecha |
 |---|---|---|---|
-| Pruebas backend | **193/193** en 19 suites | `cd backend && npm test -- --runInBand` | 2026-11-18 |
-| Pruebas frontend | **15/15** en 4 archivos | `cd frontend && npm test` | 2026-11-18 |
+| Pruebas backend | **198/198** en 19 suites | `cd backend && npm test -- --runInBand` | 2026-11-18 |
+| Pruebas frontend | **22/22** en 6 archivos | `cd frontend && npm test` | 2026-11-19 |
 | TypeScript | Sin errores | `cd frontend && npx tsc --noEmit` | 2026-11-18 |
 | Build | Correcto; aviso de chunk > 500 kB | `cd frontend && npm run build` | 2026-11-18 |
 | Lint | 0 errores, 18 advertencias | `cd frontend && npm run lint` | 2026-11-18 |
 | Migración del catálogo | 6 carreras, 7 categorías, 18/18 trabajos con `carrera_id` y 0 con `metadatos.carrera` | `npm run db:migrate` + consulta de verificación sobre Neon | 2026-11-18 |
+| Migración del posgrado | **Ejecutada en Neon**: 3 niveles y 11 programas (6 pregrado, 3 maestría, 2 doctorado); `GET /trabajos`, `GET /carreras` y `GET /niveles-academicos` responden 200 | `npm run db:migrate` + `npx sequelize db:migrate:status` + consulta de conteos | 2026-11-19 |
+| Limpieza del esquema legacy | 12 tablas y 0 secuencias; datos de la app intactos | `pg_dump` + `DROP TABLE` en transacción sobre Neon | 2026-11-18 |
 | Seguridad | **25/25** comprobaciones | `cd backend && npm run test:security` | 2026-11-11T03:15:32Z |
 | Carga k6 | 4.295 peticiones, 119,36 req/s, p95 83,79 ms, 0 fallos | `npm run test:load:k6` | 2026-11-10 |
 | Carga Artillery | 2.492 peticiones, 0 fallidos, p95 92,8 ms | `npm run test:load:artillery` | 2026-11-10 |
 | Carga autocannon (búsqueda) | 96 req/s, p50 192 ms, p99 354 ms | `npm run test:load:autocannon` | 2026-11-10 |
 | Dependencias | 13 vulnerabilidades backend, 8 frontend | `npm audit` | 2026-11-10 |
 
-**Nota sobre las pruebas backend:** se ejecutaron sin un PostgreSQL local activo en el puerto `55432`. La suite de API usa la configuración de test y mocks; la prueba de humo de seguridad sí requiere PostgreSQL, datos sembrados y servidor en ejecución. No se repitió la prueba de humo en esta sesión; se cita el artefacto `.local/security-smoke.json`.
+**Nota sobre las pruebas backend:** se ejecutaron sin un PostgreSQL local activo en el puerto `55432`. La suite de API usa la configuración de test y mocks; la prueba de humo de seguridad sí requiere PostgreSQL, datos sembrados y servidor en ejecución. No se repitió la prueba de humo en esta sesión; se cita el artefacto `.local/security-smoke.json`. Tampoco se repitió tras la limpieza del 18 de noviembre: el PostgreSQL local sigue sin estar disponible en este entorno.
 
 ## 3. Tablero por módulo
 
 | Módulo | Estado | Qué funciona | Evidencia principal |
 |---|---|---|---|
 | Autenticación y usuarios | ✅ | Registro, login, logout, perfil, recuperación de contraseña, JWT en cookie `httpOnly`, roles y estado activo | `backend/src/services/auth.service.js`, `backend/src/controllers/auth.controller.js`, `frontend/src/stores/useAuthStore.ts`, `backend/src/services/auth.service.test.js` |
-| Catálogo y búsqueda | ✅ | Catálogo público, búsqueda full-text, filtros por carrera y categoría temática, paginación y detalle | `backend/src/services/trabajo.service.js`, `frontend/src/pages/Search.tsx`, `frontend/src/pages/Catalog.tsx`, `backend/src/routes/api.test.js` |
-| Carga y edición de trabajos | ✅ | Carrera obligatoria, categoría temática, metadatos, palabras clave, PDF de hasta 10 MB, edición y borrado con control de propiedad | `frontend/src/pages/Submission.tsx`, `backend/src/controllers/trabajo.controller.js`, `backend/src/middlewares/upload.middleware.js`, `frontend/src/utils/pdfValidation.test.ts` |
+| Catálogo y búsqueda | ✅ | Catálogo público, búsqueda full-text, filtros por carrera y categoría temática, paginación y detalle; vistas de postgrado con pestañas de nivel, filtro por programa y maestrías/doctorados en rutas dedicadas | `backend/src/services/trabajo.service.js`, `frontend/src/pages/Search.tsx`, `frontend/src/pages/Catalog.tsx`, `frontend/src/test/Catalog.test.tsx`, `backend/src/routes/api.test.js` |
+| Carga y edición de trabajos | ✅ | Programa obligatorio filtrado por nivel (pregrado/postgrado), categoría temática, metadatos, palabras clave, PDF de hasta 10 MB, edición y borrado con control de propiedad | `frontend/src/pages/Submission.tsx`, `backend/src/controllers/trabajo.controller.js`, `backend/src/middlewares/upload.middleware.js`, `frontend/src/utils/pdfValidation.test.ts` |
 | Flujo de revisión | ✅ | `borrador` → `en_revision` → `publicado` / `borrador`; archivado; comentario de revisión; historial | `backend/src/services/revision.service.js`, `frontend/src/pages/Revisiones.tsx`, `backend/src/services/revision.service.test.js` |
 | Notificaciones | 🟡 | In-app y SSE para cambios de estado y comentarios; no hay correo en cambios de revisión | `backend/src/services/notificacion.service.js`, `backend/src/services/sse.service.js`, `frontend/src/components/NotificationBell.tsx` |
 | Comentarios | ✅ | Crear, listar, editar y eliminar; calificación | `backend/src/services/comentario.service.js`, `frontend/src/components/ComentariosSection.tsx`, `backend/src/services/comentario.service.test.js` |
 | Versiones | ✅ | Historial y restauración por admin/repositor | `backend/src/services/version.service.js`, `frontend/src/components/HistorialVersiones.tsx` |
 | Citas | ✅ | APA, BibTeX y RIS | `backend/src/services/cita.service.js`, `frontend/src/pages/TrabajoDetalle.tsx` |
 | Estadísticas | ✅ | Vistas, descargas, producción por categoría, usuarios y top de trabajos | `backend/src/services/estadistica.service.js`, `backend/src/services/admin.service.js`, `frontend/src/pages/Admin.tsx`, `backend/src/services/estadistica.service.test.js` |
-| Administración | ✅ | Usuarios, CRUD de carreras con validación de borrado, tutores, estudiantes, categorías temáticas y panel de control | `backend/src/routes/usuario.routes.js`, `backend/src/routes/carrera.routes.js`, `backend/src/services/carrera.service.js`, `frontend/src/pages/Admin.tsx`, `frontend/src/components/admin/CarrerasManager.tsx` |
+| Administración | ✅ | Usuarios, CRUD de programas con selector de nivel académico y validación de borrado, tutores, estudiantes, categorías temáticas y panel de control | `backend/src/routes/usuario.routes.js`, `backend/src/routes/carrera.routes.js`, `backend/src/services/carrera.service.js`, `frontend/src/pages/Admin.tsx`, `frontend/src/components/admin/CarrerasManager.tsx` |
 | Documentos normativos | 🟡 | Tipo `normativas`, catálogo y conteo de normativas publicadas; sin control de vigencia/derogación | `frontend/src/types.ts`, `backend/src/validators/metadatos.schema.js`, `backend/src/services/admin.service.js` |
 | Editorial y divulgación | 🟡 | Tipos `editorial` y `divulgacion` dentro del flujo general; sin flujo editorial dedicado | `frontend/src/types.ts`, `frontend/src/pages/Submission.tsx` |
 | Interoperabilidad | ✅ | OAI-PMH 2.0, RSS 2.0 y Atom | `backend/src/routes/oai.routes.js`, `backend/src/services/oai.service.js`, `backend/src/routes/feed.routes.js`, `backend/src/services/rss.service.js` |
@@ -186,6 +188,7 @@ Hallazgos corregidos y verificados:
 |---|---|---|---|
 | G-12 | Tres archivos frontend sin confirmar | Confirmados el 2026-11-11 | Commit `2f8b0a9` |
 | G-15 (parcial) | `carrera_id` no se asignaba desde el modelo ni la API | `carrera_id` obligatorio en modelo, API y formulario; filtro por carrera y CRUD de carreras | Migración `2026111801-carreras-unefa-y-categorias-tematicas.js`, `backend/src/services/carrera.service.test.js`, `backend/src/routes/api.test.js` |
+| G-17 | Esquema legacy sin uso (`users`, `works`, `collections`, …) conviviendo con el esquema Sequelize | Eliminado el 2026-11-18; respaldo en `.local/backup-legacy-2026-11-18.sql` | Inventario de Neon: 12 tablas, 0 secuencias; `CHANGELOG.md` |
 
 ## 6. Backlog priorizado
 

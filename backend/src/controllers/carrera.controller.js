@@ -2,7 +2,7 @@ const carreraService = require('../services/carrera.service');
 
 class CarreraController {
   async listar(req, res) {
-    const carreras = await carreraService.listar();
+    const carreras = await carreraService.listar({ nivel: req.query.nivel });
     res.status(200).json({ success: true, data: carreras });
   }
 

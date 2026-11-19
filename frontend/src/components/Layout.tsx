@@ -28,7 +28,7 @@ const navSections: NavSection[] = [
       { to: '/', label: 'Inicio', description: 'Vista general del repositorio' },
       { to: '/submission', label: 'Subir documento', description: 'Carga de metadatos y archivo' },
       { to: '/catalogo/pregrado', label: 'Pregrado', description: 'Trabajos, tesis y proyectos' },
-      { to: '/catalogo/postgrado', label: 'Postgrado', description: 'Maestría y doctorado' },
+      { to: '/catalogo/postgrado', label: 'Postgrado', description: 'Maestrías y doctorados' },
     ],
   },
   {

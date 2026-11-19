@@ -2,7 +2,7 @@
 
 Sistema full-stack para registrar, revisar, publicar y consultar la producción académica e institucional de la UNEFA Núcleo Táchira.
 
-**Snapshot documentado:** commit `2f8b0a9` del 11 de noviembre de 2026 (código) y el commit de cierre de la documentación de la misma fecha, más la actualización del catálogo académico del 18 de noviembre de 2026. Este README describe lo que el repositorio hace hoy, no lo que se planeó originalmente. El estado detallado y las brechas conocidas están en [`docs/ESTADO.md`](docs/ESTADO.md); la correspondencia requisito → implementación → prueba está en [`docs/TRAZABILIDAD.md`](docs/TRAZABILIDAD.md).
+**Snapshot documentado:** commit `2f8b0a9` del 11 de noviembre de 2026 (código) y el commit de cierre de la documentación de la misma fecha, más la actualización del catálogo académico y la integración del posgrado del 18 de noviembre de 2026. Este README describe lo que el repositorio hace hoy, no lo que se planeó originalmente. El estado detallado y las brechas conocidas están en [`docs/ESTADO.md`](docs/ESTADO.md); la correspondencia requisito → implementación → prueba está en [`docs/TRAZABILIDAD.md`](docs/TRAZABILIDAD.md).
 
 ---
 
@@ -10,11 +10,12 @@ Sistema full-stack para registrar, revisar, publicar y consultar la producción 
 
 - Autenticación con JWT en cookie `httpOnly` y tres roles: `admin`, `repositor` y `bibliotecario`.
 - Catálogo público con búsqueda full-text, filtros y detalle de trabajos.
-- Catálogo académico con las seis carreras de la UNEFA (Administración y Gestión Municipal, Licenciatura en Turismo, Economía, Ingeniería de Sistemas, Ingeniería Civil e Ingeniería Eléctrica) y siete categorías temáticas independientes.
-- Carga de trabajos con carrera obligatoria, categoría temática, metadatos, palabras clave y PDF de hasta 10 MB.
+- Catálogo público con vistas de pregrado, postgrado, maestrías y doctorados; pestañas de nivel y filtro por programa.
+- Catálogo académico con los once programas de la UNEFA Núcleo Táchira organizados en tres niveles (6 de pregrado, 3 de maestría y 2 de doctorado) y siete categorías temáticas independientes.
+- Carga de trabajos con programa obligatorio filtrado por nivel, categoría temática, metadatos, palabras clave y PDF de hasta 10 MB.
 - Flujo de revisión: `borrador` → `en_revision` → `publicado` o devolución a `borrador`; `archivado` para administración.
 - Notificaciones in-app y por SSE; comentarios con calificación; historial de versiones; citas en APA, BibTeX y RIS.
-- Panel administrativo con estadísticas, CRUD de carreras y gestión de categorías temáticas.
+- Panel administrativo con estadísticas, CRUD de programas con nivel académico y gestión de categorías temáticas.
 - Interoperabilidad: OAI-PMH, RSS y Atom (feeds públicos en `/feed/rss` y `/feed/atom` del dominio del frontend).
 - Endurecimiento de seguridad verificado con 25 comprobaciones.
 
@@ -22,8 +23,8 @@ Sistema full-stack para registrar, revisar, publicar y consultar la producción 
 
 | Verificación | Resultado | Comando / evidencia |
 |---|---|---|
-| Pruebas backend | **193/193** en 19 suites | `cd backend && npm test -- --runInBand` |
-| Pruebas frontend | **15/15** en 4 archivos | `cd frontend && npm test` |
+| Pruebas backend | **198/198** en 19 suites | `cd backend && npm test -- --runInBand` |
+| Pruebas frontend | **22/22** en 6 archivos | `cd frontend && npm test` |
 | TypeScript | Sin errores | `cd frontend && npx tsc --noEmit` |
 | Build de producción | Correcto, con advertencia de tamaño | `cd frontend && npm run build` |
 | Lint | 0 errores, 18 advertencias | `cd frontend && npm run lint` |
@@ -103,7 +104,7 @@ npm run db:seed
 npm run dev
 ```
 
-El seeder del administrador crea `admin@unefa.edu.ve`. Si `ADMIN_PASSWORD` no está definido, genera una contraseña aleatoria y la imprime en consola. Los seeders también crean las seis carreras, las siete categorías temáticas y trabajos de ejemplo.
+El seeder del administrador crea `admin@unefa.edu.ve`. Si `ADMIN_PASSWORD` no está definido, genera una contraseña aleatoria y la imprime en consola. Las migraciones crean los tres niveles académicos y los once programas (la migración `2026111802` debe ejecutarse después de `2026111801`). Los seeders también crean los once programas, las siete categorías temáticas y trabajos de ejemplo.
 
 Backend disponible en `http://localhost:5000`. Verificación rápida: `http://localhost:5000/health`.
 

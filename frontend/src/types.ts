@@ -16,6 +16,21 @@ export interface User {
 
 export type TipoDocumento = 'pregrado' | 'postgrado' | 'normativas' | 'institucional' | 'editorial' | 'divulgacion'
 
+export type NivelGrupo = 'pregrado' | 'postgrado'
+
+export interface NivelAcademico {
+  id: string
+  nombre: string
+  slug: string
+  grupo: NivelGrupo
+  orden: number
+}
+
+/** Maestrías y doctorados se agrupan como postgrado sin hardcodear la lista. */
+export function esPostgrado(nivel?: NivelAcademico | null): boolean {
+  return nivel?.grupo === 'postgrado'
+}
+
 export interface DocumentItem {
   id: string
   title: string
@@ -26,6 +41,8 @@ export interface DocumentItem {
   category: string
   tipoDocumento?: TipoDocumento
   carrera?: string
+  carreraSlug?: string
+  nivel?: NivelAcademico | null
 }
 
 export interface Work {

@@ -5,6 +5,7 @@ module.exports = (sequelize) => {
     static associate(models) {
       Carrera.hasMany(models.Trabajo, { foreignKey: 'carrera_id', as: 'trabajos' });
       Carrera.hasMany(models.Estudiante, { foreignKey: 'carrera_id', as: 'estudiantes' });
+      Carrera.belongsTo(models.NivelAcademico, { foreignKey: 'nivel_id', as: 'nivel' });
     }
   }
 
@@ -22,6 +23,11 @@ module.exports = (sequelize) => {
     descripcion: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    nivel_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'niveles_academicos', key: 'id' }
     },
     slug: {
       type: DataTypes.STRING(220),

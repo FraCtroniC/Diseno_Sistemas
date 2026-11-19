@@ -7,6 +7,8 @@ interface TrabajoState {
   categorias: Categoria[]
   loading: boolean
   total: number
+  /** Mensaje de la última carga fallida; null cuando todo va bien. */
+  error: string | null
   fetchTrabajos: (params?: { estado?: string; limite?: number; usuario_id?: string }) => Promise<void>
   fetchCategorias: () => Promise<void>
   mapToDocumentItems: () => DocumentItem[]
@@ -17,14 +19,17 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
   categorias: [],
   loading: false,
   total: 0,
+  error: null,
 
   fetchTrabajos: async (params) => {
-    set({ loading: true })
+    set({ loading: true, error: null })
     try {
       const res = await trabajoService.listar({ limite: 50, ...params })
-      set({ trabajos: res.data.datos, total: res.data.total, loading: false })
+      set({ trabajos: res.data.datos, total: res.data.total, loading: false, error: null })
     } catch {
-      set({ loading: false })
+      // Sin este mensaje la app mostraba una lista vacía como si no hubiera
+      // publicaciones, enmascarando un fallo real de la API.
+      set({ loading: false, error: 'No se pudo cargar el catálogo de trabajos.' })
     }
   },
 
@@ -58,6 +63,8 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
         category: cat?.slug ?? t.categoria_id,
         tipoDocumento: tipoDocumento as DocumentItem['tipoDocumento'],
         carrera: t.carrera?.nombre,
+        carreraSlug: t.carrera?.slug,
+        nivel: t.carrera?.nivel,
       }
     })
   },

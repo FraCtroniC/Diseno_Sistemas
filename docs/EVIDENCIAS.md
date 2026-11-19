@@ -11,8 +11,8 @@ Este documento registra **qué se ejecutó, con qué comando, qué resultado se 
 
 | ID | Verificación | Resultado | Artefacto / ubicación |
 |---|---|---|---|
-| E-01 | Pruebas backend | 193/193 en 19 suites | Salida de consola; `backend/src/**/*.test.js` |
-| E-02 | Pruebas frontend | 15/15 en 4 archivos | Salida de consola; `frontend/src/**/*.test.{ts,tsx}` |
+| E-01 | Pruebas backend | 198/198 en 19 suites | Salida de consola; `backend/src/**/*.test.js` |
+| E-02 | Pruebas frontend | 22/22 en 6 archivos | Salida de consola; `frontend/src/**/*.test.{ts,tsx}` |
 | E-03 | TypeScript | Sin errores | Salida de `npx tsc --noEmit` |
 | E-04 | Build de producción | Correcto, con aviso de chunk | `frontend/dist/` |
 | E-05 | Lint | 0 errores, 18 advertencias | Salida de `npm run lint` |
@@ -24,6 +24,9 @@ Este documento registra **qué se ejecutó, con qué comando, qué resultado se 
 | E-11 | Informe consolidado | Informe de carga y seguridad | `docs/informe-pruebas-carga-seguridad.md` |
 | E-12 | Historial de cambios | 22 commits al cierre: 21 de código + 1 de documentación | `git log` |
 | E-13 | Migración del catálogo académico | 6 carreras, 7 categorías, 18/18 trabajos con `carrera_id`, 0 con `metadatos.carrera` | Consulta de verificación sobre Neon; migración `2026111801-carreras-unefa-y-categorias-tematicas.js` |
+| E-14 | Limpieza del esquema legacy | 12 tablas, 0 secuencias, datos de la app intactos; backend 193/193 y frontend 15/15 (snapshot previo al posgrado) | `.local/backup-legacy-2026-11-18.sql`; `CHANGELOG.md` |
+| E-15 | Integración del posgrado | 3 niveles, 11 programas, `GET /niveles-academicos` y `GET /carreras?nivel=` | `backend/database/catalogo-academico.js`; migración `2026111802-crear-niveles-academicos-y-posgrado.js`; `backend/src/routes/api.test.js` |
+| E-16 | Vistas de posgrado en el catálogo | 4 pruebas: postgrado, maestrías, doctorados y filtro por programa | `frontend/src/test/Catalog.test.tsx` |
 
 ---
 
@@ -270,6 +273,25 @@ npm run db:migrate
 | Trabajos sin carrera | 0 |
 
 La migración `2026111801-carreras-unefa-y-categorias-tematicas.js` reutiliza los IDs de las cinco categorías existentes, agrega las dos categorías temáticas faltantes, crea las seis carreras y rellena `carrera_id` antes de aplicar `SET NOT NULL`. Las categorías temáticas y el catálogo de carreras quedan separados.
+
+### E-14 — Limpieza del esquema legacy
+
+**Respaldo:** `pg_dump` sobre las 10 tablas legacy con el `DATABASE_URL` de `backend/.env`, opciones `--table=… --column-inserts --no-owner --no-privileges`. Salida: `.local/backup-legacy-2026-11-18.sql` (21 868 bytes; 10 `CREATE TABLE` y 7 `INSERT`). Archivo ignorado por Git.
+
+**Borrado:** `DROP TABLE IF EXISTS public.<tabla>` en una sola transacción, sin `CASCADE`, en orden de dependencias: `access_logs`, `files`, `normatives_manuals`, `statistics_reports`, `work_identifiers`, `submissions`, `works`, `collections`, `communities`, `users`.
+
+**Verificación sobre Neon (2026-11-18):**
+
+| Comprobación | Resultado |
+|---|---|
+| Tablas en `public` | 12: solo el esquema Sequelize |
+| Secuencias en `public` | 0 |
+| Datos de la app | `usuarios` 4, `trabajos` 18, `carreras` 6, `categorias` 7, `comentarios` 5, `notificaciones` 7, `revisiones` 5, `versiones` 5, `visitas` 252 |
+| Backend | 193/193 en 19 suites |
+| Frontend | 15/15 en 4 archivos |
+| Smoke de seguridad | No repetido: PostgreSQL local en `55432` no disponible. Último resultado 25/25 en `.local/security-smoke.json` |
+
+> **Tras la integración del posgrado (2026-11-19):** la migración `2026111802-crear-niveles-academicos-y-posgrado.js` **ya se ejecutó en Neon** (`db:migrate:status` → `up`). El catálogo quedó con 3 niveles y 11 programas (6 pregrado, 3 maestría, 2 doctorado) y los 18 trabajos originales siguen intactos. `GET /trabajos`, `GET /carreras` y `GET /niveles-academicos` responden 200. Las suites vigentes son **198/198** en backend (E-01) y **22/22** en 6 archivos de frontend (E-02).
 
 ---
 

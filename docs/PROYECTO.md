@@ -86,7 +86,13 @@ Implementar un repositorio digital full-stack que permita registrar, revisar, pu
 | Seguridad | IDOR, PII, inyección SQL, JWT, rate limiting, validación de PDF y paginación | ✅ Verificado con 25/25 comprobaciones |
 | Documentación | README, estado, trazabilidad, evidencias, demo y changelog | ✅ Este paquete |
 
-El catálogo académico (`carreras`) contiene únicamente los programas que se imparten: Administración y Gestión Municipal, Licenciatura en Turismo, Economía, Ingeniería de Sistemas, Ingeniería Civil e Ingeniería Eléctrica. Las `categorias` son áreas temáticas independientes (por ejemplo, Tecnología y Sistemas o Energía y Electricidad) y no representan carreras.
+El catálogo académico (`carreras`) contiene los once programas que se imparten, repartidos en tres niveles (`niveles_academicos`):
+
+- **Pregrado:** Administración y Gestión Municipal, Licenciatura en Turismo, Economía, Ingeniería de Sistemas, Ingeniería Civil e Ingeniería Eléctrica.
+- **Maestría:** Maestría en Recursos Humanos, Maestría en Ciencias Jurídicas y Maestría Ambiental.
+- **Doctorado:** Doctorado en Ciencias Gerenciales y Doctorado en Innovaciones Educativas.
+
+Cada programa referencia su nivel mediante `carreras.nivel_id`; el campo `grupo` del nivel (`pregrado` / `postgrado`) permite agrupar maestrías y doctorados sin duplicar el nivel en cada trabajo. Las `categorias` son áreas temáticas independientes (por ejemplo, Tecnología y Sistemas o Energía y Electricidad) y no representan carreras. `metadatos.tipo_documento` sigue siendo exclusivamente el tipo de documento.
 
 ### 5.2 Fuera de alcance o no comprometido
 
@@ -112,7 +118,7 @@ Estos elementos **no forman parte de la entrega actual**. No deben presentarse c
 Se considera que la entrega cumple si un evaluador puede verificar todo lo siguiente:
 
 1. Levantar backend y frontend siguiendo únicamente el `README.md`.
-2. Ejecutar las suites y obtener **193/193** pruebas backend y **15/15** frontend.
+2. Ejecutar las suites y obtener **198/198** pruebas backend y **22/22** frontend.
 3. Ejecutar `npx tsc --noEmit` sin errores.
 4. Ejecutar la prueba de humo de seguridad y obtener **25/25**.
 5. Encontrar cada requisito de la línea base en `docs/TRAZABILIDAD.md`, con implementación, evidencia y estado.

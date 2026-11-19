@@ -1,8 +1,17 @@
 const { Op, literal } = require('sequelize');
-const { Trabajo, Categoria, Usuario, Carrera, Tutor, Estudiante, sequelize } = require('../models');
+const { Trabajo, Categoria, Usuario, Carrera, NivelAcademico, Tutor, Estudiante, sequelize } = require('../models');
 const { validarMetadatos } = require('../validators/metadatos.schema');
 const { extractTextFromPdf } = require('./pdf.service');
 const notificacionService = require('./notificacion.service');
+
+function incluirCarreraConNivel() {
+  return {
+    model: Carrera,
+    as: 'carrera',
+    attributes: ['id', 'nombre', 'slug', 'nivel_id'],
+    include: [{ model: NivelAcademico, as: 'nivel', attributes: ['id', 'nombre', 'slug', 'grupo', 'orden'] }]
+  };
+}
 
 const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'metadatos', 'estado'];
 const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'metadatos', 'estado'];
@@ -96,7 +105,7 @@ class TrabajoService {
     const includes = [
       { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
-      { model: Carrera, as: 'carrera', attributes: ['id', 'nombre', 'slug'] },
+      incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
       { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
     ];
@@ -122,7 +131,7 @@ class TrabajoService {
     const includes = [
       { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
-      { model: Carrera, as: 'carrera', attributes: ['id', 'nombre', 'slug'] },
+      incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
       { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
     ];
@@ -353,7 +362,7 @@ class TrabajoService {
     const includes = [
       { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
-      { model: Carrera, as: 'carrera', attributes: ['id', 'nombre', 'slug'] },
+      incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
       { model: Estudiante, as: 'estudiante', attributes: ['id', 'nombre'] }
     ];

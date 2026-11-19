@@ -5,6 +5,7 @@ jest.mock('../models', () => ({
     findOne: jest.fn(),
     create: jest.fn(),
   },
+  NivelAcademico: {},
   Trabajo: {
     count: jest.fn(),
   },
@@ -14,6 +15,7 @@ jest.mock('../models', () => ({
 }))
 
 const { Carrera, Trabajo, Estudiante } = require('../models')
+const { nivelIdPorSlug } = require('../../database/catalogo-academico')
 const carreraService = require('./carrera.service')
 
 describe('CarreraService', () => {
@@ -28,7 +30,20 @@ describe('CarreraService', () => {
       const result = await carreraService.listar()
 
       expect(result).toHaveLength(1)
-      expect(Carrera.findAll).toHaveBeenCalledWith({ order: [['nombre', 'ASC']] })
+      expect(Carrera.findAll).toHaveBeenCalledWith(expect.objectContaining({
+        order: [['nombre', 'ASC']],
+        include: expect.any(Array)
+      }))
+    })
+
+    it('filters by nivel slug', async () => {
+      Carrera.findAll.mockResolvedValue([])
+
+      await carreraService.listar({ nivel: 'maestria' })
+
+      expect(Carrera.findAll).toHaveBeenCalledWith(expect.objectContaining({
+        where: { '$nivel.slug$': 'maestria' }
+      }))
     })
   })
 
@@ -64,7 +79,21 @@ describe('CarreraService', () => {
       const result = await carreraService.crear({ nombre: 'Nueva', slug: 'nueva' })
 
       expect(result.id).toBe('new')
-      expect(Carrera.create).toHaveBeenCalledWith({ nombre: 'Nueva', slug: 'nueva' })
+      expect(Carrera.create).toHaveBeenCalledWith({
+        nombre: 'Nueva',
+        slug: 'nueva',
+        nivel_id: nivelIdPorSlug('pregrado')
+      })
+    })
+
+    it('respects an explicit nivel_id', async () => {
+      Carrera.findOne.mockResolvedValue(null)
+      const nivelId = nivelIdPorSlug('doctorado')
+      Carrera.create.mockResolvedValue({ id: 'new', nombre: 'Nueva', slug: 'nueva', nivel_id: nivelId })
+
+      await carreraService.crear({ nombre: 'Nueva', slug: 'nueva', nivel_id: nivelId })
+
+      expect(Carrera.create).toHaveBeenCalledWith(expect.objectContaining({ nivel_id: nivelId }))
     })
   })
 

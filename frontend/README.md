@@ -81,7 +81,7 @@ npm run build
 npm run lint
 ```
 
-Resultados del último snapshot: 15/15 pruebas, TypeScript sin errores, build correcto con aviso de chunk > 500 kB, lint con 0 errores y 18 advertencias.
+Resultados del último snapshot: 22/22 pruebas en 6 archivos, TypeScript sin errores, build correcto con aviso de chunk > 500 kB, lint con 0 errores y 18 advertencias. La suite `src/test/Catalog.test.tsx` cubre las vistas de postgrado, maestrías y doctorados y el filtro por programa; `src/stores/useTrabajoStore.test.ts` cubre la exposición de errores de carga.
 
 ## Notas
 

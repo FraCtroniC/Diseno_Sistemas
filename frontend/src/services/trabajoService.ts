@@ -1,10 +1,13 @@
 import api from './api'
+import type { NivelAcademico } from '../types'
 
 export interface CarreraEntity {
   id: string
   nombre: string
   slug: string
   descripcion?: string | null
+  nivel_id?: string
+  nivel?: NivelAcademico | null
 }
 
 export interface TutorEntity {

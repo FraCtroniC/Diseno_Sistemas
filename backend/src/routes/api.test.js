@@ -37,6 +37,9 @@ jest.mock('../models', () => ({
     create: jest.fn(),
     count: jest.fn(),
   },
+  NivelAcademico: {
+    findAll: jest.fn(),
+  },
   Version: {
     max: jest.fn(),
     create: jest.fn(),
@@ -238,6 +241,44 @@ describe('API Integration', () => {
 
       expect(res.status).toBe(200)
       expect(res.body.data).toHaveLength(1)
+    })
+  })
+
+  describe('GET /api/v1/niveles-academicos (public)', () => {
+    it('returns the academic levels ordered by orden', async () => {
+      const { NivelAcademico } = require('../models')
+      NivelAcademico.findAll.mockResolvedValue([
+        { id: 'n1', nombre: 'Pregrado', slug: 'pregrado', grupo: 'pregrado', orden: 1 },
+        { id: 'n2', nombre: 'Maestría', slug: 'maestria', grupo: 'postgrado', orden: 2 },
+      ])
+
+      const res = await request(app).get('/api/v1/niveles-academicos')
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toHaveLength(2)
+      expect(NivelAcademico.findAll).toHaveBeenCalledWith({
+        order: [['orden', 'ASC'], ['nombre', 'ASC']],
+      })
+    })
+  })
+
+  describe('GET /api/v1/carreras?nivel (public)', () => {
+    it('rejects an unknown nivel', async () => {
+      const res = await request(app).get('/api/v1/carreras?nivel=licenciatura')
+
+      expect(res.status).toBe(400)
+    })
+
+    it('passes the nivel filter to the service', async () => {
+      const { Carrera } = require('../models')
+      Carrera.findAll.mockResolvedValue([])
+
+      const res = await request(app).get('/api/v1/carreras?nivel=maestria')
+
+      expect(res.status).toBe(200)
+      expect(Carrera.findAll).toHaveBeenCalledWith(expect.objectContaining({
+        where: { '$nivel.slug$': 'maestria' },
+      }))
     })
   })
 

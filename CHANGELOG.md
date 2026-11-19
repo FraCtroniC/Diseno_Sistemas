@@ -4,7 +4,101 @@
 
 **Último commit de código confirmado:** `2f8b0a9` · 11 de noviembre de 2026.
 **Documentación:** commit de cierre de la misma fecha.
-**Actualización funcional posterior:** 18 de noviembre de 2026 (catálogo académico), pendiente de commit al redactar esta entrada.
+**Actualizaciones funcionales posteriores:** 18 de noviembre de 2026 (catálogo académico, limpieza del esquema legacy e integración del posgrado) y 19 de noviembre de 2026 (aplicación de la migración de posgrado y correcciones de navegación), pendientes de commit al redactar estas entradas.
+
+---
+
+## [2026-11-19] — Aplicación de la migración de posgrado y correcciones
+
+### Contexto
+
+La integración del posgrado quedó **sin aplicar en base de datos**: el código ya consultaba `niveles_academicos` y `carreras.nivel_id`, pero la migración `2026111802` estaba en estado `down`. Todo el catálogo devolvía `500` (`GET /trabajos`, `GET /carreras`, `GET /niveles-academicos`) y la interfaz lo enmascaraba mostrando listas vacías.
+
+### Corregido
+
+- **Aplicada la migración `2026111802-crear-niveles-academicos-y-posgrado.js` en Neon** (`db:migrate:status` → `up`). Resultado: 3 niveles, 11 programas (6 pregrado, 3 maestría, 2 doctorado) y los 18 trabajos originales intactos. Los tres endpoints responden `200`.
+- **Errores visibles en vez de listas vacías:** `useTrabajoStore` expone `error` (antes `catch {}` silencioso); `Home` y `Catálogo` muestran una tarjeta de error con botón **Reintentar**. `Search.tsx` hacía lo mismo con su propia búsqueda y ahora también muestra el fallo, dejando de presentar "No hay resultados" cuando la petición falló.
+- **Navegación de posgrado:** Maestrías y Doctorados dejan de ser elementos de primer nivel. Se quitan del sidebar, de los accesos rápidos de cabecera y de la fila "Filtrar:" del catálogo. Permanecen como **subpestañas de Postgrado** (`Todos / Maestrías / Doctorados`) dentro de `/catalogo/postgrado`, con rutas propias `/catalogo/maestrias` y `/catalogo/doctorados` como destino de esas pestañas.
+
+### Verificación
+
+| Comprobación | Resultado |
+|---|---|
+| `GET /trabajos`, `GET /carreras`, `GET /niveles-academicos` | 200 |
+| Backend | 198/198 en 19 suites |
+| Frontend | 22/22 en 6 archivos (nueva suite `useTrabajoStore.test.ts`) |
+| TypeScript / Build / Lint | Sin errores de tipo; build correcto; lint 0 errores, 18 advertencias |
+
+---
+
+## [2026-11-18] — Integración del posgrado (maestrías y doctorados)
+
+### Contexto
+
+El repositorio solo contemplaba pregrado: los programas se guardaban en `carreras` y el tipo de documento vivía en `metadatos.tipo_documento`. Se incorporaron tres maestrías y dos doctorados de la UNEFA Núcleo Táchira sin duplicar el nivel en cada trabajo ni mezclarlo con el tipo de documento.
+
+### Añadido
+
+- Tabla `niveles_academicos` con tres filas (`pregrado`, `maestria`, `doctorado`) y el campo `grupo` (`pregrado` / `postgrado`) para derivar la familia sin hardcodear listas en el frontend. Migración `2026111802-crear-niveles-academicos-y-posgrado.js` (transaccional, IDs fijos).
+- `carreras.nivel_id` como FK a `niveles_academicos`. El catálogo académico pasa a 11 programas: los seis de pregrado existentes más Maestría en Recursos Humanos, Maestría en Ciencias Jurídicas, Maestría Ambiental, Doctorado en Ciencias Gerenciales y Doctorado en Innovaciones Educativas.
+- Fuente única `backend/database/catalogo-academico.js` con `NIVELES`, `CARRERAS` y `nivelIdPorSlug`, usada por la migración, el seeder y el servicio de carreras.
+- Endpoint público `GET /api/v1/niveles-academicos` y filtro `GET /api/v1/carreras?nivel=` (slug: `pregrado`, `maestria`, `doctorado`).
+- Modelo `NivelAcademico` con asociaciones `hasMany(Carrera)` / `belongsTo(NivelAcademico)`, servicio, controlador, rutas y validadores (`nivel_id` UUID).
+- `trabajo.service.js` expone el nivel anidado del programa en las tres consultas de trabajos, junto con `carrera.nivel_id`.
+- Vistas `/catalogo/maestrias` y `/catalogo/doctorados` además de `/catalogo/postgrado`, con pestañas de nivel, chips por programa (`?programa=`) y badges de programa en las tarjetas.
+- `Submission.tsx` filtra el selector de programas según el tipo de documento (pregrado vs. postgrado), valida la coherencia y admite trabajos sin `tipo_documento` previo infiriéndolo del nivel.
+- `CarrerasManager.tsx` permite elegir el nivel al dar de alta o editar un programa y muestra su badge.
+- Pruebas: cobertura del filtro por nivel y del endpoint de niveles en backend; nueva suite `frontend/src/test/Catalog.test.tsx` para las tres vistas de posgrado y el filtro por programa.
+
+### Cambiado
+
+- `carreras` sigue siendo la tabla de programas, `categorias` la clasificación temática y `metadatos.tipo_documento` el tipo de documento; el nivel del programa se deriva de `carrera.nivel`.
+- Las altas de carrera sin `nivel_id` explícito siguen creándose como `pregrado` para no romper clientes del CRUD anterior.
+- Los seeders de carreras usan la constante compartida en lugar de una lista duplicada.
+
+### Diferido al paquete C
+
+- Trabajos de Ascenso (quedan fuera de este paquete).
+- Filtro del catálogo en backend (sigue siendo client-side sobre `limite: 50`).
+- Citas APA/BibTeX que distingan maestría de doctorado.
+
+### Verificación
+
+| Comprobación | Resultado |
+|---|---|
+| Backend | 198/198 en 19 suites |
+| Frontend | 22/22 en 6 archivos |
+| TypeScript | Sin errores |
+
+---
+
+## [2026-11-18] — Limpieza del esquema legacy
+
+### Contexto
+
+La base de datos de Neon contenía dos generaciones de esquema: el esquema Sequelize que usa la API (`usuarios`, `trabajos`, `carreras`, …) y un esquema anterior sin referencias en código ni en migraciones (`users`, `works`, `collections`, …). El esquema viejo incluía una segunda tabla de usuarios con los roles `Administrador`, `Coordinador`, `Editor`, `Estudiante` e `Invitado`.
+
+### Eliminado
+
+- Sin datos: `access_logs`, `files`, `normatives_manuals`, `statistics_reports`, `submissions`, `work_identifiers`, `works`.
+- Con datos semilla: `users` (1 fila), `collections` (2) y `communities` (4). Sus filas quedan únicamente en el respaldo; no se migraron al esquema actual.
+- No se migró al usuario `admin_fabian`: en `usuarios` ya existe el usuario `admin` con identidad distinta.
+
+### Respaldo
+
+- Archivo: `.local/backup-legacy-2026-11-18.sql` (ignorado por Git; 21 868 bytes; 10 `CREATE TABLE` y 7 `INSERT`).
+- Generado con `pg_dump --table=… --column-inserts --no-owner --no-privileges`.
+
+### Verificación
+
+| Comprobación | Resultado |
+|---|---|
+| Tablas en `public` | 12: `SequelizeMeta`, `carreras`, `categorias`, `comentarios`, `estudiantes`, `notificaciones`, `revisiones`, `trabajos`, `tutores`, `usuarios`, `versiones`, `visitas` |
+| Secuencias en `public` | 0 |
+| Datos de la app | `usuarios` 4, `trabajos` 18, `carreras` 6, `categorias` 7, `comentarios` 5, `notificaciones` 7, `revisiones` 5, `versiones` 5, `visitas` 252 |
+| Backend | 193/193 en 19 suites |
+| Frontend | 15/15 en 4 archivos |
+| Smoke de seguridad | No repetido: requiere PostgreSQL local en el puerto `55432`, no disponible en este entorno; último resultado 25/25 del 2026-11-11 |
 
 ---
 

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { carreraService } from '../../services/entidadService'
+import { carreraService, nivelService } from '../../services/entidadService'
 import type { CarreraEntity } from '../../services/trabajoService'
+import type { NivelAcademico } from '../../types'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import Input from '../ui/Input'
@@ -22,9 +23,11 @@ function errorMessage(err: unknown, fallback: string): string {
 
 export default function CarrerasManager() {
   const [carreras, setCarreras] = useState<CarreraEntity[]>([])
+  const [niveles, setNiveles] = useState<NivelAcademico[]>([])
   const [nombre, setNombre] = useState('')
   const [slug, setSlug] = useState('')
   const [descripcion, setDescripcion] = useState('')
+  const [nivelId, setNivelId] = useState('')
   const [editing, setEditing] = useState<CarreraEntity | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -36,12 +39,19 @@ export default function CarrerasManager() {
 
   useEffect(() => {
     loadCarreras()
+    nivelService.listar()
+      .then((res) => {
+        setNiveles(res.data.data)
+        setNivelId((actual) => actual || res.data.data[0]?.id || '')
+      })
+      .catch(() => toast.error('Error al cargar los niveles académicos'))
   }, [loadCarreras])
 
   function resetForm() {
     setNombre('')
     setSlug('')
     setDescripcion('')
+    setNivelId(niveles[0]?.id ?? '')
     setEditing(null)
   }
 
@@ -50,6 +60,7 @@ export default function CarrerasManager() {
     setNombre(carrera.nombre)
     setSlug(carrera.slug)
     setDescripcion(carrera.descripcion ?? '')
+    setNivelId(carrera.nivel_id ?? carrera.nivel?.id ?? niveles[0]?.id ?? '')
   }
 
   async function save() {
@@ -70,6 +81,7 @@ export default function CarrerasManager() {
           nombre: nombre.trim(),
           slug: finalSlug,
           descripcion: descripcion.trim() || undefined,
+          nivel_id: nivelId || undefined,
         })
         toast.success('Carrera actualizada')
       } else {
@@ -77,6 +89,7 @@ export default function CarrerasManager() {
           nombre: nombre.trim(),
           slug: finalSlug,
           descripcion: descripcion.trim() || undefined,
+          nivel_id: nivelId || undefined,
         })
         toast.success('Carrera creada')
       }
@@ -107,7 +120,7 @@ export default function CarrerasManager() {
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gestión de carreras</p>
         <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Carreras UNEFA</h3>
         <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-          Catálogo de programas académicos que se imparten en la universidad. Cada trabajo del repositorio debe estar asociado a una de estas carreras.
+          Catálogo de programas académicos de pregrado, maestría y doctorado. Cada trabajo del repositorio debe estar asociado a uno de estos programas.
         </p>
       </div>
 
@@ -130,6 +143,15 @@ export default function CarrerasManager() {
               onChange={(e) => setDescripcion(e.target.value)}
               placeholder="Descripción (opcional)"
             />
+            <select
+              value={nivelId}
+              onChange={(e) => setNivelId(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm outline-none transition focus:border-unefa focus:ring-2 focus:ring-unefa/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            >
+              {niveles.map((nivel) => (
+                <option key={nivel.id} value={nivel.id}>{nivel.nombre}</option>
+              ))}
+            </select>
             <div className="flex gap-2">
               <Button type="button" disabled={loading || !nombre.trim()} onClick={save}>
                 {editing ? 'Actualizar' : 'Crear'}
@@ -150,7 +172,18 @@ export default function CarrerasManager() {
             carreras.map((carrera) => (
               <div key={carrera.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3 dark:border-slate-700/50 dark:bg-slate-800">
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">{carrera.nombre}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{carrera.nombre}</p>
+                    {carrera.nivel ? (
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        carrera.nivel.grupo === 'postgrado'
+                          ? 'bg-violet-100 text-violet-800'
+                          : 'bg-unefa/10 text-unefa-dark'
+                      }`}>
+                        {carrera.nivel.nombre}
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
                     {carrera.slug}{carrera.descripcion ? ` · ${carrera.descripcion}` : ''}
                   </p>

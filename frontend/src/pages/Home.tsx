@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import { SkeletonCard } from '../components/ui/Skeleton'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 
 export default function Home() {
-  const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading } = useTrabajoStore()
+  const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading, error } = useTrabajoStore()
 
   useEffect(() => {
     fetchCategorias()
@@ -68,6 +69,15 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {error ? (
+        <Card className="border-rose-100 bg-rose-50/80 dark:border-rose-900/40 dark:bg-rose-900/20">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">{error}</p>
+            <Button variant="secondary" onClick={() => fetchTrabajos({ estado: 'publicado' })}>Reintentar</Button>
+          </div>
+        </Card>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)]">
         <Card className="overflow-hidden border-unefa/15 bg-white/90 p-0 shadow-[0_24px_70px_-50px_rgba(11,87,164,0.45)] dark:bg-slate-800/90 dark:shadow-[0_24px_70px_-50px_rgba(0,0,0,0.5)]">

@@ -4,10 +4,11 @@ const authMiddleware = require('../middlewares/auth.middleware');
 const roleMiddleware = require('../middlewares/role.middleware');
 const validate = require('../middlewares/validation.middleware');
 const { createCarreraRules, updateCarreraRules } = require('../validators/carrera.validator');
+const { listarCarreraRules } = require('../validators/entidad.validator');
 
 const router = Router();
 
-router.get('/', carreraController.listar);
+router.get('/', listarCarreraRules, validate, carreraController.listar);
 router.get('/:id', carreraController.obtenerPorId);
 
 router.use(authMiddleware);
