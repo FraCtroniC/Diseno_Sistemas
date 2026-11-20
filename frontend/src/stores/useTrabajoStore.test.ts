@@ -4,7 +4,6 @@ import { trabajoService } from '../services/trabajoService'
 
 vi.mock('../services/trabajoService', () => ({
   trabajoService: { listar: vi.fn() },
-  categoriaService: { listar: vi.fn() },
 }))
 
 /**
@@ -14,7 +13,7 @@ vi.mock('../services/trabajoService', () => ({
  */
 describe('useTrabajoStore', () => {
   beforeEach(() => {
-    useTrabajoStore.setState({ trabajos: [], categorias: [], loading: false, total: 0, error: null })
+    useTrabajoStore.setState({ trabajos: [], loading: false, total: 0, error: null })
     vi.mocked(trabajoService.listar).mockReset()
   })
 

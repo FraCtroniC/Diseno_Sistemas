@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
-import { trabajoService, categoriaService, type Trabajo, type Categoria } from '../services/trabajoService'
+import { trabajoService, type Trabajo, lineaService, areaService, type LineaOperativaEntity, type AreaEstrategicaEntity } from '../services/trabajoService'
 import { carreraService } from '../services/entidadService'
 import type { CarreraEntity } from '../services/trabajoService'
 import { TIPOS_DOCUMENTO } from '../types'
@@ -12,51 +12,65 @@ import { SkeletonCard } from '../components/ui/Skeleton'
 export default function Search() {
   const [query, setQuery] = useState('')
   const [yearFilter, setYearFilter] = useState('')
-  const [categoriaFilter, setCategoriaFilter] = useState('')
   const [carreraFilter, setCarreraFilter] = useState('')
   const [tipoDocFilter, setTipoDocFilter] = useState('')
   const [sortFilter, setSortFilter] = useState('reciente')
+  const [lineaFilter, setLineaFilter] = useState('')
+  const [areaFilter, setAreaFilter] = useState('')
   const [results, setResults] = useState<Trabajo[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(1)
   const [totalPaginas, setTotalPaginas] = useState(1)
-  const [categorias, setCategorias] = useState<Categoria[]>([])
   const [carreras, setCarreras] = useState<CarreraEntity[]>([])
+  const [lineas, setLineas] = useState<LineaOperativaEntity[]>([])
+  const [areas, setAreas] = useState<AreaEstrategicaEntity[]>([])
   const location = useLocation()
   const navigate = useNavigate()
 
   useEffect(() => {
-    categoriaService.listar()
-      .then((res) => setCategorias(res.data.data))
-      .catch(() => {})
     carreraService.listar()
       .then((res) => setCarreras(res.data.data))
       .catch(() => {})
+    lineaService.listar()
+      .then((res) => setLineas(res.data.data))
+      .catch(() => setLineas([]))
   }, [])
 
-  async function doSearch(q: string, y: string, cat: string, carrera: string, tipoDoc: string, sort: string, page: number = 1) {
+  useEffect(() => {
+    if (!lineaFilter) {
+      setAreas([])
+      return
+    }
+    areaService.listar({ linea_operativa: lineaFilter })
+      .then((res) => setAreas(res.data.data))
+      .catch(() => setAreas([]))
+  }, [lineaFilter])
+
+  async function doSearch(q: string, y: string, carrera: string, tipoDoc: string, sort: string, linea?: string, area?: string, page: number = 1) {
     setLoading(true)
     setError(null)
     try {
       const params: {
         q?: string
-        categoria?: string
         carrera?: string
         tipo_documento?: string
         sort?: string
         anio?: number
         estado?: string
+        linea_operativa?: string
+        area_estrategica?: string
         pagina?: number
         limite?: number
       } = { estado: 'publicado', pagina: page, limite: 10 }
       if (q.trim()) params.q = q.trim()
       if (y) params.anio = Number(y)
-      if (cat) params.categoria = cat
       if (carrera) params.carrera = carrera
       if (tipoDoc) params.tipo_documento = tipoDoc
       if (sort) params.sort = sort
+      if (linea) params.linea_operativa = linea
+      if (area) params.area_estrategica = area
       const res = await trabajoService.buscar(params)
       setResults(res.data.datos)
       setTotal(res.data.total)
@@ -77,19 +91,21 @@ export default function Search() {
     const params = new URLSearchParams(location.search)
     const q = params.get('query') ?? ''
     const y = params.get('year') ?? ''
-    const cat = params.get('categoria') ?? ''
     const carrera = params.get('carrera') ?? ''
     const tipoDoc = params.get('tipo_documento') ?? ''
     const sort = params.get('sort') ?? 'reciente'
+    const linea = params.get('linea_operativa') ?? ''
+    const area = params.get('area_estrategica') ?? ''
     const page = parseInt(params.get('pagina') || '1', 10)
     setQuery(q)
     setYearFilter(y)
-    setCategoriaFilter(cat)
     setCarreraFilter(carrera)
     setTipoDocFilter(tipoDoc)
     setSortFilter(sort)
+    setLineaFilter(linea)
+    setAreaFilter(area)
 
-    doSearch(q, y, cat, carrera, tipoDoc, sort, page)
+    doSearch(q, y, carrera, tipoDoc, sort, linea, area, page)
   }, [location.search])
 
   return (
@@ -127,11 +143,21 @@ export default function Search() {
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Categoría temática</span>
-            <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Línea operativa</span>
+            <select value={lineaFilter} onChange={(e) => setLineaFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
               <option value="">Todas</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>{c.nombre}</option>
+              {lineas.map((l) => (
+                <option key={l.id} value={l.id}>{[l.sigla, l.nombre].filter(Boolean).join(' - ')}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Área estratégica</span>
+            <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)} className="w-full rounded-md border px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+              <option value="">Todas</option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.id}>{a.nombre}</option>
               ))}
             </select>
           </label>
@@ -157,7 +183,7 @@ export default function Search() {
         </div>
 
           <div className="mt-4 flex gap-3">
-            <Button type="button" onClick={() => { setQuery(''); setYearFilter(''); setCategoriaFilter(''); setCarreraFilter(''); setTipoDocFilter(''); setSortFilter('reciente'); navigate('/search') }}>
+            <Button type="button" onClick={() => { setQuery(''); setYearFilter(''); setCarreraFilter(''); setTipoDocFilter(''); setSortFilter('reciente'); setLineaFilter(''); setAreaFilter(''); navigate('/search') }}>
               Limpiar filtros
             </Button>
             <Button variant="secondary" type="button" onClick={() => {
@@ -165,9 +191,10 @@ export default function Search() {
               if (query.trim()) params.set('query', query.trim())
               if (yearFilter) params.set('year', yearFilter)
               if (carreraFilter) params.set('carrera', carreraFilter)
-              if (categoriaFilter) params.set('categoria', categoriaFilter)
               if (tipoDocFilter) params.set('tipo_documento', tipoDocFilter)
               if (sortFilter !== 'reciente') params.set('sort', sortFilter)
+              if (lineaFilter) params.set('linea_operativa', lineaFilter)
+              if (areaFilter) params.set('area_estrategica', areaFilter)
               params.set('pagina', '1')
               navigate(`/search?${params.toString()}`)
             }}>
@@ -180,7 +207,7 @@ export default function Search() {
         <Card className="border-rose-100 bg-rose-50/80 dark:border-rose-900/40 dark:bg-rose-900/20">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">{error}</p>
-            <Button variant="secondary" onClick={() => doSearch(query, yearFilter, categoriaFilter, carreraFilter, tipoDocFilter, sortFilter, pagina)}>Reintentar</Button>
+            <Button variant="secondary" onClick={() => doSearch(query, yearFilter, carreraFilter, tipoDocFilter, sortFilter, lineaFilter, areaFilter, pagina)}>Reintentar</Button>
           </div>
         </Card>
       ) : null}

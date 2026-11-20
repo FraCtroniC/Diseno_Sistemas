@@ -39,9 +39,6 @@ const createTrabajoRules = [
     .optional()
     .customSanitizer(parsePalabrasClave)
     .isArray().withMessage('palabras_clave debe ser un arreglo'),
-  body('categoria_id')
-    .notEmpty().withMessage('La categoría es requerida')
-    .isUUID().withMessage('categoria_id debe ser un UUID válido'),
   body('carrera_id')
     .notEmpty().withMessage('La carrera es requerida')
     .isUUID().withMessage('carrera_id debe ser un UUID válido'),
@@ -89,9 +86,6 @@ const updateTrabajoRules = [
     .optional()
     .customSanitizer(parsePalabrasClave)
     .isArray().withMessage('palabras_clave debe ser un arreglo'),
-  body('categoria_id')
-    .optional()
-    .isUUID().withMessage('categoria_id debe ser un UUID válido'),
   body('carrera_id')
     .optional()
     .isUUID().withMessage('carrera_id debe ser un UUID válido'),
@@ -145,12 +139,6 @@ const buscarRules = [
     .isString().withMessage('El término de búsqueda debe ser texto')
     .trim()
     .isLength({ max: 200 }).withMessage('El término de búsqueda no puede exceder 200 caracteres'),
-  query('categoria')
-    .optional()
-    .isUUID().withMessage('categoria debe ser un UUID válido'),
-  query('carrera')
-    .optional()
-    .isUUID().withMessage('carrera debe ser un UUID válido'),
   query('linea_operativa')
     .optional()
     .isUUID().withMessage('linea_operativa debe ser un UUID válido'),

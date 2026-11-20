@@ -107,7 +107,7 @@ export default function Student() {
                 <Link to={`/trabajos/${doc.id}`} className="block">
                   <p className="font-semibold text-slate-900 hover:text-unefa dark:text-slate-100">{doc.titulo}</p>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {doc.autor} &bull; {doc.anio} &bull; {doc.categoria?.nombre}
+                    {doc.autor} &bull; {doc.anio} &bull; {doc.lineaOperativa?.sigla}
                   </p>
                   <span className="mt-2 inline-flex rounded-full bg-sky-200/60 px-2 py-0.5 text-xs font-semibold text-sky-700">
                     Pendiente de revisión
@@ -141,7 +141,7 @@ export default function Student() {
                   >
                     <p className="font-semibold text-slate-900 dark:text-slate-100">{doc.titulo}</p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {doc.autor} &bull; {doc.anio} &bull; {doc.categoria?.nombre}
+                      {doc.autor} &bull; {doc.anio} &bull; {doc.lineaOperativa?.sigla}
                     </p>
                     <span className="mt-2 inline-flex rounded-full bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                       Abrir para solicitar revisión
@@ -174,7 +174,7 @@ export default function Student() {
                   >
                     <p className="font-semibold text-slate-900 dark:text-slate-100">{doc.titulo}</p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {doc.autor} &bull; {doc.anio} &bull; {doc.categoria?.nombre}
+                      {doc.autor} &bull; {doc.anio} &bull; {doc.lineaOperativa?.sigla}
                     </p>
                     <span className="mt-2 inline-flex rounded-full bg-sky-200/60 px-2 py-0.5 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
                       En espera de aprobación
@@ -207,7 +207,7 @@ export default function Student() {
                   >
                     <p className="font-semibold text-slate-900 dark:text-slate-100">{doc.titulo}</p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {doc.autor} &bull; {doc.anio} &bull; {doc.categoria?.nombre}
+                      {doc.autor} &bull; {doc.anio} &bull; {doc.lineaOperativa?.sigla}
                     </p>
                     <span className="mt-2 inline-flex rounded-full bg-emerald-200/60 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
                       Publicado

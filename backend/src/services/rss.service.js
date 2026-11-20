@@ -1,4 +1,4 @@
-const { Trabajo, Categoria } = require('../models');
+const { Trabajo } = require('../models');
 const environment = require('../../config/environment');
 
 // Los enlaces del feed apuntan al dominio público del frontend, no al backend
@@ -19,7 +19,7 @@ function escXml(s) {
 async function rssFeed() {
   const trabajos = await Trabajo.findAll({
     where: { estado: 'publicado' },
-    include: [{ model: Categoria, as: 'categoria', attributes: ['nombre'] }],
+    include: [],
     order: [['createdAt', 'DESC']],
     limit: MAX_ITEMS
   });
@@ -36,7 +36,7 @@ async function rssFeed() {
 
   for (const t of trabajos) {
     const url = `${SITE_URL}/trabajos/${t.id}`;
-    const cat = t.categoria ? t.categoria.nombre : 'General';
+    const cat = 'General';
     xml += `    <item>
       <title>${escXml(t.titulo)}</title>
       <link>${escXml(url)}</link>
@@ -56,7 +56,7 @@ async function rssFeed() {
 async function atomFeed() {
   const trabajos = await Trabajo.findAll({
     where: { estado: 'publicado' },
-    include: [{ model: Categoria, as: 'categoria', attributes: ['nombre'] }],
+    include: [],
     order: [['createdAt', 'DESC']],
     limit: MAX_ITEMS
   });
@@ -74,7 +74,7 @@ async function atomFeed() {
 
   for (const t of trabajos) {
     const url = `${SITE_URL}/trabajos/${t.id}`;
-    const cat = t.categoria ? t.categoria.nombre : 'General';
+    const cat = 'General';
     xml += `  <entry>
     <title>${escXml(t.titulo)}</title>
     <link href="${escXml(url)}"/>

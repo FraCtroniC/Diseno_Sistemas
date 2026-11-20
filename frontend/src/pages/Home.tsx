@@ -6,12 +6,11 @@ import { SkeletonCard } from '../components/ui/Skeleton'
 import { useTrabajoStore } from '../stores/useTrabajoStore'
 
 export default function Home() {
-  const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading, error } = useTrabajoStore()
+  const { mapToDocumentItems, fetchTrabajos, loading, error } = useTrabajoStore()
 
   useEffect(() => {
-    fetchCategorias()
     fetchTrabajos({ estado: 'publicado' })
-  }, [fetchCategorias, fetchTrabajos])
+  }, [fetchTrabajos])
 
   const all = mapToDocumentItems()
   const latestPublications = all.sort((a, b) => b.year - a.year)

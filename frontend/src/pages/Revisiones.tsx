@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { categoriaService, type Categoria, type Trabajo } from '../services/trabajoService'
+import { type Trabajo } from '../services/trabajoService'
 import { revisionService, type EstadoCola } from '../services/revisionService'
 import { TIPOS_DOCUMENTO } from '../types'
 import Button from '../components/ui/Button'
@@ -41,11 +41,9 @@ export default function Revisiones() {
   const activeTab: EstadoCola = tabParam === 'borradores' ? 'borrador' : 'en_revision'
   const [pendientes, setPendientes] = useState<Trabajo[]>([])
   const [borradores, setBorradores] = useState<Trabajo[]>([])
-  const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [categoriaFilter, setCategoriaFilter] = useState('')
   const [actionId, setActionId] = useState('')
   const [rejectTarget, setRejectTarget] = useState<Trabajo | null>(null)
   const [rejectComment, setRejectComment] = useState('')
@@ -70,9 +68,6 @@ export default function Revisiones() {
 
   useEffect(() => {
     loadCola()
-    categoriaService.listar()
-      .then((res) => setCategorias(res.data.data))
-      .catch(() => {})
   }, [loadCola])
 
   function changeTab(tab: EstadoCola) {
@@ -84,14 +79,12 @@ export default function Revisiones() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
     return items.filter((trabajo) => {
-      if (categoriaFilter && trabajo.categoria_id !== categoriaFilter) return false
       if (!term) return true
 
       const haystack = [
         trabajo.titulo,
         trabajo.autor,
         trabajo.usuario?.nombre,
-        trabajo.categoria?.nombre,
       ]
         .filter(Boolean)
         .join(' ')
@@ -99,7 +92,7 @@ export default function Revisiones() {
 
       return haystack.includes(term)
     })
-  }, [items, search, categoriaFilter])
+  }, [items, search])
 
   async function handleAprobar(trabajo: Trabajo) {
     if (!window.confirm(`¿Aprobar y publicar "${trabajo.titulo}"?`)) return
@@ -214,18 +207,6 @@ export default function Revisiones() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar por título, autor o categoría"
             />
-            <select
-              value={categoriaFilter}
-              onChange={(event) => setCategoriaFilter(event.target.value)}
-              className="w-full rounded-md border px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-            >
-              <option value="">Todas las categorías</option>
-              {categorias.map((categoria) => (
-                <option key={categoria.id} value={categoria.id}>
-                  {categoria.nombre}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -249,29 +230,26 @@ export default function Revisiones() {
         </Card>
       ) : error ? null : filtered.length === 0 ? (
         <Card className="border-white/80 bg-white/90 p-10 text-center dark:border-slate-700/50 dark:bg-slate-800/90">
-          <p className="text-4xl font-black text-slate-200 dark:text-slate-600">{search || categoriaFilter ? '⌕' : '✓'}</p>
+          <p className="text-4xl font-black text-slate-200 dark:text-slate-600">{search ? '⌕' : '✓'}</p>
           <h3 className="mt-3 text-xl font-black text-slate-900 dark:text-slate-100">
-            {search || categoriaFilter
+            {search
               ? 'Sin resultados para tu búsqueda'
               : activeTab === 'en_revision'
                 ? 'No hay envíos pendientes'
                 : 'No hay borradores'}
           </h3>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            {search || categoriaFilter
-              ? 'Prueba con otro término o cambia la categoría seleccionada.'
+            {search
+              ? 'Prueba con otro término.'
               : activeTab === 'en_revision'
                 ? 'Todos los trabajos enviados ya fueron revisados.'
                 : 'Los trabajos guardados como borrador aparecerán aquí.'}
           </p>
-          {search || categoriaFilter ? (
+          {search ? (
             <Button
               variant="secondary"
               className="mt-4"
-              onClick={() => {
-                setSearch('')
-                setCategoriaFilter('')
-              }}
+              onClick={() => setSearch('')}
             >
               Limpiar filtros
             </Button>
@@ -301,11 +279,6 @@ export default function Revisiones() {
                       {tipo ? (
                         <span className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark dark:bg-unefa/20 dark:text-unefa-accent">
                           {tipo.label}
-                        </span>
-                      ) : null}
-                      {trabajo.categoria ? (
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                          {trabajo.categoria.nombre}
                         </span>
                       ) : null}
                     </div>

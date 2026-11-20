@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Trabajo, Revision, Usuario, Categoria } = require('../models');
+const { Trabajo, Revision, Usuario } = require('../models');
 const notificacionService = require('./notificacion.service');
 
 const TRANSICIONES_PERMITIDAS = {
@@ -141,7 +141,6 @@ class RevisionService {
     const { count, rows } = await Trabajo.findAndCountAll({
       where: { estado },
       include: [
-        { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
         { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] }
       ],
       order: [['updatedAt', 'DESC']]

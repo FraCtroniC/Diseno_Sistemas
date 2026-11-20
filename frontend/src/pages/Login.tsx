@@ -75,7 +75,7 @@ export default function Login() {
           </div>
           <div className="rounded-2xl bg-white/12 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-white/60">Consulta</p>
-            <p className="mt-2 text-sm font-semibold">Busqueda por categoria y carrera</p>
+            <p className="mt-2 text-sm font-semibold">Búsqueda por línea operativa y carrera</p>
           </div>
           <div className="rounded-2xl bg-white/12 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-white/60">Gestion</p>

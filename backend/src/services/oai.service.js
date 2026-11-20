@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Trabajo, Categoria } = require('../models');
+const { Trabajo } = require('../models');
 
 const BASE_URL = process.env.OAI_BASE_URL || 'http://localhost:3000/oai';
 const REPOSITORY_NAME = 'UNEFA Táchira — Repositorio de Trabajos de Grado';
@@ -44,7 +44,6 @@ function buildDublinCore(t) {
   if (t.palabras_clave && t.palabras_clave.length) {
     t.palabras_clave.forEach(p => { xml += dcElement('subject', p); });
   }
-  if (t.categoria && t.categoria.nombre) xml += dcElement('subject', t.categoria.nombre);
   if (t.identificador) xml += dcElement('identifier', t.identificador);
   if (t.archivo_url) xml += dcElement('identifier', t.archivo_url);
   xml += dcElement('language', 'es');
@@ -54,7 +53,7 @@ function buildDublinCore(t) {
 
 function buildHeader(t, identifierPrefix) {
   const oaiId = t.identificador || `${identifierPrefix}${t.id}`;
-  const sets = t.categoria ? [escXml(t.categoria.nombre)] : [];
+  const sets = [];
   let xml = `      <header>\n`;
   xml += `        <identifier>${escXml(oaiId)}</identifier>\n`;
   xml += `        <datestamp>${datestamp(t.updatedAt)}</datestamp>\n`;
@@ -144,16 +143,8 @@ async function listMetadataFormats(identifier) {
 }
 
 async function listSets() {
-  const categorias = await Categoria.findAll({ order: [['nombre', 'ASC']] });
   let xml = baseXml('ListSets');
   xml += `  <ListSets>\n`;
-  for (const cat of categorias) {
-    xml += `    <set>\n`;
-    xml += `      <setSpec>${escXml(cat.nombre)}</setSpec>\n`;
-    xml += `      <setName>${escXml(cat.nombre)}</setName>\n`;
-    if (cat.descripcion) xml += `      <setDescription><oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"><dc:description>${escXml(cat.descripcion)}</dc:description></oai_dc:dc></setDescription>\n`;
-    xml += `    </set>\n`;
-  }
   xml += `  </ListSets>\n`;
   xml += closeXml();
   return xml;
@@ -162,7 +153,6 @@ async function listSets() {
 async function getRecord(identifier) {
   const t = await Trabajo.findOne({
     where: { estado: 'publicado', [Op.or]: [{ identificador: identifier }, { id: identifier.replace(identifierPrefix, '') }] },
-    include: [{ model: Categoria, as: 'categoria', attributes: ['nombre'] }]
   });
   if (!t) return errorXml('idDoesNotExist', 'El identificador no existe en el repositorio.');
   let xml = baseXml('GetRecord', ` identifier="${escXml(identifier)}" metadataPrefix="oai_dc"`);
@@ -187,11 +177,6 @@ async function listCommon(verb, includeMetadata, metadataPrefix, set, from, unti
   }
 
   const where = { estado: 'publicado' };
-  if (set) {
-    const cat = await Categoria.findOne({ where: { nombre: set } });
-    if (!cat) return errorXml('noRecordsMatch', 'No se encontraron registros para el conjunto especificado.');
-    where.categoria_id = cat.id;
-  }
   if (from) {
     where.updatedAt = { ...where.updatedAt, [Op.gte]: new Date(from) };
   }

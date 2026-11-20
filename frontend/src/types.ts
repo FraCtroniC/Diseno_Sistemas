@@ -58,7 +58,6 @@ export interface DocumentItem {
   year: number
   abstract?: string
   status: 'draft' | 'published' | 'archived'
-  category: string
   tipoDocumento?: TipoDocumento
   carrera?: string
   carreraSlug?: string

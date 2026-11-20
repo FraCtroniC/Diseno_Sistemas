@@ -1,13 +1,12 @@
 jest.mock('../models', () => ({
   Trabajo: { findAll: jest.fn() },
-  Categoria: { name: 'Categoria' },
 }))
 
 jest.mock('../../config/environment', () => ({
   feedSiteUrl: 'https://repositorio.unefa.edu.ve/',
 }))
 
-const { Trabajo, Categoria } = require('../models')
+const { Trabajo } = require('../models')
 const { rssFeed, atomFeed } = require('./rss.service')
 
 const BASE = 'https://repositorio.unefa.edu.ve'
@@ -20,7 +19,6 @@ const trabajos = [
     autor: 'Ana Pérez',
     createdAt: new Date('2026-11-10T12:00:00.000Z'),
     updatedAt: new Date('2026-11-11T12:00:00.000Z'),
-    categoria: { nombre: 'Ingeniería' },
   },
   {
     id: 'def-456',
@@ -29,7 +27,6 @@ const trabajos = [
     autor: 'Luis Gómez',
     createdAt: new Date('2026-11-01T08:30:00.000Z'),
     updatedAt: new Date('2026-11-02T08:30:00.000Z'),
-    categoria: null,
   },
 ]
 
@@ -45,7 +42,7 @@ describe('rss.service', () => {
 
       expect(Trabajo.findAll).toHaveBeenCalledWith({
         where: { estado: 'publicado' },
-        include: [{ model: Categoria, as: 'categoria', attributes: ['nombre'] }],
+        include: [],
         order: [['createdAt', 'DESC']],
         limit: 50,
       })
@@ -64,7 +61,7 @@ describe('rss.service', () => {
       expect(xml).toContain(`<link>${BASE}/trabajos/abc-123</link>`)
       expect(xml).toContain(`<guid isPermaLink="true">${BASE}/trabajos/abc-123</guid>`)
       expect(xml).toContain('<pubDate>Tue, 10 Nov 2026 12:00:00 GMT</pubDate>')
-      expect(xml).toContain('<category>Ingeniería</category>')
+      expect(xml).toContain('<category>General</category>')
       expect(xml).toContain('<category>General</category>')
       expect(xml).toContain('<description>Sin resumen</description>')
     })
@@ -98,7 +95,7 @@ describe('rss.service', () => {
       expect(xml).toContain('<updated>2026-11-11T12:00:00.000Z</updated>')
       expect(xml).toContain('<published>2026-11-10T12:00:00.000Z</published>')
       expect(xml).toContain('<summary type="html">Resumen con &amp; y &lt;tags&gt;</summary>')
-      expect(xml).toContain('<category term="Ingeniería"/>')
+      expect(xml).toContain('<category term="General"/>')
       expect(xml).toContain('<author><name>Ana Pérez</name></author>')
     })
 

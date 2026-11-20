@@ -3,7 +3,6 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class Trabajo extends Model {
     static associate(models) {
-      Trabajo.belongsTo(models.Categoria, { foreignKey: 'categoria_id', as: 'categoria' });
       Trabajo.belongsTo(models.Usuario, { foreignKey: 'usuario_id', as: 'usuario' });
       Trabajo.belongsTo(models.Carrera, { foreignKey: 'carrera_id', as: 'carrera' });
       Trabajo.belongsTo(models.Tutor, { foreignKey: 'tutor_id', as: 'tutorAsignado' });
@@ -48,14 +47,6 @@ module.exports = (sequelize) => {
     palabras_clave: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: []
-    },
-    categoria_id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'categorias',
-        key: 'id'
-      }
     },
     carrera_id: {
       type: DataTypes.UUID,

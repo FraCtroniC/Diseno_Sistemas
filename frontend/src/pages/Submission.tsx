@@ -5,7 +5,7 @@ import { toastFieldErrors } from '../utils/formToast'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
-import { trabajoService, categoriaService, type Categoria, type CarreraEntity, type Trabajo, lineaService, areaService, type LineaOperativaEntity, type AreaEstrategicaEntity } from '../services/trabajoService'
+import { trabajoService, type CarreraEntity, type Trabajo, lineaService, areaService, type LineaOperativaEntity, type AreaEstrategicaEntity } from '../services/trabajoService'
 import { useAuthStore } from '../stores/useAuthStore'
 import { MAX_PDF_SIZE_MB, validatePdfFile } from '../utils/pdfValidation'
 import { TIPOS_DOCUMENTO, esPostgrado } from '../types'
@@ -20,7 +20,6 @@ type FormState = {
   year: string
   documentType: string
   careerId: string
-  categoryId: string
   lineaId: string
   areaIds: string[]
   description: string
@@ -38,7 +37,6 @@ const initialState: FormState = {
   year: '',
   documentType: '',
   careerId: '',
-  categoryId: '',
   lineaId: '',
   areaIds: [],
   description: '',
@@ -47,10 +45,10 @@ const initialState: FormState = {
   file: null,
 }
 
-const STEP_ONE_FIELDS: (keyof FormState)[] = ['title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'categoryId', 'lineaId', 'keywords']
+const STEP_ONE_FIELDS: (keyof FormState)[] = ['title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'lineaId', 'keywords']
 const STEP_TWO_FIELDS: (keyof FormState)[] = ['description', 'file']
 const FIELD_ORDER: (keyof FormState)[] = [
-  'title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'categoryId', 'lineaId',
+  'title', 'authors', 'tutor', 'year', 'careerId', 'documentType', 'lineaId',
   'keywords', 'description', 'file', 'publicationState',
 ]
 
@@ -61,7 +59,6 @@ const FIELD_LABELS: Record<keyof FormState, string> = {
   year: 'Año',
   documentType: 'Tipo de documento',
   careerId: 'Carrera',
-  categoryId: 'Categoría temática',
   lineaId: 'Línea operativa',
   description: 'Resumen / descripción',
   keywords: 'Palabras clave',
@@ -125,8 +122,6 @@ function validateField(
       }
       return undefined
     }
-    case 'categoryId':
-      return state.categoryId ? undefined : 'Selecciona una categoría.'
     case 'lineaId':
       return state.lineaId ? undefined : 'Selecciona una línea operativa.'
     case 'keywords': {
@@ -167,7 +162,6 @@ export default function Submission() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
-  const [categorias, setCategorias] = useState<Categoria[]>([])
   const [carreras, setCarreras] = useState<CarreraEntity[]>([])
   const [lineas, setLineas] = useState<LineaOperativaEntity[]>([])
   const [areas, setAreas] = useState<AreaEstrategicaEntity[]>([])
@@ -183,9 +177,6 @@ export default function Submission() {
   const [editError, setEditError] = useState('')
 
   useEffect(() => {
-    categoriaService.listar()
-      .then((res) => setCategorias(res.data.data))
-      .catch(() => {})
     carreraService.listar()
       .then((res) => setCarreras(res.data.data))
       .catch(() => {})
@@ -234,7 +225,6 @@ export default function Submission() {
             ? metadatos.tipo_documento
             : (esPostgrado(trabajo.carrera?.nivel) ? 'postgrado' : ''),
           careerId: trabajo.carrera_id || trabajo.carrera?.id || '',
-          categoryId: trabajo.categoria_id ?? '',
           lineaId: trabajo.linea_operativa_id ?? '',
           areaIds: (trabajo.areasEstrategicas ?? []).map((a) => a.id),
           description: trabajo.resumen ?? '',
@@ -381,7 +371,6 @@ export default function Submission() {
       formData.append('anio', form.year)
       formData.append('resumen', form.description)
       formData.append('carrera_id', form.careerId)
-      formData.append('categoria_id', form.categoryId)
       if (form.lineaId) formData.append('linea_operativa_id', form.lineaId)
       formData.append('areas_estrategicas_ids', JSON.stringify(form.areaIds))
       formData.append('palabras_clave', JSON.stringify(parseKeywords(form.keywords)))
@@ -555,23 +544,6 @@ export default function Submission() {
                       <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
                   </select>
-                </label>
-
-                <label className="space-y-2 md:col-span-2">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Categoría temática</span>
-                  <select
-                    data-field="categoryId"
-                    className={`w-full rounded-xl border bg-white px-4 py-2 text-sm outline-none transition focus:ring-2 dark:bg-slate-800 dark:text-slate-100 ${borderClass('categoryId')}`}
-                    value={form.categoryId}
-                    onChange={(event) => updateField('categoryId', event.target.value)}
-                    aria-invalid={errors.categoryId ? true : undefined}
-                  >
-                    <option value="">Selecciona una categoría temática</option>
-                    {categorias.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                    ))}
-                  </select>
-                  {errors.categoryId ? <p className="text-sm text-red-600">{errors.categoryId}</p> : null}
                 </label>
 
                 <label className="space-y-2 md:col-span-2">

@@ -39,8 +39,6 @@ export interface Trabajo {
   areasEstrategicas?: AreaEstrategicaEntity[]
   resumen: string | null
   palabras_clave: string[]
-  categoria_id: string
-  categoria?: { id: string; nombre: string; slug: string }
   archivo_url: string | null
   metadatos: Record<string, unknown>
   estado: 'borrador' | 'en_revision' | 'publicado' | 'archivado'
@@ -49,13 +47,6 @@ export interface Trabajo {
   createdAt: string
   updatedAt: string
   snippet?: string | null
-}
-
-export interface Categoria {
-  id: string
-  nombre: string
-  descripcion: string | null
-  slug: string
 }
 
 export interface LineaOperativaEntity {
@@ -79,7 +70,7 @@ export const trabajoService = {
   obtenerPorId: (id: string) =>
     api.get<{ success: boolean; data: Trabajo }>(`/trabajos/${id}`),
 
-  crear: (data: Partial<Trabajo> & { categoria_id: string }) =>
+  crear: (data: Partial<Trabajo>) =>
     api.post<{ success: boolean; data: Trabajo }>('/trabajos', data),
 
   crearConArchivo: (formData: FormData) =>
@@ -94,25 +85,8 @@ export const trabajoService = {
   eliminar: (id: string) =>
     api.delete<{ success: boolean; message: string }>(`/trabajos/${id}`),
 
-  buscar: (params: { q?: string; categoria?: string; carrera?: string; tipo_documento?: string; sort?: string; anio?: number; estado?: string; usuario_id?: string; pagina?: number; limite?: number }) =>
+  buscar: (params: { q?: string; carrera?: string; tipo_documento?: string; sort?: string; anio?: number; estado?: string; usuario_id?: string; pagina?: number; limite?: number }) =>
     api.get<{ success: boolean; total: number; datos: Trabajo[]; pagina: number; limite: number; totalPaginas: number }>('/trabajos/buscar', { params }),
-}
-
-export const categoriaService = {
-  listar: () =>
-    api.get<{ success: boolean; data: Categoria[] }>('/categorias'),
-
-  obtenerPorId: (id: string) =>
-    api.get<{ success: boolean; data: Categoria }>(`/categorias/${id}`),
-
-  crear: (data: { nombre: string; descripcion?: string; slug: string }) =>
-    api.post<{ success: boolean; data: Categoria }>('/categorias', data),
-
-  actualizar: (id: string, data: { nombre?: string; descripcion?: string; slug?: string }) =>
-    api.put<{ success: boolean; data: Categoria }>(`/categorias/${id}`, data),
-
-  eliminar: (id: string) =>
-    api.delete<{ success: boolean; message: string }>(`/categorias/${id}`),
 }
 
 export const lineaService = {

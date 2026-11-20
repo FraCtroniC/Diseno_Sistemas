@@ -1,7 +1,6 @@
 const { Router } = require('express');
 const authRoutes = require('./auth.routes');
 const usuarioRoutes = require('./usuario.routes');
-const categoriaRoutes = require('./categoria.routes');
 const trabajoRoutes = require('./trabajo.routes');
 const revisionRoutes = require('./revision.routes');
 const carreraRoutes = require('./carrera.routes');
@@ -17,7 +16,6 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/usuarios', usuarioRoutes);
-router.use('/categorias', categoriaRoutes);
 router.use('/trabajos', trabajoRoutes);
 router.use('/revisiones', revisionRoutes);
 router.use('/carreras', carreraRoutes);

@@ -241,10 +241,10 @@ export default function TrabajoDetalle() {
             </Card>
           ) : null}
 
-          {trabajo.categoria ? (
+          {trabajo.lineaOperativa ? (
             <Card className="border-unefa/15 bg-white/90 dark:bg-slate-800/90">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Categoría</p>
-              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.categoria.nombre}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-unefa">Línea operativa</p>
+              <p className="mt-3 text-sm font-medium text-slate-800 dark:text-slate-200">{trabajo.lineaOperativa.sigla} - {trabajo.lineaOperativa.nombre}</p>
             </Card>
           ) : null}
 

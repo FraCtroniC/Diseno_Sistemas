@@ -230,20 +230,6 @@ describe('API Integration', () => {
     })
   })
 
-  describe('GET /api/v1/categorias (public)', () => {
-    it('returns list of categorias', async () => {
-      const { Categoria } = require('../models')
-      Categoria.findAll.mockResolvedValue([
-        { id: 'c1', nombre: 'Ingeniería', slug: 'ingenieria', descripcion: null },
-      ])
-
-      const res = await request(app).get('/api/v1/categorias')
-
-      expect(res.status).toBe(200)
-      expect(res.body.data).toHaveLength(1)
-    })
-  })
-
   describe('GET /api/v1/niveles-academicos (public)', () => {
     it('returns the academic levels ordered by orden', async () => {
       const { NivelAcademico } = require('../models')
@@ -509,7 +495,7 @@ describe('API Integration', () => {
     })
 
     it('elimina de Cloudinary el PDF si la creación falla después de subirlo', async () => {
-      Categoria.findByPk.mockResolvedValue(null)
+      Carrera.findByPk.mockResolvedValue(null)
       jest.spyOn(cloudinaryService, 'subirArchivo').mockResolvedValue({
         url: 'https://res.cloudinary.com/demo/raw/upload/v1/trabajos/huerfano.pdf',
         publicId: 'trabajos/huerfano.pdf',

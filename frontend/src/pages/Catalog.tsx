@@ -88,12 +88,11 @@ export default function Catalog() {
   const tipoDocumentoRequerido: TipoDocumento =
     tipo === 'maestrias' || tipo === 'doctorados' ? 'postgrado' : tipo
 
-  const { mapToDocumentItems, fetchTrabajos, fetchCategorias, loading, error } = useTrabajoStore()
+  const { mapToDocumentItems, fetchTrabajos, loading, error } = useTrabajoStore()
 
   useEffect(() => {
-    fetchCategorias()
     fetchTrabajos({ estado: 'publicado' })
-  }, [fetchCategorias, fetchTrabajos])
+  }, [fetchTrabajos])
 
   useEffect(() => {
     setPage(1)

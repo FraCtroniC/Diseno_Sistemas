@@ -1,22 +1,19 @@
 import { create } from 'zustand'
-import { trabajoService, categoriaService, type Trabajo, type Categoria } from '../services/trabajoService'
+import { trabajoService, type Trabajo } from '../services/trabajoService'
 import type { DocumentItem } from '../types'
 
 interface TrabajoState {
   trabajos: Trabajo[]
-  categorias: Categoria[]
   loading: boolean
   total: number
   /** Mensaje de la última carga fallida; null cuando todo va bien. */
   error: string | null
-  fetchTrabajos: (params?: { estado?: string; limite?: number; usuario_id?: string }) => Promise<void>
-  fetchCategorias: () => Promise<void>
+  fetchTrabajos: (params?: { estado?: string; límite?: number; usuario_id?: string }) => Promise<void>
   mapToDocumentItems: () => DocumentItem[]
 }
 
 export const useTrabajoStore = create<TrabajoState>((set, get) => ({
   trabajos: [],
-  categorias: [],
   loading: false,
   total: 0,
   error: null,
@@ -33,19 +30,9 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
     }
   },
 
-  fetchCategorias: async () => {
-    try {
-      const res = await categoriaService.listar()
-      set({ categorias: res.data.data })
-    } catch {
-      // silencio
-    }
-  },
-
   mapToDocumentItems: () => {
-    const { trabajos, categorias } = get()
+    const { trabajos } = get()
     return trabajos.map((t) => {
-      const cat = categorias.find((c) => c.id === t.categoria_id)
       let status: 'draft' | 'published' | 'archived' = 'draft'
       if (t.estado === 'publicado') status = 'published'
       else if (t.estado === 'archivado') status = 'archived'
@@ -60,7 +47,6 @@ export const useTrabajoStore = create<TrabajoState>((set, get) => ({
         year: t.anio,
         abstract: t.resumen ?? '',
         status,
-        category: cat?.slug ?? t.categoria_id,
         tipoDocumento: tipoDocumento as DocumentItem['tipoDocumento'],
         carrera: t.carrera?.nombre,
         carreraSlug: t.carrera?.slug,

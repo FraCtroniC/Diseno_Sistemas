@@ -1,4 +1,4 @@
-const { Trabajo, Categoria, Usuario } = require('../models');
+const { Trabajo, Usuario } = require('../models');
 const environment = require('../../config/environment');
 
 // archivo_url suele ser absoluto: una URL de Cloudinary o
@@ -100,11 +100,7 @@ function generarRIS(trabajo) {
 
 class CitaService {
   async generar(trabajoId, formato = 'apa') {
-    const trabajo = await Trabajo.findByPk(trabajoId, {
-      include: [
-        { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] }
-      ]
-    });
+    const trabajo = await Trabajo.findByPk(trabajoId);
     if (!trabajo) {
       const err = new Error('Trabajo no encontrado');
       err.statusCode = 404;

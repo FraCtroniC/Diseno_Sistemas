@@ -6,10 +6,9 @@ import type { DocumentItem, NivelAcademico } from '../types'
 
 const mapToDocumentItems = vi.fn<() => DocumentItem[]>()
 const fetchTrabajos = vi.fn().mockResolvedValue(undefined)
-const fetchCategorias = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('../stores/useTrabajoStore', () => ({
-  useTrabajoStore: () => ({ mapToDocumentItems, fetchTrabajos, fetchCategorias, loading: false }),
+  useTrabajoStore: () => ({ mapToDocumentItems, fetchTrabajos, loading: false }),
 }))
 
 const maestria: NivelAcademico = {
@@ -22,19 +21,19 @@ const doctorado: NivelAcademico = {
 const documentos: DocumentItem[] = [
   {
     id: '1', title: 'Tesis de recursos humanos', authors: ['Ana Pérez'], year: 2025,
-    abstract: 'Resumen', status: 'published', category: 'gestion',
+    abstract: 'Resumen', status: 'published', 
     tipoDocumento: 'postgrado', carrera: 'Maestría en Recursos Humanos',
     carreraSlug: 'maestria-en-recursos-humanos', nivel: maestria,
   },
   {
     id: '2', title: 'Tesis doctoral en gerencia', authors: ['Luis Gómez'], year: 2024,
-    abstract: 'Resumen', status: 'published', category: 'gestion',
+    abstract: 'Resumen', status: 'published', 
     tipoDocumento: 'postgrado', carrera: 'Doctorado en Ciencias Gerenciales',
     carreraSlug: 'doctorado-en-ciencias-gerenciales', nivel: doctorado,
   },
   {
     id: '3', title: 'Trabajo de grado', authors: ['Sara Díaz'], year: 2023,
-    abstract: 'Resumen', status: 'published', category: 'sistemas',
+    abstract: 'Resumen', status: 'published', 
     tipoDocumento: 'pregrado', carrera: 'Ingeniería de Sistemas',
     carreraSlug: 'ingenieria-de-sistemas',
   },

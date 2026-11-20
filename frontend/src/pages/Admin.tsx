@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { useAuthStore } from '../stores/useAuthStore'
 import { adminService, type AdminStats } from '../services/adminService'
 import { authService, type AuthUser } from '../services/authService'
-import { categoriaService, type Categoria } from '../services/trabajoService'
+import { type Trabajo } from '../services/trabajoService'
 import api from '../services/api'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
@@ -56,13 +56,6 @@ export default function Admin() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [usuarios, setUsuarios] = useState<AuthUser[]>([])
   const [usuariosError, setUsuariosError] = useState('')
-  const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [newCatNombre, setNewCatNombre] = useState('')
-  const [newCatSlug, setNewCatSlug] = useState('')
-  const [newCatDesc, setNewCatDesc] = useState('')
-  const [catLoading, setCatLoading] = useState(false)
-  const [editingCat, setEditingCat] = useState<Categoria | null>(null)
-
   const [showCreateUser, setShowCreateUser] = useState(false)
   const [newUserName, setNewUserName] = useState('')
   const [newUserEmail, setNewUserEmail] = useState('')
@@ -75,12 +68,6 @@ export default function Admin() {
   const [editCedulaNumero, setEditCedulaNumero] = useState('')
   const [savingCedula, setSavingCedula] = useState(false)
 
-  const loadCategorias = useCallback(() => {
-    categoriaService.listar()
-      .then((res) => setCategorias(res.data.data))
-      .catch(() => toast.error('Error al cargar categorías'))
-  }, [])
-
   useEffect(() => {
     adminService.getStats()
       .then((res) => setStats(res.data.data))
@@ -88,8 +75,7 @@ export default function Admin() {
     authService.listarUsuarios()
       .then((res) => { setUsuarios(res.data.data); setUsuariosError('') })
       .catch(() => setUsuariosError('No se pudieron cargar los usuarios'))
-    loadCategorias()
-  }, [loadCategorias])
+  }, [])
 
   function handleLogout() {
     logout()
@@ -132,8 +118,7 @@ export default function Admin() {
 
   const chartData = stats?.trabajosPorMes.map((m) => ({ mes: m.mes.slice(5) + '/' + m.mes.slice(0, 4), cantidad: m.cantidad })) ?? []
 
-  const pieData = stats?.publishedPorCategoria.map((c) => ({ name: c.nombre, value: c.cantidad })) ?? []
-  const pieTotal = pieData.reduce((sum, item) => sum + item.value, 0)
+
 
   return (
       <section className="space-y-6 pb-6">
@@ -259,41 +244,7 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-700/50 dark:bg-slate-800">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Documentos por categoría</p>
-                  <div className="mt-4 min-h-[13rem] flex-1">
-                    {pieData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius="78%"
-                            label={{
-                              position: 'inside',
-                              fill: '#ffffff',
-                              fontSize: 11,
-                              fontWeight: 700,
-                              valueAccessor: (entry) => {
-                                if (typeof entry.value !== 'number' || entry.value <= 0 || pieTotal === 0) return ''
-                                return `${Math.round((entry.value / pieTotal) * 100)}%`
-                              },
-                            }}
-                          >
-                            {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                          </Pie>
-                          <Tooltip />
-                          <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <p className="text-sm text-slate-400">No hay datos disponibles.</p>
-                    )}
-                  </div>
-                </div>
+
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -373,19 +324,6 @@ export default function Admin() {
                       className="w-full rounded-xl bg-unefa/10 px-3 py-2 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
                     >
                       Exportar trabajos por mes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!stats) return
-                        exportCSV(
-                          stats.publishedPorCategoria.map((c) => ({ Categoria: c.nombre, Publicados: c.cantidad })),
-                          'publicados-por-categoria.csv'
-                        )
-                      }}
-                      className="w-full rounded-xl bg-unefa/10 px-3 py-2 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
-                    >
-                      Exportar por categoría
                     </button>
                     <button
                       type="button"
@@ -623,127 +561,6 @@ export default function Admin() {
 
         <CarrerasManager />
 
-        <Card className="border-white/80 bg-white/90 dark:border-slate-700/50 dark:bg-slate-800/90">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-unefa">Gestión de categorías</p>
-              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">Categorías temáticas</h3>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-                Áreas temáticas y colecciones que clasifican el contenido del repositorio, independientes de la carrera del autor.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_2fr]">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{editingCat ? 'Editar categoría' : 'Nueva categoría'}</p>
-              <div className="mt-4 space-y-3">
-                <Input
-                  value={newCatNombre}
-                  onChange={(e) => setNewCatNombre(e.target.value)}
-                  placeholder="Nombre (ej: Tecnología y Sistemas)"
-                />
-                <Input
-                  value={newCatSlug}
-                  onChange={(e) => setNewCatSlug(e.target.value)}
-                  placeholder="Slug (ej: tecnologia-y-sistemas)"
-                />
-                <Input
-                  value={newCatDesc}
-                  onChange={(e) => setNewCatDesc(e.target.value)}
-                  placeholder="Descripción (opcional)"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    disabled={catLoading || !newCatNombre || !newCatSlug}
-                    onClick={async () => {
-                      setCatLoading(true)
-                      try {
-                        if (editingCat) {
-                          await categoriaService.actualizar(editingCat.id, {
-                            nombre: newCatNombre,
-                            slug: newCatSlug,
-                            descripcion: newCatDesc || undefined,
-                          })
-                          toast.success('Categoría actualizada')
-                        } else {
-                          await categoriaService.crear({
-                            nombre: newCatNombre,
-                            slug: newCatSlug,
-                            descripcion: newCatDesc || undefined,
-                          })
-                          toast.success('Categoría creada')
-                        }
-                        setNewCatNombre('')
-                        setNewCatSlug('')
-                        setNewCatDesc('')
-                        setEditingCat(null)
-                        loadCategorias()
-                      } catch {
-                        toast.error('Error al guardar categoría')
-                      } finally {
-                        setCatLoading(false)
-                      }
-                    }}
-                  >
-                    {editingCat ? 'Actualizar' : 'Crear'}
-                  </Button>
-                  {editingCat ? (
-                    <Button variant="secondary" type="button" onClick={() => { setEditingCat(null); setNewCatNombre(''); setNewCatSlug(''); setNewCatDesc('') }}>
-                      Cancelar
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {categorias.length === 0 ? (
-                <p className="text-sm text-slate-500">No hay categorías creadas.</p>
-              ) : (
-                categorias.map((cat) => (
-                  <div key={cat.id} className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3 dark:border-slate-700/50 dark:bg-slate-800">
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">{cat.nombre}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{cat.slug}{cat.descripcion ? ` · ${cat.descripcion}` : ''}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingCat(cat)
-                          setNewCatNombre(cat.nombre)
-                          setNewCatSlug(cat.slug)
-                          setNewCatDesc(cat.descripcion ?? '')
-                        }}
-                        className="rounded-full bg-unefa/10 px-3 py-1 text-xs font-semibold text-unefa-dark hover:bg-unefa/20"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!confirm(`¿Eliminar "${cat.nombre}"?`)) return
-                          try {
-                            await categoriaService.eliminar(cat.id)
-                            loadCategorias()
-                            toast.success(`Categoría "${cat.nombre}" eliminada`)
-                          } catch {
-                            toast.error('Error al eliminar categoría')
-                          }
-                        }}
-                        className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-200"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </Card>
       </section>
   )
 }

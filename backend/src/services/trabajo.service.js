@@ -1,5 +1,5 @@
 const { Op, literal } = require('sequelize');
-const { Trabajo, Categoria, Usuario, Carrera, NivelAcademico, Tutor, Estudiante, LineaOperativa, AreaEstrategica, sequelize } = require('../models');
+const { Trabajo, Usuario, Carrera, NivelAcademico, Tutor, Estudiante, LineaOperativa, AreaEstrategica, sequelize } = require('../models');
 const { validarMetadatos } = require('../validators/metadatos.schema');
 const { extractTextFromPdf } = require('./pdf.service');
 const notificacionService = require('./notificacion.service');
@@ -25,8 +25,8 @@ function incluirLineaYArea() {
   ];
 }
 
-const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'linea_operativa_id', 'metadatos', 'estado'];
-const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'categoria_id', 'carrera_id', 'linea_operativa_id', 'metadatos', 'estado'];
+const CAMPOS_CREAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'carrera_id', 'linea_operativa_id', 'metadatos', 'estado'];
+const CAMPOS_ACTUALIZAR = ['titulo', 'autor', 'tutor', 'anio', 'resumen', 'palabras_clave', 'carrera_id', 'linea_operativa_id', 'metadatos', 'estado'];
 
 function pick(obj, keys) {
   const result = {};
@@ -115,7 +115,6 @@ class TrabajoService {
     aplicarVisibilidad(where, { estado, usuario_id, solicitante });
 
     const includes = [
-      { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
@@ -142,7 +141,6 @@ class TrabajoService {
 
   async obtenerPorId(id, solicitante) {
     const includes = [
-      { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },
@@ -165,13 +163,6 @@ class TrabajoService {
     }
     if (data.metadatos) {
       data.metadatos = validarMetadatos(data.metadatos);
-    }
-
-    const categoria = await Categoria.findByPk(data.categoria_id);
-    if (!categoria) {
-      const err = new Error('Categoría no encontrada');
-      err.statusCode = 404;
-      throw err;
     }
 
     if (!data.carrera_id) {
@@ -269,15 +260,6 @@ class TrabajoService {
       data.metadatos = validarMetadatos(data.metadatos);
     }
 
-    if (data.categoria_id) {
-      const categoria = await Categoria.findByPk(data.categoria_id);
-      if (!categoria) {
-        const err = new Error('Categoría no encontrada');
-        err.statusCode = 404;
-        throw err;
-      }
-    }
-
     if (data.carrera_id) {
       const carrera = await Carrera.findByPk(data.carrera_id);
       if (!carrera) {
@@ -359,7 +341,7 @@ class TrabajoService {
     const where = {};
     const attributes = [
       'id', 'titulo', 'autor', 'tutor', 'anio', 'resumen',
-      'palabras_clave', 'categoria_id', 'carrera_id', 'archivo_url', 'metadatos',
+      'palabras_clave', 'carrera_id', 'archivo_url', 'metadatos',
       'estado', 'usuario_id', 'identificador', 'createdAt', 'updatedAt'
     ];
 
@@ -381,7 +363,6 @@ class TrabajoService {
       ]);
     }
 
-    if (categoria) where.categoria_id = categoria;
     if (carrera) where.carrera_id = carrera;
     if (linea_operativa) where.linea_operativa_id = linea_operativa;
     if (tipo_documento) {
@@ -403,7 +384,6 @@ class TrabajoService {
     }
 
     const includes = [
-      { model: Categoria, as: 'categoria', attributes: ['id', 'nombre', 'slug'] },
       { model: Usuario, as: 'usuario', attributes: ['id', 'nombre'] },
       incluirCarreraConNivel(),
       { model: Tutor, as: 'tutorAsignado', attributes: ['id', 'nombre'] },

@@ -13,7 +13,6 @@ if (config.use_env_variable) {
 }
 
 const UsuarioModel = require('./Usuario');
-const CategoriaModel = require('./Categoria');
 const TrabajoModel = require('./Trabajo');
 const RevisionModel = require('./Revision');
 const CarreraModel = require('./Carrera');
@@ -28,7 +27,6 @@ const LineaOperativaModel = require('./LineaOperativa');
 const AreaEstrategicaModel = require('./AreaEstrategica');
 
 const Usuario = UsuarioModel(sequelize);
-const Categoria = CategoriaModel(sequelize);
 const Trabajo = TrabajoModel(sequelize);
 const Revision = RevisionModel(sequelize);
 const Carrera = CarreraModel(sequelize);
@@ -42,9 +40,9 @@ const Version = VersionModel(sequelize);
 const LineaOperativa = LineaOperativaModel(sequelize);
 const AreaEstrategica = AreaEstrategicaModel(sequelize);
 
-Object.values({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version, LineaOperativa, AreaEstrategica }).forEach((model) => {
+Object.values({ Usuario, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version, LineaOperativa, AreaEstrategica }).forEach((model) => {
   if (model.associate) {
-    model.associate({ Usuario, Categoria, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version, LineaOperativa, AreaEstrategica });
+    model.associate({ Usuario, Trabajo, Revision, Carrera, NivelAcademico, Tutor, Estudiante, Visita, Notificacion, Comentario, Version, LineaOperativa, AreaEstrategica });
   }
 });
 
@@ -52,7 +50,6 @@ const db = {
   sequelize,
   Sequelize,
   Usuario,
-  Categoria,
   Trabajo,
   Revision,
   Carrera,

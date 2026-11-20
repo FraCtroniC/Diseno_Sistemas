@@ -1,5 +1,5 @@
 const { Op, fn, col, literal } = require('sequelize');
-const { Trabajo, Usuario, Categoria, Visita } = require('../models');
+const { Trabajo, Usuario, Visita } = require('../models');
 
 function aNumero(valor) {
   const numero = parseInt(valor, 10);
@@ -14,8 +14,6 @@ class AdminService {
       trabajosPorEstado,
       usuariosPorActivo,
       visitasPorTipo,
-      totalCategorias,
-      publishedPorCategoria,
       normativasVigentes,
       trabajosPorMes,
       topTrabajos
@@ -23,16 +21,6 @@ class AdminService {
       Trabajo.count({ group: ['estado'] }),
       Usuario.count({ group: ['activo'] }),
       Visita.count({ group: ['tipo'] }),
-      Categoria.count(),
-      Trabajo.findAll({
-        attributes: [
-          'categoria_id',
-          [fn('COUNT', col('Trabajo.id')), 'count']
-        ],
-        where: { estado: 'publicado' },
-        include: [{ model: Categoria, as: 'categoria', attributes: ['nombre', 'slug'] }],
-        group: ['categoria_id', 'categoria.id']
-      }),
       Trabajo.count({
         where: {
           estado: 'publicado',
@@ -104,14 +92,7 @@ class AdminService {
       porcentajePublicado: totalDocumentos > 0 ? Math.round((publicados / totalDocumentos) * 100) : 0,
       totalUsuarios,
       usuariosActivos,
-      totalCategorias,
       normativasVigentes: aNumero(normativasVigentes),
-      publishedPorCategoria: publishedPorCategoria.map((r) => ({
-        categoriaId: r.categoria_id,
-        nombre: r.categoria?.nombre ?? 'Sin categoría',
-        slug: r.categoria?.slug ?? '',
-        cantidad: aNumero(r.get('count'))
-      })),
       trabajosPorMes: trabajosPorMes.map((r) => ({
         mes: r.get('mes'),
         cantidad: aNumero(r.get('cantidad'))

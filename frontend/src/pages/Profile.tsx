@@ -23,7 +23,7 @@ type FormData = z.infer<typeof schema>
 export default function Profile() {
   const user = useAuthStore((s) => s.user)
   const updateProfile = useAuthStore((s) => s.updateProfile)
-  const { mapToDocumentItems, fetchTrabajos, fetchCategorias } = useTrabajoStore()
+  const { mapToDocumentItems, fetchTrabajos } = useTrabajoStore()
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { cedulaTipo: 'V' },
@@ -49,13 +49,12 @@ export default function Profile() {
   const [passLoading, setPassLoading] = useState(false)
 
   useEffect(() => {
-    fetchCategorias()
     if (user) {
       fetchTrabajos({ usuario_id: user.id })
     } else {
       fetchTrabajos()
     }
-  }, [user, fetchCategorias, fetchTrabajos])
+  }, [user, fetchTrabajos])
 
   const all = mapToDocumentItems()
   const myWorks = all

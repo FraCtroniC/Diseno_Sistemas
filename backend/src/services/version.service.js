@@ -23,7 +23,6 @@ class VersionService {
         anio: trabajo.anio,
         resumen: trabajo.resumen,
         palabras_clave: trabajo.palabras_clave,
-        categoria_id: trabajo.categoria_id,
         carrera_id: trabajo.carrera_id,
         estado: trabajo.estado,
         identificador: trabajo.identificador
@@ -64,7 +63,6 @@ class VersionService {
     trabajo.anio = datos.anio;
     trabajo.resumen = datos.resumen;
     trabajo.palabras_clave = datos.palabras_clave;
-    trabajo.categoria_id = datos.categoria_id;
     if (datos.carrera_id) trabajo.carrera_id = datos.carrera_id;
     trabajo.estado = datos.estado;
     trabajo.archivo_url = version.archivo_url;
